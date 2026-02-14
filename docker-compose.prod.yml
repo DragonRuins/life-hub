@@ -1,0 +1,49 @@
+# Life Hub - Production Override for HexOS/Dockge
+# This file uses pre-built images from GitHub Container Registry
+# instead of building from source.
+#
+# In Dockge, paste the contents of this file as your stack config.
+# Set DB_PASSWORD, SECRET_KEY, and FUEL_API_KEY in Dockge env vars.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lifehub
+      POSTGRES_USER: lifehub
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifehub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/dragonruins/life-hub-backend:latest
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://lifehub:${DB_PASSWORD}@db:5432/lifehub
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - WEATHER_LAT=${WEATHER_LAT:-41.2}
+      - WEATHER_LON=${WEATHER_LON:--87.2}
+      - FUEL_API_KEY=${FUEL_API_KEY}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ghcr.io/dragonruins/life-hub-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

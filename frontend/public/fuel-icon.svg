@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#11111b"/>
+  <rect x="32" y="32" width="448" height="448" rx="80" fill="#1e1e2e"/>
+  <!-- Fuel pump body -->
+  <rect x="120" y="160" width="180" height="220" rx="20" fill="#313244"/>
+  <!-- Fuel pump screen -->
+  <rect x="145" y="185" width="130" height="70" rx="10" fill="#11111b"/>
+  <!-- Dollar sign on screen -->
+  <text x="210" y="238" text-anchor="middle" fill="#a6e3a1" font-family="Arial, sans-serif" font-size="44" font-weight="bold">$</text>
+  <!-- Fuel nozzle -->
+  <rect x="300" y="140" width="16" height="100" rx="4" fill="#45475a"/>
+  <rect x="290" y="120" width="80" height="24" rx="8" fill="#45475a"/>
+  <rect x="354" y="120" width="16" height="80" rx="4" fill="#45475a"/>
+  <rect x="346" y="192" width="32" height="50" rx="6" fill="#585b70"/>
+  <!-- Fuel drop -->
+  <path d="M358 290 Q358 320 340 320 Q322 320 322 290 Q340 260 358 290Z" fill="#89b4fa" opacity="0.8"/>
+  <!-- Base -->
+  <rect x="100" y="370" width="220" height="20" rx="6" fill="#45475a"/>
+</svg>
