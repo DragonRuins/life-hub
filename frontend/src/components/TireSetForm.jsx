@@ -30,6 +30,7 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
     rim_model: tireSet?.rim_model || '',
     install_date: tireSet?.install_date || new Date().toISOString().split('T')[0],
     install_mileage: tireSet?.install_mileage || vehicleMileage || '',
+    accumulated_mileage: tireSet?.accumulated_mileage || '',
     purchase_date: tireSet?.purchase_date || '',
     purchase_price: tireSet?.purchase_price || '',
     notes: tireSet?.notes || '',
@@ -132,6 +133,15 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
           </label>
           <input name="install_mileage" type="number" placeholder={vehicleMileage || '45000'} value={form.install_mileage} onChange={handleChange} />
         </div>
+      </div>
+
+      {/* Miles on Set */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={labelStyle}>
+          Miles on Set
+          <Tooltip text="Total miles driven on this tire set. Use this to enter an estimate for tires you've already been using. Leave blank for new tires (starts at 0)." />
+        </label>
+        <input name="accumulated_mileage" type="number" placeholder="0" value={form.accumulated_mileage} onChange={handleChange} />
       </div>
 
       {/* Vehicle mileage reference */}
