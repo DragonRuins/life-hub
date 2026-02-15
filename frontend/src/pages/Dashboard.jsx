@@ -23,18 +23,21 @@ export default function Dashboard() {
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [showQuickAddFuel, setShowQuickAddFuel] = useState(false)
   const [vehiclesList, setVehiclesList] = useState([])
+  const [maintenanceItems, setMaintenanceItems] = useState([])
 
   useEffect(() => {
     async function load() {
       try {
-        const [w, s, v] = await Promise.all([
+        const [w, s, v, items] = await Promise.all([
           dashboard.getWeather(),
           dashboard.getSummary(),
           vehicles.list(),
+          vehicles.maintenanceItems.list().catch(() => []),
         ])
         setWeather(w)
         setSummary(s)
         setVehiclesList(v)
+        setMaintenanceItems(items)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -273,6 +276,7 @@ export default function Dashboard() {
             </div>
             <MaintenanceForm
               vehicles={vehiclesList}
+              maintenanceItems={maintenanceItems}
               onSubmit={handleQuickAddMaintenance}
               onCancel={() => setShowQuickAdd(false)}
             />

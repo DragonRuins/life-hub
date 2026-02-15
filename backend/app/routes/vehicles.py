@@ -34,6 +34,8 @@ from datetime import date, datetime
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models.vehicle import Vehicle, MaintenanceLog, VehicleComponent, ComponentLog, TireSet, FuelLog
+from app.models.maintenance_interval import MaintenanceItem, VehicleMaintenanceInterval, MaintenanceLogItem
+from app.services.event_bus import emit
 
 vehicles_bp = Blueprint('vehicles', __name__)
 
@@ -343,6 +345,18 @@ def create_vehicle():
     # Auto-create default components for new vehicle
     create_default_components(vehicle.id)
 
+    # Notify: new vehicle added
+    try:
+        emit('vehicle.created',
+             vehicle_id=vehicle.id,
+             year=data['year'],
+             make=data['make'],
+             model=data['model'],
+             trim=data.get('trim', ''),
+             color=data.get('color', ''))
+    except Exception:
+        pass  # Never let notifications break vehicle creation
+
     return jsonify(vehicle.to_dict()), 201
 
 
@@ -386,6 +400,254 @@ def delete_vehicle(vehicle_id):
     return jsonify({'message': 'Vehicle deleted'}), 200
 
 
+# ── Maintenance Items (Global Catalog) ─────────────────────────
+
+@vehicles_bp.route('/maintenance-items', methods=['GET'])
+def list_maintenance_items():
+    """
+    List all maintenance items from the global catalog.
+    These are the "types" of maintenance a user can track (e.g., Oil Change, Tire Rotation).
+
+    Optional query param:
+      ?category=Fluids  → filter items to just one category
+    """
+    query = MaintenanceItem.query
+
+    # Filter by category if provided (e.g., ?category=Fluids)
+    category = request.args.get('category')
+    if category:
+        query = query.filter_by(category=category)
+
+    # Sort by sort_order first (so presets appear in logical order), then name
+    items = query.order_by(MaintenanceItem.sort_order, MaintenanceItem.name).all()
+    return jsonify([item.to_dict() for item in items])
+
+
+@vehicles_bp.route('/maintenance-items', methods=['POST'])
+def create_maintenance_item():
+    """
+    Create a custom maintenance item in the global catalog.
+    Preset items are seeded by the system; user-created items have is_preset=False.
+
+    Expects JSON body like:
+    {
+        "name": "Cabin Air Filter",
+        "category": "Filters",
+        "default_miles_interval": 15000,
+        "default_months_interval": 12
+    }
+    """
+    data = request.get_json()
+
+    # Name and category are required for any maintenance item
+    if not data.get('name') or not data.get('category'):
+        return jsonify({'error': 'name and category are required'}), 400
+
+    item = MaintenanceItem(
+        name=data['name'],
+        category=data['category'],
+        default_miles_interval=data.get('default_miles_interval'),
+        default_months_interval=data.get('default_months_interval'),
+        is_preset=False,  # User-created items are never presets
+        sort_order=data.get('sort_order', 999),  # Custom items sort last by default
+    )
+    db.session.add(item)
+    db.session.commit()
+
+    return jsonify(item.to_dict()), 201
+
+
+@vehicles_bp.route('/maintenance-items/<int:item_id>', methods=['DELETE'])
+def delete_maintenance_item(item_id):
+    """
+    Delete a custom maintenance item from the global catalog.
+    Preset items (system-seeded) cannot be deleted — only custom items can.
+    """
+    item = MaintenanceItem.query.get_or_404(item_id)
+
+    # Prevent deleting preset items that came with the system
+    if item.is_preset:
+        return jsonify({'error': 'Cannot delete preset maintenance items'}), 400
+
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({'message': 'Maintenance item deleted'}), 200
+
+
+# ── Vehicle Maintenance Intervals ──────────────────────────────
+
+@vehicles_bp.route('/<int:vehicle_id>/intervals', methods=['GET'])
+def list_vehicle_intervals(vehicle_id):
+    """
+    List all maintenance intervals configured for a specific vehicle.
+    Each interval tracks when a particular maintenance item is due.
+
+    Returns interval data merged with computed status (miles remaining,
+    months remaining, urgency level, etc.) when the interval_checker
+    service is available.
+    """
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    current_mileage = vehicle.current_mileage or 0
+
+    intervals = (
+        VehicleMaintenanceInterval.query
+        .filter_by(vehicle_id=vehicle_id)
+        .all()
+    )
+
+    # Import the interval status checker service
+    from app.services.interval_checker import check_interval_status
+
+    results = []
+    for interval in intervals:
+        # Start with the interval's own data
+        entry = interval.to_dict()
+
+        # Merge in computed status fields at the top level.
+        # This makes fields like miles_remaining, next_due_mileage, percent_miles
+        # available directly on the interval object in the frontend.
+        # The 'status' key becomes the string ('ok', 'overdue', etc.).
+        try:
+            status_info = check_interval_status(interval, current_mileage)
+            entry.update(status_info)
+        except Exception:
+            entry['status'] = None  # Don't break if checker has a bug
+
+        results.append(entry)
+
+    return jsonify(results)
+
+
+@vehicles_bp.route('/<int:vehicle_id>/intervals', methods=['POST'])
+def create_vehicle_interval(vehicle_id):
+    """
+    Create a maintenance interval for a vehicle.
+    Links a global MaintenanceItem to this vehicle with custom or default intervals.
+
+    Tracking starts from NOW: last_service_mileage = vehicle's current odometer,
+    last_service_date = today.
+
+    Expects JSON body like:
+    {
+        "item_id": 1,
+        "miles_interval": 5000,
+        "months_interval": 6,
+        "condition_type": "normal",
+        "notify_miles_thresholds": [500, 100],
+        "notify_months_thresholds": [30, 7]
+    }
+    """
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    data = request.get_json()
+
+    # item_id is required — it tells us which maintenance item to track
+    if not data.get('item_id'):
+        return jsonify({'error': 'item_id is required'}), 400
+
+    # Look up the maintenance item to get its default intervals
+    item = MaintenanceItem.query.get_or_404(data['item_id'])
+
+    # Use provided intervals, or fall back to the item's defaults
+    miles_interval = data.get('miles_interval') or item.default_miles_interval
+    months_interval = data.get('months_interval') or item.default_months_interval
+
+    interval = VehicleMaintenanceInterval(
+        vehicle_id=vehicle_id,
+        item_id=item.id,
+        miles_interval=miles_interval,
+        months_interval=months_interval,
+        condition_type=data.get('condition_type', 'or'),
+        last_service_date=date.today(),  # Start tracking from now
+        last_service_mileage=vehicle.current_mileage,  # Start from current odometer
+        notify_miles_thresholds=data.get('notify_miles_thresholds') or [0],
+        notify_months_thresholds=data.get('notify_months_thresholds') or [0],
+    )
+    db.session.add(interval)
+    db.session.commit()
+
+    return jsonify(interval.to_dict()), 201
+
+
+@vehicles_bp.route('/intervals/<int:interval_id>', methods=['PUT'])
+def update_vehicle_interval(interval_id):
+    """
+    Update a vehicle's maintenance interval configuration.
+    Use this to change how often maintenance is due, or to enable/disable tracking.
+    """
+    interval = VehicleMaintenanceInterval.query.get_or_404(interval_id)
+    data = request.get_json()
+
+    # Update only the fields that were provided in the request
+    for field in ('miles_interval', 'months_interval', 'condition_type',
+                  'notify_miles_thresholds', 'notify_months_thresholds', 'is_enabled',
+                  'notification_channel_ids', 'notification_priority',
+                  'notification_title_template', 'notification_body_template',
+                  'notification_timing'):
+        if field in data:
+            setattr(interval, field, data[field])
+
+    db.session.commit()
+    return jsonify(interval.to_dict()), 200
+
+
+@vehicles_bp.route('/intervals/<int:interval_id>', methods=['DELETE'])
+def delete_vehicle_interval(interval_id):
+    """
+    Delete a maintenance interval.
+    The vehicle will no longer track this maintenance item.
+    """
+    interval = VehicleMaintenanceInterval.query.get_or_404(interval_id)
+    db.session.delete(interval)
+    db.session.commit()
+    return jsonify({'message': 'Interval deleted'}), 200
+
+
+@vehicles_bp.route('/<int:vehicle_id>/intervals/setup-defaults', methods=['POST'])
+def setup_default_intervals(vehicle_id):
+    """
+    Seed all preset maintenance items as intervals for this vehicle.
+    This is a convenience endpoint to quickly set up tracking for all
+    standard maintenance items (oil change, tire rotation, etc.).
+
+    Only creates intervals for preset items that don't already have
+    an interval on this vehicle (safe to call multiple times).
+    """
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
+    # Get all preset items from the global catalog
+    preset_items = MaintenanceItem.query.filter_by(is_preset=True).all()
+
+    # Find which items this vehicle already has intervals for
+    existing_item_ids = {
+        interval.item_id
+        for interval in VehicleMaintenanceInterval.query.filter_by(vehicle_id=vehicle_id).all()
+    }
+
+    created_count = 0
+    for item in preset_items:
+        # Skip if this vehicle already tracks this item
+        if item.id in existing_item_ids:
+            continue
+
+        interval = VehicleMaintenanceInterval(
+            vehicle_id=vehicle_id,
+            item_id=item.id,
+            miles_interval=item.default_miles_interval,
+            months_interval=item.default_months_interval,
+            last_service_date=date.today(),  # Start tracking from now
+            last_service_mileage=vehicle.current_mileage,  # Start from current odometer
+        )
+        db.session.add(interval)
+        created_count += 1
+
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Created {created_count} default intervals',
+        'count': created_count,
+    }), 200
+
+
 # ── Maintenance Log CRUD ──────────────────────────────────────
 
 @vehicles_bp.route('/<int:vehicle_id>/maintenance', methods=['GET'])
@@ -405,6 +667,11 @@ def list_maintenance(vehicle_id):
 def create_maintenance(vehicle_id):
     """
     Add a maintenance record.
+
+    Can be linked to maintenance items via item_ids, which also resets
+    the corresponding interval timers. If item_ids are provided without
+    a service_type, the service_type is auto-populated from item names.
+
     Expects JSON body like:
     {
         "service_type": "Oil Change",
@@ -412,18 +679,28 @@ def create_maintenance(vehicle_id):
         "date": "2025-01-15",
         "mileage": 45000,
         "cost": 65.99,
-        "shop_name": "Valvoline"
+        "shop_name": "Valvoline",
+        "item_ids": [1, 3]
     }
     """
-    Vehicle.query.get_or_404(vehicle_id)
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
     data = request.get_json()
 
-    if not all(k in data for k in ('service_type', 'date')):
-        return jsonify({'error': 'service_type and date are required'}), 400
+    # Date is always required
+    if 'date' not in data:
+        return jsonify({'error': 'date is required'}), 400
+
+    # Either service_type or item_ids must be provided so we know what was done
+    if not data.get('service_type') and not data.get('item_ids'):
+        return jsonify({'error': 'service_type or item_ids is required'}), 400
+
+    # Use provided service_type, or empty string as placeholder
+    # (will be auto-populated from item names below if item_ids are provided)
+    service_type = data.get('service_type', '')
 
     log = MaintenanceLog(
         vehicle_id=vehicle_id,
-        service_type=data['service_type'],
+        service_type=service_type,
         description=data.get('description'),
         date=date.fromisoformat(data['date']),
         mileage=data.get('mileage'),
@@ -438,9 +715,59 @@ def create_maintenance(vehicle_id):
     db.session.add(log)
     db.session.commit()
 
+    # Handle maintenance item associations and interval resets.
+    # When a maintenance log is linked to items, we:
+    #   1. Create join-table records (MaintenanceLogItem) so we know which items were serviced
+    #   2. Reset the interval timer for each item on this vehicle (last_service_date/mileage)
+    #   3. Auto-populate service_type from item names if user didn't provide one
+    item_ids = data.get('item_ids', [])
+    if item_ids:
+        for item_id in item_ids:
+            # Create the log-item association (join table record)
+            log_item = MaintenanceLogItem(log_id=log.id, item_id=item_id)
+            db.session.add(log_item)
+
+            # Reset the interval for this item on this vehicle so the
+            # "next due" calculation starts fresh from this service
+            interval = VehicleMaintenanceInterval.query.filter_by(
+                vehicle_id=vehicle_id, item_id=item_id
+            ).first()
+            if interval:
+                interval.last_service_date = log.date
+                interval.last_service_mileage = log.mileage or vehicle.current_mileage
+                # Clear any previously sent notification milestones so they can re-trigger
+                interval.notified_milestones = {"miles": [], "months": []}
+
+        # Auto-populate service_type from item names if not provided by user
+        if not data.get('service_type') or data['service_type'].strip() == '':
+            items = MaintenanceItem.query.filter(MaintenanceItem.id.in_(item_ids)).all()
+            log.service_type = ', '.join(item.name for item in items)
+
+        db.session.commit()
+
     # If maintenance log has mileage, update vehicle and equipped tire set
     if 'mileage' in data and data['mileage'] is not None:
         add_miles_to_equipped_set(vehicle_id, data['mileage'])
+
+    # Notify: maintenance log created
+    try:
+        emit('maintenance.created',
+             vehicle_id=vehicle_id,
+             service_type=log.service_type,
+             description=data.get('description', ''),
+             date=data['date'],
+             mileage=data.get('mileage'),
+             cost=data.get('cost', 0),
+             shop_name=data.get('shop_name', ''))
+    except Exception:
+        pass  # Never let notifications break maintenance creation
+
+    # Check maintenance intervals after mileage update
+    try:
+        from app.services.interval_checker import check_and_notify_intervals
+        check_and_notify_intervals(vehicle_id)
+    except Exception:
+        pass  # Never let interval checks break maintenance creation
 
     return jsonify(log.to_dict()), 201
 
@@ -751,6 +1078,20 @@ def create_fuel_log(vehicle_id):
 
     db.session.commit()
 
+    # Notify: fuel log created
+    try:
+        emit('fuel.created',
+             vehicle_id=vehicle_id,
+             date=data['date'],
+             mileage=mileage,
+             gallons=data.get('gallons_added'),
+             cost_per_gallon=data.get('cost_per_gallon'),
+             total_cost=total_cost,
+             mpg=mpg,
+             location=data.get('location', ''))
+    except Exception:
+        pass  # Never let notifications break fuel log creation
+
     return jsonify(log.to_dict()), 201
 
 
@@ -877,4 +1218,13 @@ def swap_tire_set_endpoint(set_id):
     Also updates current_mileage on the new set.
     """
     new_set = swap_tire_set(set_id)
+
+    # Notify: tire set swapped
+    try:
+        emit('tire_set.swapped',
+             vehicle_id=new_set.vehicle_id,
+             set_name=new_set.name)
+    except Exception:
+        pass  # Never let notifications break tire swap
+
     return jsonify(new_set.to_dict()), 200

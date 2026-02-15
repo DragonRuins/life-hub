@@ -64,6 +64,40 @@ export const vehicles = {
     method: "DELETE",
   }),
 
+  // Maintenance Items (global catalog)
+  maintenanceItems: {
+    list: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/vehicles/maintenance-items${query ? '?' + query : ''}`)
+    },
+    create: (data) => apiFetch('/vehicles/maintenance-items', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/vehicles/maintenance-items/${id}`, {
+      method: 'DELETE',
+    }),
+  },
+
+  // Vehicle Maintenance Intervals
+  intervals: {
+    list: (vehicleId) => apiFetch(`/vehicles/${vehicleId}/intervals`),
+    create: (vehicleId, data) => apiFetch(`/vehicles/${vehicleId}/intervals`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (intervalId, data) => apiFetch(`/vehicles/intervals/${intervalId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (intervalId) => apiFetch(`/vehicles/intervals/${intervalId}`, {
+      method: 'DELETE',
+    }),
+    setupDefaults: (vehicleId) => apiFetch(`/vehicles/${vehicleId}/intervals/setup-defaults`, {
+      method: 'POST',
+    }),
+  },
+
   // Vehicle components (tires, battery, etc.)
   components: {
     list: (vehicleId, params = {}) => {
@@ -171,4 +205,74 @@ export const notes = {
     method: "DELETE",
   }),
   categories: () => apiFetch("/notes/categories"),
+}
+
+// -- Notifications --------------------------------------------------------
+
+export const notifications = {
+  // Channels
+  channels: {
+    list: () => apiFetch("/notifications/channels"),
+    get: (id) => apiFetch(`/notifications/channels/${id}`),
+    create: (data) => apiFetch("/notifications/channels", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/notifications/channels/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/notifications/channels/${id}`, {
+      method: "DELETE",
+    }),
+    test: (id) => apiFetch(`/notifications/channels/${id}/test`, {
+      method: "POST",
+    }),
+  },
+
+  // Rules
+  rules: {
+    list: () => apiFetch("/notifications/rules"),
+    get: (id) => apiFetch(`/notifications/rules/${id}`),
+    create: (data) => apiFetch("/notifications/rules", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/notifications/rules/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/notifications/rules/${id}`, {
+      method: "DELETE",
+    }),
+    trigger: (id) => apiFetch(`/notifications/rules/${id}/trigger`, {
+      method: "POST",
+    }),
+    events: () => apiFetch("/notifications/rules/events"),
+    templateVariables: (module) => apiFetch(`/notifications/rules/template-variables/${module}`),
+  },
+
+  // Feed (bell icon)
+  feed: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/notifications/feed${query ? "?" + query : ""}`)
+  },
+  unreadCount: () => apiFetch("/notifications/unread-count"),
+  markRead: (id) => apiFetch(`/notifications/feed/${id}/read`, { method: "PUT" }),
+  markAllRead: () => apiFetch("/notifications/feed/read-all", { method: "PUT" }),
+
+  // Log & stats
+  log: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/notifications/log${query ? "?" + query : ""}`)
+  },
+  stats: () => apiFetch("/notifications/stats"),
+
+  // Config
+  schemas: () => apiFetch("/notifications/channels/schemas"),
+  settings: () => apiFetch("/notifications/settings"),
+  updateSettings: (data) => apiFetch("/notifications/settings", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  }),
 }

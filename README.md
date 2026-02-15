@@ -9,6 +9,8 @@ A self-hosted personal dashboard and database for tracking everything in your li
 - **Dashboard** — Weather widget with 5-day forecast, quick stats from all modules
 - **Vehicles** — Track your vehicles, log maintenance records, track costs
 - **Notes** — Create, search, categorize, tag, and pin notes
+- **Fuel Economy** — Log fill-ups, track MPG over time with charts, Fuelly CSV import
+- **Mobile Fuel Entry** — Standalone phone-friendly page for logging fill-ups at the pump
 - **Modular** — Easy to add new modules for anything you want to track
 
 ## Quick Start (Mac Development)
@@ -70,9 +72,33 @@ See `docker-compose.prod.yml` — uses pre-built images from GitHub Container Re
 
 1. Push code to `main` → GitHub Actions builds Docker images automatically
 2. In Dockge, create a new stack with the contents of `docker-compose.prod.yml`
-3. Replace `YOUR_GITHUB_USERNAME` with your GitHub username
-4. Set environment variables (`DB_PASSWORD`, `SECRET_KEY`) in Dockge
-5. Deploy
+3. Set environment variables (`DB_PASSWORD`, `SECRET_KEY`, `FUEL_API_KEY`) in Dockge
+4. Deploy
+
+To update after pushing new code: wait ~40 seconds for GitHub Actions to build, then click **Update** in Dockge.
+
+## Mobile Fuel Entry
+
+A standalone, phone-friendly page for logging fuel fill-ups at the gas station. No sidebar — designed to be bookmarked or saved to your home screen.
+
+**URL:** `http://<server-ip>:3000/fuel/add/<vehicle-id>`
+
+Replace `<server-ip>` with your server's IP address and `<vehicle-id>` with the numeric ID of the vehicle (visible on the Vehicles page).
+
+### Save to iPhone Home Screen
+
+1. Open the URL above in Safari on your phone
+2. Tap the **Share** button (square with arrow)
+3. Tap **"Add to Home Screen"**
+4. It saves as "Fuel Log" with a fuel pump icon and opens in standalone mode (no browser toolbar)
+
+### How It Works
+
+- **Form persists as you type** — saved to localStorage, so you can lock your phone, pump gas, and come back without losing data
+- **Large touch inputs** with numeric keyboard for easy entry at the pump
+- **Live cost preview** — shows estimated total as you fill in gallons and price
+- **Missed fill-up toggle** — skips MPG calculation if you forgot to log a previous fill-up
+- **Success screen** — shows calculated MPG and total cost after submission
 
 ## Project Structure
 

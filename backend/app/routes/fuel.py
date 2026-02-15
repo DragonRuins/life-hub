@@ -28,6 +28,7 @@ from sqlalchemy import func
 
 from app import db
 from app.models.vehicle import Vehicle, FuelLog
+from app.services.event_bus import emit
 
 fuel_bp = Blueprint('fuel', __name__)
 
@@ -168,6 +169,27 @@ def create_entry():
         vehicle.current_mileage = int(odometer)
 
     db.session.commit()
+
+    # Notify: fuel entry created
+    try:
+        emit('fuel.created',
+             vehicle_id=int(vehicle_id),
+             date=log.date.isoformat() if log.date else None,
+             mileage=log.mileage,
+             gallons=log.gallons_added,
+             cost_per_gallon=log.cost_per_gallon,
+             total_cost=log.total_cost,
+             mpg=log.mpg,
+             location='')
+    except Exception:
+        pass  # Never let notifications break fuel entry creation
+
+    # Check maintenance intervals after mileage update
+    try:
+        from app.services.interval_checker import check_and_notify_intervals
+        check_and_notify_intervals(int(vehicle_id))
+    except Exception:
+        pass  # Never let interval checks break fuel entry creation
 
     # Return response in the format the Apple Shortcut expects
     return jsonify({

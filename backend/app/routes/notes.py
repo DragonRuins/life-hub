@@ -14,6 +14,7 @@ Endpoints:
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models.note import Note
+from app.services.event_bus import emit
 
 notes_bp = Blueprint('notes', __name__)
 
@@ -87,6 +88,15 @@ def create_note():
     )
     db.session.add(note)
     db.session.commit()
+
+    # Notify: note created
+    try:
+        emit('note.created',
+             title=data['title'],
+             category=data.get('category', 'general'),
+             tags=tags)
+    except Exception:
+        pass  # Never let notifications break note creation
 
     return jsonify(note.to_dict()), 201
 

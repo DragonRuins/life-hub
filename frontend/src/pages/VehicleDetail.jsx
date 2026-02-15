@@ -6,12 +6,13 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings } from 'lucide-react'
 import { vehicles } from '../api/client'
 import ComponentCard from '../components/ComponentCard'
 import ComponentForm from '../components/ComponentForm'
 import ComponentLogForm from '../components/ComponentLogForm'
 import MaintenanceForm from '../components/MaintenanceForm'
+import ServiceIntervalsTab from '../components/ServiceIntervalsTab'
 import TireSetCard from '../components/TireSetCard'
 import TireSetForm from '../components/TireSetForm'
 import FuelForm from '../components/FuelForm'
@@ -50,6 +51,12 @@ export default function VehicleDetail() {
   const [fuelLogs, setFuelLogs] = useState([])
   const [showFuelForm, setShowFuelForm] = useState(false)
   const [editingFuelLog, setEditingFuelLog] = useState(null)
+
+  // Maintenance Items (global catalog, used by MaintenanceForm checkbox picker)
+  const [maintenanceItems, setMaintenanceItems] = useState([])
+
+  // Counter to force ServiceIntervalsTab to reload when maintenance is added
+  const [intervalsRefreshKey, setIntervalsRefreshKey] = useState(0)
 
   // Maintenance form state
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
@@ -94,11 +101,21 @@ export default function VehicleDetail() {
     }
   }
 
+  async function loadMaintenanceItems() {
+    try {
+      const data = await vehicles.maintenanceItems.list()
+      setMaintenanceItems(data)
+    } catch (err) {
+      console.error('Failed to load maintenance items:', err)
+    }
+  }
+
   useEffect(() => {
     loadVehicle()
     loadComponents()
     loadTireSets()
     loadFuelLogs()
+    loadMaintenanceItems()
   }, [id])
 
   async function handleAddMaintenance(data) {
@@ -107,6 +124,9 @@ export default function VehicleDetail() {
       // Reload vehicle to get updated maintenance count
       const updated = await vehicles.get(id)
       setVehicle(updated)
+      setShowMaintenanceForm(false)
+      // Bump refresh key so ServiceIntervalsTab reloads (maintenance may update interval statuses)
+      setIntervalsRefreshKey(prev => prev + 1)
     } catch (err) {
       alert('Failed to add maintenance: ' + err.message)
     }
@@ -293,15 +313,31 @@ export default function VehicleDetail() {
         >
           Fuel Logs
         </button>
+        <button
+          className={`btn ${activeTab === 'intervals' ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => setActiveTab('intervals')}
+        >
+          Service Intervals
+        </button>
       </div>
 
       {/* Maintenance History Tab */}
       {activeTab === 'maintenance' && (
         <>
+          {/* Add Maintenance Button */}
+          {!showMaintenanceForm && (
+            <div style={{ marginBottom: '1rem' }}>
+              <button className="btn btn-primary" onClick={() => setShowMaintenanceForm(true)}>
+                <Plus size={14} style={{ marginRight: '0.5rem' }} />
+                Add Maintenance
+              </button>
+            </div>
+          )}
+
           {/* Add Maintenance Form */}
           {showMaintenanceForm && (
             <div className="card" style={{ marginBottom: '1.5rem' }}>
-              <MaintenanceForm vehicleId={vehicle.id} onSubmit={handleAddMaintenance} onCancel={() => setShowMaintenanceForm(false)} />
+              <MaintenanceForm vehicleId={vehicle.id} maintenanceItems={maintenanceItems} onSubmit={handleAddMaintenance} onCancel={() => setShowMaintenanceForm(false)} />
             </div>
           )}
 
@@ -721,6 +757,11 @@ export default function VehicleDetail() {
             </div>
           )}
         </>
+      )}
+
+      {/* Service Intervals Tab */}
+      {activeTab === 'intervals' && (
+        <ServiceIntervalsTab key={intervalsRefreshKey} vehicleId={id} vehicle={vehicle} />
       )}
     </div>
   )

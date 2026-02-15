@@ -56,6 +56,11 @@ class Vehicle(db.Model):
         'TireSet', backref='vehicle', cascade='all, delete-orphan'
     )
 
+    # Relationship: one vehicle has many maintenance intervals
+    maintenance_intervals = db.relationship(
+        'VehicleMaintenanceInterval', backref='vehicle', cascade='all, delete-orphan'
+    )
+
     def to_dict(self):
         """Convert to dictionary for JSON responses."""
         return {
@@ -82,7 +87,6 @@ class MaintenanceLog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'), nullable=False)
-    primary_key = True
 
     # What was done
     service_type = db.Column(db.String(100), nullable=False)  # e.g., "Oil Change"
@@ -100,6 +104,14 @@ class MaintenanceLog(db.Model):
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    # Relationship: which maintenance items were serviced in this log entry
+    # A log can cover multiple items (e.g., "Oil Change" = Engine Oil + Oil Filter)
+    items = db.relationship(
+        'MaintenanceItem',
+        secondary='maintenance_log_items',
+        backref='maintenance_logs'
+    )
+
     def to_dict(self):
         """Convert to dictionary for JSON responses."""
         return {
@@ -114,6 +126,8 @@ class MaintenanceLog(db.Model):
             'next_service_mileage': self.next_service_mileage,
             'next_service_date': self.next_service_date.isoformat() if self.next_service_date else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
+            'item_ids': [item.id for item in self.items],
+            'item_names': [item.name for item in self.items],
         }
 
 

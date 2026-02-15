@@ -1,5 +1,45 @@
 # Life Hub - CLAUDE.md
 
+## Important Notes for Agents
+
+**IMPORTANT**: Interview-Driven Development
+Before generating any plan or writing any code, conduct a minimum of 3-4 rounds of clarifying questions. Each round should focus on a different dimension:
+
+Intent & Scope — What exactly are we building and what's explicitly out of scope?
+Edge Cases & Constraints — What happens when things go wrong? What are the performance/compatibility requirements?
+Integration & Dependencies — How does this connect to existing code, APIs, or infrastructure?
+UX & Behavior — What should the user actually experience? What are the expected inputs/outputs?
+
+Do not assume answers to any of these. Even if something seems obvious, ask — my answer may surprise you.
+
+Assumption Surfacing
+Whenever you're about to make a design decision or assumption, stop and state it explicitly before proceeding. Frame it as: "I'm about to assume X — is that correct, or do you want Y instead?" Never silently choose a default.
+
+Plan Before Code
+Never jump straight to implementation. Present a structured plan with the proposed file structure, key functions/components, and data flow. Wait for my explicit approval before writing any code. If the plan changes mid-implementation, pause and re-confirm.
+
+Incremental Delivery
+Break work into small, testable chunks. After each chunk, check in with me before continuing. Don't build the entire thing in one shot — I want to course-correct early, not after 500 lines.
+
+Challenge My Ideas
+If you see a better approach than what I'm describing, push back. Explain the tradeoff. Don't just comply — act as a senior engineer doing a design review. If my approach has footguns, call them out before implementing.
+
+Error Anticipation
+For every function or module, proactively think through: what fails here? Add error handling, input validation, and logging by default — don't wait for me to ask for it.
+
+Token Efficiency — Delegate Verification to Me
+Minimize unnecessary token consumption by defaulting to telling me what commands to run rather than running them yourself, especially for:
+
+Build/compile steps
+Test suites
+Server startup and log monitoring
+Database migrations or seed operations
+Any command that produces verbose output
+
+Tell me exactly what to run and what to look for in the output. I'll report back with only the relevant lines (errors, warnings, or confirmation of success). Only run commands directly when the output is short and essential for your next decision, or when I explicitly ask you to.
+When you do need to run commands, prefer targeted checks (e.g., grep for a specific error, tail -n 20, checking a single value) over broad ones (e.g., cat-ing entire log files, running full test suites just to check one thing).
+Similarly, when reading files for context, read only the relevant sections or line ranges — don't ingest entire files when you only need to understand one function or block.
+
 ## Project Overview
 
 Life Hub is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser.
@@ -60,23 +100,31 @@ life-hub/
 This is the most common task. Follow this pattern:
 
 ### 1. Create the database model
+
 Create `backend/app/models/<module_name>.py`:
+
 - Define a SQLAlchemy model class with columns
 - Add a `to_dict()` method for JSON serialization
 - Import it in `backend/app/models/__init__.py`
 
 ### 2. Create API routes
+
 Create `backend/app/routes/<module_name>.py`:
+
 - Create a Flask Blueprint
 - Add CRUD endpoints (GET list, GET single, POST create, PUT update, DELETE)
 - Register the blueprint in `backend/app/__init__.py` under the "Register Modules" section
 
 ### 3. Add API client functions
+
 Add a new section in `frontend/src/api/client.js`:
+
 - Export an object with list/get/create/update/delete functions
 
 ### 4. Create frontend pages
+
 Create page components in `frontend/src/pages/`:
+
 - Add routes in `frontend/src/App.jsx`
 - Add sidebar nav link in the `App.jsx` sidebar section
 - Add a summary card on the Dashboard page
@@ -84,6 +132,7 @@ Create page components in `frontend/src/pages/`:
 ## Design System
 
 The app uses a **Catppuccin Mocha** dark theme. Key CSS variables are defined in `frontend/src/index.css`:
+
 - Backgrounds: `--color-crust`, `--color-mantle`, `--color-base`
 - Text: `--color-text`, `--color-subtext-0`, `--color-subtext-1`
 - Accents: `--color-blue`, `--color-green`, `--color-peach`, `--color-red`, `--color-mauve`, `--color-yellow`, `--color-teal`
@@ -104,25 +153,28 @@ Reusable CSS classes: `.card`, `.btn`, `.btn-primary`, `.btn-ghost`, `.btn-dange
 ### Form Pattern (Important!)
 
 When creating form components that appear in modals:
+
 - **The form should NOT call the API directly**
 - Pass form data to parent via `onSubmit(data)` callback
 - The parent page (e.g., VehicleDetail) handles the API call
 - This prevents double-submission bugs where both form and parent try to create the same resource
 
 **Incorrect pattern (causes double-submit):**
+
 ```jsx
 // Form calls API AND calls onSubmit()
 async function handleSubmit() {
-  await api.create(data)  // First API call
-  onSubmit()  // Parent also calls api.create()
+  await api.create(data); // First API call
+  onSubmit(); // Parent also calls api.create()
 }
 ```
 
 **Correct pattern:**
+
 ```jsx
 // Form just passes data to parent
 function handleSubmit() {
-  onSubmit(data)  // Parent handles API call
+  onSubmit(data); // Parent handles API call
 }
 ```
 
@@ -163,6 +215,7 @@ docker compose down
 ## Current Status (Phase 1 Complete)
 
 ### What's built:
+
 - ✅ Dashboard with weather widget (5-day forecast) and module summary cards
 - ✅ Vehicles module: add vehicles, view details, full maintenance log CRUD
 - ✅ Notes module: create/edit/delete, search, category filter, pin to top
@@ -172,6 +225,7 @@ docker compose down
 - ✅ Catppuccin Mocha dark theme
 
 ### Planned future modules/features:
+
 - Fuel logging (integrate Fuelly-like tracking)
 - Finance/expense tracking
 - Project/task management

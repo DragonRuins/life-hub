@@ -5,16 +5,18 @@
  * Each "page" is a module that renders in the main content area.
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, Settings, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Car, StickyNote, ChevronLeft, ChevronRight, Settings } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
 import VehicleDetail from './pages/VehicleDetail'
 import Notes from './pages/Notes'
+import Notifications from './pages/Notifications'
 import FuelEconomy from './pages/FuelEconomy'
 import FuelEntry from './pages/FuelEntry'
+import NotificationBell from './components/NotificationBell'
 
 export default function App() {
   return (
@@ -121,19 +123,129 @@ function AppShell() {
       <main
         style={{
           flex: 1,
-          padding: '2rem',
+          display: 'flex',
+          flexDirection: 'column',
           overflowY: 'auto',
           background: 'var(--color-crust)',
         }}
       >
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/vehicles/:id" element={<VehicleDetail />} />
-          <Route path="/vehicles/:id/fuel" element={<FuelEconomy />} />
-          <Route path="/notes" element={<Notes />} />
-        </Routes>
+        {/* Header Bar */}
+        <HeaderBar />
+
+        {/* Page Content */}
+        <div style={{ flex: 1, padding: '2rem' }}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/vehicles/:id" element={<VehicleDetail />} />
+            <Route path="/vehicles/:id/fuel" element={<FuelEconomy />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/notifications" element={<Notifications />} />
+          </Routes>
+        </div>
       </main>
+    </div>
+  )
+}
+
+
+/**
+ * Header bar with notification bell and settings gear dropdown.
+ * Sits at the top of the main content area.
+ */
+function HeaderBar() {
+  const [gearOpen, setGearOpen] = useState(false)
+  const gearRef = useRef(null)
+  const navigate = useNavigate()
+
+  // Close gear dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (gearRef.current && !gearRef.current.contains(e.target)) {
+        setGearOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      padding: '0.5rem 1.5rem',
+      borderBottom: '1px solid var(--color-surface-0)',
+      background: 'var(--color-mantle)',
+      gap: '0.5rem',
+      minHeight: '48px',
+    }}>
+      {/* Notification Bell */}
+      <NotificationBell />
+
+      {/* Settings Gear */}
+      <div ref={gearRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => setGearOpen(!gearOpen)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            background: gearOpen ? 'rgba(137, 180, 250, 0.08)' : 'transparent',
+            border: 'none',
+            color: gearOpen ? 'var(--color-blue)' : 'var(--color-subtext-0)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => { if (!gearOpen) e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)' }}
+          onMouseLeave={e => { if (!gearOpen) e.currentTarget.style.background = 'transparent' }}
+        >
+          <Settings size={20} />
+        </button>
+
+        {/* Gear Dropdown */}
+        {gearOpen && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: '4px',
+            width: '200px',
+            background: 'var(--color-base)',
+            border: '1px solid var(--color-surface-0)',
+            borderRadius: '8px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            zIndex: 1000,
+            overflow: 'hidden',
+          }}>
+            <button
+              onClick={() => { setGearOpen(false); navigate('/notifications') }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              Notifications
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
