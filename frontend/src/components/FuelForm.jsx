@@ -96,7 +96,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
       )}
 
       {/* Date & Mileage */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>
             Date *
@@ -119,7 +119,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
       </div>
 
       {/* Gallons & Price per Gallon */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>
             Gallons Added *
@@ -146,7 +146,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
       </div>
 
       {/* Optional Fields */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Location</label>
           <input name="location" placeholder="Shell station on Main St" value={form.location} onChange={handleChange} />
@@ -164,7 +164,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Payment Method</label>
           <select name="payment_method" value={form.payment_method} onChange={handleChange}>

@@ -12,17 +12,20 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Fuel, Trash2, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft } from 'lucide-react'
+import useIsMobile from '../hooks/useIsMobile'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { vehicles, fuel } from '../api/client'
 
 export default function FuelEconomy() {
   const { id } = useParams()
   const vehicleId = parseInt(id)
+  const isMobile = useIsMobile()
 
   const [vehicle, setVehicle] = useState(null)
   const [entries, setEntries] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [timeframe, setTimeframe] = useState('all')
 
   // Load vehicle info + fuel data on mount
   useEffect(() => {
@@ -63,8 +66,11 @@ export default function FuelEconomy() {
 
   if (loading) return <LoadingSkeleton />
 
+  // Filter entries by selected timeframe
+  const filteredEntries = filterByTimeframe(entries, timeframe)
+
   // Prepare chart data (oldest first for left-to-right chronological order)
-  const chartData = [...entries]
+  const chartData = [...filteredEntries]
     .reverse()
     .filter(e => e.mpg != null)
     .map(e => ({
@@ -74,7 +80,7 @@ export default function FuelEconomy() {
     }))
 
   // Price chart data (includes all entries, not just ones with MPG)
-  const priceChartData = [...entries]
+  const priceChartData = [...filteredEntries]
     .reverse()
     .map(e => ({
       date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -118,7 +124,7 @@ export default function FuelEconomy() {
             <>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: '0.75rem',
                 marginBottom: '1.5rem',
               }}>
@@ -166,11 +172,14 @@ export default function FuelEconomy() {
                 />
               </div>
 
+              {/* Timeframe Selector */}
+              <TimeframeSelector value={timeframe} onChange={setTimeframe} />
+
               {/* Charts */}
               {chartData.length >= 2 && (
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(400px, 100%), 1fr))',
                   gap: '1rem',
                   marginBottom: '1.5rem',
                 }}>
@@ -283,42 +292,26 @@ export default function FuelEconomy() {
                 </div>
               )}
 
-              {/* Fuel Log Table */}
+              {/* Fuel Log */}
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-surface-0)' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
                     Fuel Log ({entries.length} entries)
                   </h3>
                 </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '0.85rem',
-                  }}>
-                    <thead>
-                      <tr style={{ borderBottom: '1px solid var(--color-surface-0)' }}>
-                        <Th>Date</Th>
-                        <Th align="right">Odometer</Th>
-                        <Th align="right">Gallons</Th>
-                        <Th align="right">Price/Gal</Th>
-                        <Th align="right">Total Cost</Th>
-                        <Th align="right">MPG</Th>
-                        <Th align="center" style={{ width: '48px' }}></Th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {entries.map((entry) => (
-                        <tr
-                          key={entry.id}
-                          style={{ borderBottom: '1px solid var(--color-surface-0)' }}
-                        >
-                          <Td>{new Date(entry.date).toLocaleDateString()}</Td>
-                          <Td align="right">{entry.mileage?.toLocaleString()}</Td>
-                          <Td align="right">{entry.gallons_added?.toFixed(2)}</Td>
-                          <Td align="right">${entry.cost_per_gallon?.toFixed(3)}</Td>
-                          <Td align="right" style={{ fontWeight: 600 }}>${entry.total_cost?.toFixed(2)}</Td>
-                          <Td align="right">
+                {isMobile ? (
+                  /* Mobile: card view */
+                  <div style={{ padding: '0.75rem' }}>
+                    {entries.map((entry) => (
+                      <div key={entry.id} style={{
+                        padding: '0.75rem',
+                        borderBottom: '1px solid var(--color-surface-0)',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                            {new Date(entry.date).toLocaleDateString()}
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             {entry.mpg != null ? (
                               <span style={{
                                 padding: '0.125rem 0.5rem',
@@ -332,37 +325,110 @@ export default function FuelEconomy() {
                                   ? 'var(--color-green)'
                                   : 'var(--color-red)',
                               }}>
-                                {entry.mpg.toFixed(1)}
+                                {entry.mpg.toFixed(1)} MPG
                               </span>
                             ) : (
-                              <span style={{ color: 'var(--color-overlay-0)' }}>
+                              <span style={{ color: 'var(--color-overlay-0)', fontSize: '0.8rem' }}>
                                 {entry.missed_previous ? 'skipped' : '—'}
                               </span>
                             )}
-                          </Td>
-                          <Td align="center">
                             <button
                               onClick={() => handleDeleteEntry(entry.id)}
                               style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: 'var(--color-overlay-0)',
-                                padding: '0.25rem',
-                                borderRadius: '4px',
-                                display: 'flex',
-                                alignItems: 'center',
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--color-overlay-0)', padding: '0.25rem',
+                                borderRadius: '4px', display: 'flex', alignItems: 'center',
                               }}
-                              title="Delete entry"
                             >
                               <Trash2 size={14} />
                             </button>
-                          </Td>
+                          </div>
+                        </div>
+                        <div className="form-grid-2col" style={{ gap: '0.25rem 1rem', fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                          <div>Odometer: <span style={{ color: 'var(--color-text)' }}>{entry.mileage?.toLocaleString()}</span></div>
+                          <div>Gallons: <span style={{ color: 'var(--color-text)' }}>{entry.gallons_added?.toFixed(2)}</span></div>
+                          <div>$/gal: <span style={{ color: 'var(--color-text)' }}>${entry.cost_per_gallon?.toFixed(3)}</span></div>
+                          <div>Total: <span style={{ color: 'var(--color-text)', fontWeight: 600 }}>${entry.total_cost?.toFixed(2)}</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Desktop: table view */
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      fontSize: '0.85rem',
+                    }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--color-surface-0)' }}>
+                          <Th>Date</Th>
+                          <Th align="right">Odometer</Th>
+                          <Th align="right">Gallons</Th>
+                          <Th align="right">Price/Gal</Th>
+                          <Th align="right">Total Cost</Th>
+                          <Th align="right">MPG</Th>
+                          <Th align="center" style={{ width: '48px' }}></Th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {entries.map((entry) => (
+                          <tr
+                            key={entry.id}
+                            style={{ borderBottom: '1px solid var(--color-surface-0)' }}
+                          >
+                            <Td>{new Date(entry.date).toLocaleDateString()}</Td>
+                            <Td align="right">{entry.mileage?.toLocaleString()}</Td>
+                            <Td align="right">{entry.gallons_added?.toFixed(2)}</Td>
+                            <Td align="right">${entry.cost_per_gallon?.toFixed(3)}</Td>
+                            <Td align="right" style={{ fontWeight: 600 }}>${entry.total_cost?.toFixed(2)}</Td>
+                            <Td align="right">
+                              {entry.mpg != null ? (
+                                <span style={{
+                                  padding: '0.125rem 0.5rem',
+                                  borderRadius: '4px',
+                                  fontWeight: 600,
+                                  fontSize: '0.8rem',
+                                  background: entry.mpg >= (stats?.avg_mpg || 0)
+                                    ? 'rgba(166, 227, 161, 0.15)'
+                                    : 'rgba(243, 139, 168, 0.15)',
+                                  color: entry.mpg >= (stats?.avg_mpg || 0)
+                                    ? 'var(--color-green)'
+                                    : 'var(--color-red)',
+                                }}>
+                                  {entry.mpg.toFixed(1)}
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--color-overlay-0)' }}>
+                                  {entry.missed_previous ? 'skipped' : '—'}
+                                </span>
+                              )}
+                            </Td>
+                            <Td align="center">
+                              <button
+                                onClick={() => handleDeleteEntry(entry.id)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  color: 'var(--color-overlay-0)',
+                                  padding: '0.25rem',
+                                  borderRadius: '4px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                                title="Delete entry"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </Td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -444,12 +510,65 @@ function Td({ children, align = 'left', style = {} }) {
 }
 
 
+const TIMEFRAMES = [
+  { key: 'all', label: 'All Time' },
+  { key: '1y', label: '1Y' },
+  { key: '6m', label: '6M' },
+  { key: '3m', label: '3M' },
+  { key: '1m', label: '1M' },
+]
+
+/**
+ * Filters entries to only those within the selected timeframe.
+ * Entries are expected newest-first (descending date order).
+ */
+function filterByTimeframe(entries, timeframe) {
+  if (timeframe === 'all') return entries
+  const now = new Date()
+  const cutoff = new Date(now)
+  switch (timeframe) {
+    case '1y': cutoff.setFullYear(cutoff.getFullYear() - 1); break
+    case '6m': cutoff.setMonth(cutoff.getMonth() - 6); break
+    case '3m': cutoff.setMonth(cutoff.getMonth() - 3); break
+    case '1m': cutoff.setMonth(cutoff.getMonth() - 1); break
+    default: return entries
+  }
+  return entries.filter(e => new Date(e.date) >= cutoff)
+}
+
+
+/** Timeframe selector pill buttons */
+function TimeframeSelector({ value, onChange }) {
+  return (
+    <div style={{
+      display: 'flex',
+      gap: '0.375rem',
+      marginBottom: '1rem',
+    }}>
+      {TIMEFRAMES.map(tf => (
+        <button
+          key={tf.key}
+          className={`btn ${value === tf.key ? 'btn-primary' : 'btn-ghost'}`}
+          onClick={() => onChange(tf.key)}
+          style={{
+            fontSize: '0.75rem',
+            padding: '0.3rem 0.75rem',
+          }}
+        >
+          {tf.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+
 function LoadingSkeleton() {
   return (
     <div style={{ maxWidth: '1200px' }}>
       <div style={{ height: '2rem', width: '200px', background: 'var(--color-surface-0)', borderRadius: '8px', marginBottom: '2rem' }} />
       <div style={{ height: '40px', width: '280px', background: 'var(--color-surface-0)', borderRadius: '8px', marginBottom: '1.5rem', opacity: 0.3 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
         {[...Array(6)].map((_, i) => (
           <div key={i} style={{ height: '90px', background: 'var(--color-surface-0)', borderRadius: '12px', opacity: 0.3 }} />
         ))}

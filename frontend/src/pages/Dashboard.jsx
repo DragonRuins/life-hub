@@ -107,7 +107,7 @@ export default function Dashboard() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '1rem',
         }}
       >
@@ -267,7 +267,7 @@ export default function Dashboard() {
           justifyContent: 'center',
           zIndex: 1000,
         }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', margin: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Quick Add Service Record</h2>
               <button className="btn btn-ghost" onClick={() => setShowQuickAdd(false)}>
@@ -298,7 +298,7 @@ export default function Dashboard() {
           justifyContent: 'center',
           zIndex: 1000,
         }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', margin: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Quick Add Fuel Log</h2>
               <button className="btn btn-ghost" onClick={() => setShowQuickAddFuel(false)}>

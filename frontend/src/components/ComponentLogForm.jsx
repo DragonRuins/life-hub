@@ -45,7 +45,7 @@ export default function ComponentLogForm({ componentId, onSubmit, onCancel }) {
         Add Service Log
       </h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Log Type</label>
           <select name="log_type" value={form.log_type} onChange={handleChange}>
@@ -60,7 +60,7 @@ export default function ComponentLogForm({ componentId, onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Mileage</label>
           <input name="mileage" type="number" placeholder="46000" value={form.mileage} onChange={handleChange} />

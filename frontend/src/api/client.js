@@ -32,6 +32,7 @@ async function apiFetch(path, options = {}) {
 export const dashboard = {
   getWeather: () => apiFetch("/dashboard/weather"),
   getSummary: () => apiFetch("/dashboard/summary"),
+  getFleetStatus: () => apiFetch("/dashboard/fleet-status"),
 }
 
 // ── Vehicles ──────────────────────────────────────────────────

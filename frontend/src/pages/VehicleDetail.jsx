@@ -455,7 +455,7 @@ export default function VehicleDetail() {
                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                 background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
               }}>
-                <div className="card" style={{ width: '100%', maxWidth: '600px', margin: '1rem' }}>
+                <div className="card" style={{ width: '100%', maxWidth: 'min(600px, calc(100vw - 2rem))', margin: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
                       {editingTireSet ? 'Edit Tire Set' : 'Add Tire Set'}
@@ -485,7 +485,7 @@ export default function VehicleDetail() {
               position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
               background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
             }}>
-              <div className="card" style={{ width: '100%', maxWidth: '500px', margin: '1rem' }}>
+              <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
                 <ComponentForm
                   vehicleId={vehicle.id}
                   component={selectedComponent}
@@ -734,7 +734,7 @@ export default function VehicleDetail() {
                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                 background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
               }}>
-              <div className="card" style={{ width: '100%', maxWidth: '500px', margin: '1rem' }}>
+              <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
                     {editingFuelLog ? 'Edit Fuel Log' : 'Add Fuel Log'}
@@ -801,7 +801,7 @@ function VehicleForm({ onSubmit, onCancel }) {
     <form onSubmit={handleSubmit}>
       <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Add New Vehicle</h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Year *</label>
           <input name="year" type="number" placeholder="2021" value={form.year} onChange={handleChange} required />
@@ -816,7 +816,7 @@ function VehicleForm({ onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Trim</label>
           <input name="trim" placeholder="Night Edition" value={form.trim} onChange={handleChange} />
@@ -831,7 +831,7 @@ function VehicleForm({ onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>VIN</label>
           <input name="vin" placeholder="1C6SRFFT..." maxLength={17} value={form.vin} onChange={handleChange} />

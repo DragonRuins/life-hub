@@ -1,0 +1,94 @@
+/* ── LCARS Layout Grid ──────────────────────────────────────────
+   Defines the CSS Grid structure for the LCARS frame.
+   Only applies when the LCARS theme is active.
+
+   The frame (header, sidebar, footer, elbows) stays pinned to the
+   viewport at all times.  Only the content area scrolls.
+
+   Key: every item in the middle row (sidebar, cascade, content) needs
+   min-height:0 so the 1fr track can shrink below the items' content
+   size — without it, tall content forces the row open and the whole
+   page scrolls instead of just the content area.
+   ─────────────────────────────────────────────────────────────── */
+
+.lcars-layout {
+  display: grid;
+  grid-template-columns: 200px 5px 1fr;
+  grid-template-rows: 56px 1fr 36px;
+  grid-template-areas:
+    "elbow-tl header  header"
+    "sidebar  cascade content"
+    "elbow-bl footer  footer";
+  height: 100vh;
+  background: #000000;
+  overflow: hidden;
+}
+
+.lcars-elbow-tl {
+  grid-area: elbow-tl;
+}
+
+.lcars-header {
+  grid-area: header;
+}
+
+/* ── Middle row items all need min-height:0 ───────────────────── */
+
+.lcars-sidebar {
+  grid-area: sidebar;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lcars-cascade {
+  grid-area: cascade;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lcars-content {
+  grid-area: content;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 2rem;
+  background: #000000;
+}
+
+/* ── Bottom row ───────────────────────────────────────────────── */
+
+.lcars-elbow-bl {
+  grid-area: elbow-bl;
+}
+
+.lcars-footer {
+  grid-area: footer;
+}
+
+/* ── Mobile Fallback (< 768px) ─────────────────────────────── */
+
+@media (max-width: 768px) {
+  .lcars-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 1fr 56px;
+    grid-template-areas:
+      "header"
+      "content"
+      "footer";
+  }
+
+  .lcars-sidebar,
+  .lcars-cascade,
+  .lcars-elbow-tl,
+  .lcars-elbow-bl {
+    display: none;
+  }
+
+  .lcars-header-decor {
+    display: none;
+  }
+
+  .lcars-content {
+    padding: 1rem;
+  }
+}

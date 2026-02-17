@@ -213,7 +213,7 @@ export default function RuleForm({ rule, channels, schemas, events, onSubmit, on
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1.25rem' }}>
         <div>
           <label>Module</label>
           <select value={form.module} onChange={e => updateField('module', e.target.value)}>
@@ -307,7 +307,7 @@ export default function RuleForm({ rule, channels, schemas, events, onSubmit, on
           </div>
 
           {form.schedule_config?.type === 'interval' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="form-grid-2col">
               <div>
                 <label>Every (hours)</label>
                 <input
@@ -540,7 +540,7 @@ export default function RuleForm({ rule, channels, schemas, events, onSubmit, on
       {/* ── Section 6: Advanced ────────────────────────────── */}
       <h3 style={sectionHeadingStyle}>Advanced</h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Cooldown (minutes)</label>
           <input

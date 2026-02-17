@@ -84,7 +84,7 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
       {/* Tires */}
       <div style={{ marginBottom: '1rem' }}>
         <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-subtext-0)' }}>Tires (x4)</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.5rem' }}>
+        <div className="form-grid-2col" style={{ marginBottom: '0.5rem' }}>
           <div>
             <label>Brand</label>
             <input name="tire_brand" placeholder="Bridgestone" value={form.tire_brand} onChange={handleChange} />
@@ -102,7 +102,7 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
       {/* Rims */}
       <div style={{ marginBottom: '1rem' }}>
         <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-subtext-0)' }}>Rims (x4)</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.5rem' }}>
+        <div className="form-grid-2col" style={{ marginBottom: '0.5rem' }}>
           <div>
             <label>Brand</label>
             <input name="rim_brand" placeholder="Fuel" value={form.rim_brand} onChange={handleChange} />
@@ -118,7 +118,7 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
       </div>
 
       {/* Install Info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>
             Install Date
@@ -159,7 +159,7 @@ export default function TireSetForm({ vehicleId, vehicleMileage, tireSet, onSubm
       )}
 
       {/* Purchase Info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label style={labelStyle}>
             Purchase Date

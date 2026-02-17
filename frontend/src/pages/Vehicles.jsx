@@ -148,7 +148,7 @@ function VehicleForm({ onSubmit, onCancel }) {
     <form onSubmit={handleSubmit}>
       <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Add New Vehicle</h3>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Year *</label>
           <input name="year" type="number" placeholder="2021" value={form.year} onChange={handleChange} required />
@@ -163,7 +163,7 @@ function VehicleForm({ onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Trim</label>
           <input name="trim" placeholder="Night Edition" value={form.trim} onChange={handleChange} />
@@ -178,7 +178,7 @@ function VehicleForm({ onSubmit, onCancel }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>VIN</label>
           <input name="vin" placeholder="1C6SRFFT..." maxLength={17} value={form.vin} onChange={handleChange} />

@@ -1,0 +1,75 @@
+/* ── LCARS Theme Variables ──────────────────────────────────────
+   All LCARS colors and overrides scoped under .lcars-theme.
+   This file overrides the Catppuccin --color-* variables so that
+   inline styles referencing var(--color-*) automatically transform.
+   ─────────────────────────────────────────────────────────────── */
+
+.lcars-theme {
+  /* ── Primary LCARS Palette (TNG Classic Era) ──────────────── */
+  --lcars-bg: #000000;
+  --lcars-sunflower: #FFCC99;
+  --lcars-african-violet: #CC99FF;
+  --lcars-ice: #99CCFF;
+  --lcars-butterscotch: #FF9966;
+  --lcars-golden-orange: #FF9900;
+  --lcars-almond-creme: #FFBBAA;
+  --lcars-sky: #AAAAFF;
+  --lcars-lilac: #CC55FF;
+  --lcars-moonlit-violet: #9966FF;
+  --lcars-peach: #FF8866;
+  --lcars-magenta: #CC5599;
+  --lcars-blue: #5566FF;
+  --lcars-gray: #666688;
+  --lcars-red: #CC4444;
+  --lcars-tomato: #FF5555;
+  --lcars-gold: #FFAA00;
+  --lcars-green: #999933;
+  --lcars-space-white: #F5F6FA;
+
+  /* ── Semantic Mappings ────────────────────────────────────── */
+  --lcars-text-primary: var(--lcars-space-white);
+  --lcars-text-on-color: #000000;
+  --lcars-sidebar-primary: var(--lcars-sunflower);
+  --lcars-sidebar-secondary: var(--lcars-african-violet);
+  --lcars-sidebar-accent: var(--lcars-butterscotch);
+  --lcars-panel-border: var(--lcars-ice);
+  --lcars-interactive: var(--lcars-blue);
+  --lcars-interactive-hover: var(--lcars-lilac);
+
+  /* ── Catppuccin Variable Overrides ──────────────────────────
+     These override the existing --color-* variables so that ALL
+     inline styles using var(--color-*) get LCARS colors automatically.
+     This handles ~90% of the visual transformation with zero JSX changes. */
+
+  /* Base backgrounds → pure black */
+  --color-base: #000000;
+  --color-mantle: #000000;
+  --color-crust: #000000;
+
+  /* Surfaces → dark grays for subtle contrast */
+  --color-surface-0: #1a1a2e;
+  --color-surface-1: #2a2a3e;
+  --color-surface-2: #3a3a4e;
+
+  /* Overlays → muted LCARS tones */
+  --color-overlay-0: #666688;
+  --color-overlay-1: #777799;
+
+  /* Text → LCARS light colors */
+  --color-text: #F5F6FA;
+  --color-subtext-0: #FFCC99;
+  --color-subtext-1: #DDBB88;
+
+  /* Accent colors → LCARS palette equivalents */
+  --color-blue: #99CCFF;
+  --color-green: #99CC66;
+  --color-peach: #FF9966;
+  --color-red: #CC4444;
+  --color-mauve: #CC99FF;
+  --color-yellow: #FFCC99;
+  --color-teal: #66CCAA;
+  --color-sky: #AAAAFF;
+  --color-lavender: #9999FF;
+  --color-flamingo: #FF8866;
+  --color-rosewater: #FFBBAA;
+}

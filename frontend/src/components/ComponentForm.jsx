@@ -82,7 +82,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
       </h3>
 
       {/* Component Type & Position */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Component Type</label>
           <select name="component_type" value={form.component_type} onChange={handleChange}>
@@ -132,7 +132,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
       )}
 
       {/* Product Details */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Brand</label>
           <input name="brand" placeholder="Michelin" value={form.brand} onChange={handleChange} />
@@ -148,7 +148,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
       </div>
 
       {/* Installation Info */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Install Date</label>
           <input name="install_date" type="date" value={form.install_date} onChange={handleChange} />
@@ -165,7 +165,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
           <summary style={{ cursor: 'pointer', color: 'var(--color-subtext-0)', fontSize: '0.9rem' }}>
             Removal Info (for archiving)
           </summary>
-          <div style={{ marginTop: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2col" style={{ marginTop: '0.5rem' }}>
             <div>
               <label>Remove Date</label>
               <input name="remove_date" type="date" value={form.remove_date} onChange={handleChange} />
@@ -190,7 +190,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
       )}
 
       {/* Purchase & Warranty */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Purchase Date</label>
           <input name="purchase_date" type="date" value={form.purchase_date} onChange={handleChange} />

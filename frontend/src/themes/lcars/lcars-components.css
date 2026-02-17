@@ -1,0 +1,294 @@
+/* ── LCARS Component Overrides ──────────────────────────────────
+   All rules scoped under .lcars-theme so they only apply when
+   LCARS theme is active. Zero impact on the default Catppuccin theme.
+
+   Uses !important on structural overrides (border-radius, background)
+   where inline styles would otherwise take precedence.
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Body & Root ───────────────────────────────────────────── */
+
+.lcars-theme body {
+  background-color: #000000 !important;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── Cards → LCARS Data Panels ─────────────────────────────── */
+/* Cards become terminal-style data readout panels with a colored
+   top accent bar (like LCARS window headers) */
+
+.lcars-theme .card {
+  background: #000000 !important;
+  border: 2px solid var(--lcars-ice) !important;
+  border-radius: 0 !important;
+  border-top: 3px solid var(--lcars-sunflower) !important;
+  position: relative;
+}
+
+.lcars-theme .card:hover {
+  border-color: var(--lcars-sunflower) !important;
+  border-top-color: var(--lcars-butterscotch) !important;
+  box-shadow: 0 0 12px rgba(255, 204, 153, 0.08);
+}
+
+/* Card headers / section titles get LCARS treatment */
+.lcars-theme .card h3 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--lcars-sunflower) !important;
+}
+
+/* Subtle inner panels within cards (mantle-background divs) */
+.lcars-theme .card div[style*="background: var(--color-mantle)"] {
+  background: rgba(26, 26, 46, 0.6) !important;
+  border: 1px solid rgba(102, 102, 136, 0.3) !important;
+  border-radius: 2px !important;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+
+.lcars-theme .btn {
+  border-radius: 999px !important;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 500 !important;
+  transition: filter 0.15s ease, transform 0.1s ease !important;
+}
+
+.lcars-theme .btn:hover {
+  filter: brightness(1.2);
+}
+
+.lcars-theme .btn:active {
+  filter: brightness(1.4);
+  transform: scale(0.98);
+}
+
+.lcars-theme .btn-primary {
+  background: var(--lcars-sunflower) !important;
+  color: #000000 !important;
+}
+
+.lcars-theme .btn-primary:hover {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.lcars-theme .btn-ghost {
+  background: transparent !important;
+  border: 2px solid var(--lcars-ice) !important;
+  color: var(--lcars-ice) !important;
+}
+
+.lcars-theme .btn-ghost:hover {
+  background: rgba(153, 204, 255, 0.1) !important;
+  color: var(--lcars-space-white) !important;
+}
+
+.lcars-theme .btn-danger {
+  color: var(--lcars-tomato) !important;
+  border-color: transparent !important;
+}
+
+.lcars-theme .btn-danger:hover {
+  background: rgba(255, 85, 85, 0.1) !important;
+}
+
+/* ── Form Inputs ───────────────────────────────────────────── */
+
+.lcars-theme input,
+.lcars-theme textarea,
+.lcars-theme select {
+  background: #000000 !important;
+  border: 1px solid var(--lcars-gray) !important;
+  border-radius: 2px !important;
+  color: var(--lcars-space-white) !important;
+}
+
+.lcars-theme input:focus,
+.lcars-theme textarea:focus,
+.lcars-theme select:focus {
+  border-color: var(--lcars-sunflower) !important;
+  box-shadow: 0 0 8px rgba(255, 204, 153, 0.15);
+}
+
+.lcars-theme input::placeholder,
+.lcars-theme textarea::placeholder {
+  color: var(--lcars-gray) !important;
+}
+
+.lcars-theme label {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  color: var(--lcars-sunflower) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* ── Tables ────────────────────────────────────────────────── */
+
+.lcars-theme table {
+  border-collapse: collapse;
+}
+
+.lcars-theme th {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  color: var(--lcars-sunflower) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  border-bottom: 2px solid var(--lcars-sunflower) !important;
+}
+
+.lcars-theme td {
+  color: var(--lcars-space-white) !important;
+  border-bottom: 1px solid rgba(102, 102, 136, 0.3) !important;
+}
+
+.lcars-theme tr:hover td {
+  background: rgba(255, 204, 153, 0.03);
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+
+.lcars-theme ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.lcars-theme ::-webkit-scrollbar-thumb {
+  background: var(--lcars-gray);
+  border-radius: 2px;
+}
+
+.lcars-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--lcars-ice);
+}
+
+/* ── Links ─────────────────────────────────────────────────── */
+
+.lcars-theme a {
+  color: var(--lcars-ice);
+}
+
+.lcars-theme a:hover {
+  color: var(--lcars-sunflower);
+}
+
+/* ── Headings ──────────────────────────────────────────────── */
+
+.lcars-theme h1 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: var(--lcars-space-white) !important;
+}
+
+.lcars-theme h2 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--lcars-sunflower) !important;
+}
+
+.lcars-theme h3 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  color: var(--lcars-ice) !important;
+}
+
+/* ── Select dropdown arrow ─────────────────────────────────── */
+
+.lcars-theme select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23FFCC99' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.75rem center !important;
+  padding-right: 2rem !important;
+}
+
+/* ── Modal overlay ─────────────────────────────────────────── */
+
+.lcars-theme [style*="position: fixed"][style*="background: rgba(0"] {
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Modal panels inside fixed overlays */
+.lcars-theme [style*="position: fixed"] .card {
+  border-top: 3px solid var(--lcars-butterscotch) !important;
+  border-color: var(--lcars-butterscotch) !important;
+}
+
+/* ── Icon backgrounds (colored icon circles in cards) ──────── */
+/* These have hardcoded rgba() backgrounds that don't respond to
+   CSS variable overrides. Override them with LCARS-appropriate subtle tints. */
+
+.lcars-theme div[style*="border-radius: 8px"][style*="display: flex"][style*="width: 36px"],
+.lcars-theme div[style*="border-radius: 8px"][style*="display: flex"][style*="width: 32px"] {
+  background: rgba(153, 204, 255, 0.1) !important;
+  border: 1px solid rgba(153, 204, 255, 0.2);
+}
+
+/* ── Weather widget gradient ───────────────────────────────── */
+/* The weather section has a hardcoded gradient. Override for LCARS. */
+
+.lcars-theme div[style*="linear-gradient(135deg, rgba(137"] {
+  background: rgba(153, 204, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(102, 102, 136, 0.3);
+}
+
+/* ── Tabs and tab-like buttons ─────────────────────────────── */
+
+.lcars-theme button[style*="border-bottom: 2px"] {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* ── Larger icon circles (vehicle list, detail pages) ─────── */
+
+.lcars-theme div[style*="border-radius: 10px"][style*="display: flex"][style*="width: 48px"] {
+  background: rgba(153, 204, 255, 0.1) !important;
+  border: 1px solid rgba(153, 204, 255, 0.2);
+  border-radius: 2px !important;
+}
+
+/* ── Note tags & category badges ──────────────────────────── */
+
+.lcars-theme span[style*="border-radius: 4px"][style*="font-size: 0.7rem"] {
+  border-radius: 2px !important;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* ── Pinned note accent border ────────────────────────────── */
+
+.lcars-theme .card[style*="border-left: 3px"] {
+  border-left-color: var(--lcars-sunflower) !important;
+}
+
+/* ── Fuel MPG badge ───────────────────────────────────────── */
+
+.lcars-theme div[style*="background: var(--color-green)"][style*="border-radius: 4px"] {
+  background: var(--lcars-green) !important;
+  border-radius: 2px !important;
+  color: #000000 !important;
+}
+
+/* ── Checkbox styling ─────────────────────────────────────── */
+
+.lcars-theme input[type="checkbox"] {
+  accent-color: var(--lcars-sunflower);
+}
+
+/* ── Content area text inside LCARS frame ─────────────────── */
+/* Override subtext/overlay colors for better readability */
+
+.lcars-theme .lcars-content {
+  color: var(--lcars-space-white);
+}
+
+.lcars-theme .lcars-content p {
+  color: var(--lcars-space-white);
+}

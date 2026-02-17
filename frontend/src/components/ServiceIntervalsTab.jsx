@@ -625,7 +625,7 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
             marginTop: '0.75rem', padding: '1rem',
             background: 'var(--color-surface-0)', borderRadius: '8px',
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div className="form-grid-3col" style={{ marginBottom: '0.75rem' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
                   Miles Interval
@@ -664,7 +664,7 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
                 </select>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div className="form-grid-2col" style={{ marginBottom: '0.75rem' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
                   Miles Thresholds (comma-separated)
@@ -758,7 +758,7 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
                     Miles Interval
@@ -799,7 +799,7 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
                 <div>
                   <label style={{ fontSize: '0.85rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
                     Miles Notify Thresholds

@@ -165,7 +165,7 @@ export default function Notes() {
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.75rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
           {noteList.map((note) => (
             <div
               key={note.id}
@@ -282,7 +282,7 @@ function NoteForm({ note, categories, onSubmit, onCancel }) {
         <textarea name="content" rows={6} placeholder="Write your note..." value={form.content} onChange={handleChange} required />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Category</label>
           <input name="category" placeholder="general" value={form.category} onChange={handleChange} list="category-list" />

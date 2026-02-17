@@ -430,7 +430,7 @@ export default function MaintenanceForm({ onSubmit, onCancel, vehicles, vehicleI
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
           <div>
             <label>Service Type *</label>
             <input name="service_type" placeholder="Oil Change" value={form.service_type} onChange={handleChange} required />
@@ -450,7 +450,7 @@ export default function MaintenanceForm({ onSubmit, onCancel, vehicles, vehicleI
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
           <label>Mileage</label>
           <input name="mileage" type="number" placeholder="45000" value={form.mileage} onChange={handleChange} />
