@@ -19,7 +19,7 @@
     "elbow-tl header  header"
     "sidebar  cascade content"
     "elbow-bl footer  footer";
-  height: 100vh;
+  height: 100dvh;
   background: #000000;
   overflow: hidden;
 }

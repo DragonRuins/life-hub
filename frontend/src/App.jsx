@@ -88,7 +88,7 @@ function AppShell() {
   }, [isMobile])
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100dvh' }}>
       {/* ── Sidebar Navigation (desktop only) ──────────────── */}
       {!isMobile && (
         <nav

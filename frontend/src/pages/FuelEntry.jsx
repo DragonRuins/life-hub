@@ -339,7 +339,7 @@ export default function FuelEntry() {
 // ── Styles ──────────────────────────────────────────────────
 
 const pageStyle = {
-  minHeight: '100vh',
+  minHeight: '100dvh',
   background: 'var(--color-crust)',
   color: 'var(--color-text)',
   paddingTop: 'env(safe-area-inset-top)',
