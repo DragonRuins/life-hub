@@ -6,16 +6,27 @@
  * notification bell, and settings gear dropdown.
  */
 import { useState, useEffect, useRef } from 'react'
-import { Bell, Settings, Monitor, Check, ExternalLink } from 'lucide-react'
+import { Bell, Settings, Monitor, Check, ExternalLink, Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
-import { notifications } from '../../api/client'
+import { notifications, vehicles as vehiclesApi } from '../../api/client'
 
 export default function LCARSHeader() {
   const [gearOpen, setGearOpen] = useState(false)
+  const [vehicleList, setVehicleList] = useState([])
+  const [selectedVehicleId, setSelectedVehicleId] = useState(
+    localStorage.getItem('dashboard_vehicle_id') || 'all'
+  )
   const gearRef = useRef(null)
   const navigate = useNavigate()
   const { theme, setTheme, isLCARS } = useTheme()
+
+  // Fetch vehicle list when gear dropdown opens
+  useEffect(() => {
+    if (gearOpen && vehicleList.length === 0) {
+      vehiclesApi.list().then(setVehicleList).catch(() => {})
+    }
+  }, [gearOpen])
 
   // Close gear dropdown when clicking outside
   useEffect(() => {
@@ -27,6 +38,12 @@ export default function LCARSHeader() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  function handleVehicleSelect(id) {
+    setSelectedVehicleId(id)
+    localStorage.setItem('dashboard_vehicle_id', id)
+    window.dispatchEvent(new Event('vehicle-selection-changed'))
+  }
 
   return (
     <div
@@ -139,6 +156,46 @@ export default function LCARSHeader() {
               <DropdownButton onClick={() => { setGearOpen(false); navigate('/notifications') }}>
                 Notifications
               </DropdownButton>
+
+              {/* Vehicle Selector */}
+              {vehicleList.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--lcars-gray)' }}>
+                  <div style={{
+                    padding: '0.5rem 1rem 0.25rem',
+                    fontFamily: "'Antonio', sans-serif",
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    color: 'var(--lcars-gray)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}>
+                    Dashboard Vehicle
+                  </div>
+                  <DropdownButton onClick={() => handleVehicleSelect('all')}>
+                    <span style={{
+                      color: selectedVehicleId === 'all' ? 'var(--lcars-sunflower)' : 'var(--lcars-space-white)',
+                      fontWeight: selectedVehicleId === 'all' ? 700 : 400,
+                    }}>
+                      All Fleet
+                    </span>
+                  </DropdownButton>
+                  {vehicleList.map(v => (
+                    <DropdownButton key={v.id} onClick={() => handleVehicleSelect(String(v.id))}>
+                      <span style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        color: selectedVehicleId === String(v.id) ? 'var(--lcars-sunflower)' : 'var(--lcars-space-white)',
+                        fontWeight: selectedVehicleId === String(v.id) ? 700 : 400,
+                      }}>
+                        {v.is_primary && <Star size={11} fill="var(--lcars-butterscotch)" style={{ color: 'var(--lcars-butterscotch)', flexShrink: 0 }} />}
+                        {v.year} {v.make} {v.model}
+                      </span>
+                    </DropdownButton>
+                  ))}
+                </div>
+              )}
+
               <DropdownButton
                 onClick={() => { setTheme(isLCARS ? 'catppuccin' : 'lcars'); setGearOpen(false) }}
                 borderTop

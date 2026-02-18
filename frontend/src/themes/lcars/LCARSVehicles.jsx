@@ -9,7 +9,7 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Car, ChevronRight, X, Wrench, Gauge, Fuel } from 'lucide-react'
+import { Plus, Car, ChevronRight, X, Wrench, Gauge, Fuel, Star } from 'lucide-react'
 import { vehicles } from '../../api/client'
 import LCARSPanel, { LCARSDataRow } from './LCARSPanel'
 
@@ -38,6 +38,17 @@ export default function LCARSVehicles() {
       setShowForm(false)
     } catch (err) {
       alert('Failed to add vehicle: ' + err.message)
+    }
+  }
+
+  async function handleSetPrimary(e, vehicleId) {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await vehicles.setPrimary(vehicleId)
+      await loadVehicles()
+    } catch (err) {
+      console.error('Failed to set primary vehicle:', err)
     }
   }
 
@@ -109,7 +120,7 @@ export default function LCARSVehicles() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {vehicleList.map((v) => (
-            <LCARSVehicleCard key={v.id} vehicle={v} />
+            <LCARSVehicleCard key={v.id} vehicle={v} onSetPrimary={handleSetPrimary} />
           ))}
         </div>
       )}
@@ -123,7 +134,7 @@ export default function LCARSVehicles() {
  * Left accent bar colored by vehicle index position,
  * monospace data fields, chevron link indicator.
  */
-function LCARSVehicleCard({ vehicle: v }) {
+function LCARSVehicleCard({ vehicle: v, onSetPrimary }) {
   // Cycle accent colors per vehicle for visual variety
   const accentColors = [
     'var(--lcars-ice)',
@@ -206,6 +217,25 @@ function LCARSVehicleCard({ vehicle: v }) {
                 </span>
               )}
             </div>
+            <button
+              onClick={(e) => onSetPrimary(e, v.id)}
+              title={v.is_primary ? 'Primary vehicle' : 'Set as primary'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '2px',
+                color: v.is_primary ? 'var(--lcars-butterscotch)' : 'rgba(0, 0, 0, 0.4)',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { if (!v.is_primary) e.currentTarget.style.color = 'var(--lcars-butterscotch)' }}
+              onMouseLeave={e => { if (!v.is_primary) e.currentTarget.style.color = v.is_primary ? 'var(--lcars-butterscotch)' : 'rgba(0, 0, 0, 0.4)' }}
+            >
+              <Star size={16} fill={v.is_primary ? 'var(--lcars-butterscotch)' : 'none'} />
+            </button>
             <ChevronRight size={16} style={{ color: '#000000', flexShrink: 0 }} />
           </div>
 

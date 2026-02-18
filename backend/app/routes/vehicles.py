@@ -391,6 +391,23 @@ def update_vehicle(vehicle_id):
     return jsonify(vehicle.to_dict())
 
 
+@vehicles_bp.route('/<int:vehicle_id>/set-primary', methods=['PUT'])
+def set_primary_vehicle(vehicle_id):
+    """
+    Set a vehicle as the primary (favorite) for dashboard display.
+    Clears is_primary on all other vehicles first.
+    """
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
+    # Clear primary flag on all vehicles
+    Vehicle.query.update({'is_primary': False})
+    # Set the target vehicle as primary
+    vehicle.is_primary = True
+    db.session.commit()
+
+    return jsonify(vehicle.to_dict())
+
+
 @vehicles_bp.route('/<int:vehicle_id>', methods=['DELETE'])
 def delete_vehicle(vehicle_id):
     """Delete a vehicle and all its maintenance logs."""

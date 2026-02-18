@@ -7,7 +7,7 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Car, ChevronRight, X } from 'lucide-react'
+import { Plus, Car, ChevronRight, X, Star } from 'lucide-react'
 import { vehicles } from '../api/client'
 
 export default function Vehicles() {
@@ -35,6 +35,17 @@ export default function Vehicles() {
       setShowForm(false)
     } catch (err) {
       alert('Failed to add vehicle: ' + err.message)
+    }
+  }
+
+  async function handleSetPrimary(e, vehicleId) {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      await vehicles.setPrimary(vehicleId)
+      await loadVehicles()
+    } catch (err) {
+      console.error('Failed to set primary vehicle:', err)
     }
   }
 
@@ -103,6 +114,26 @@ export default function Vehicles() {
                     <span>{v.maintenance_count} service record{v.maintenance_count !== 1 ? 's' : ''}</span>
                   </div>
                 </div>
+
+                <button
+                  onClick={(e) => handleSetPrimary(e, v.id)}
+                  title={v.is_primary ? 'Primary vehicle' : 'Set as primary'}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    color: v.is_primary ? 'var(--color-yellow)' : 'var(--color-overlay-0)',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={e => { if (!v.is_primary) e.currentTarget.style.color = 'var(--color-yellow)' }}
+                  onMouseLeave={e => { if (!v.is_primary) e.currentTarget.style.color = 'var(--color-overlay-0)' }}
+                >
+                  <Star size={18} fill={v.is_primary ? 'var(--color-yellow)' : 'none'} />
+                </button>
 
                 <ChevronRight size={18} style={{ color: 'var(--color-overlay-0)' }} />
               </div>

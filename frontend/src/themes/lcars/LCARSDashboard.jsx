@@ -59,42 +59,65 @@ export default function LCARSDashboard() {
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [w, fs, s, v, items, nFeed, nCount, pStats] = await Promise.all([
-          dashboard.getWeather().catch(() => null),
-          dashboard.getFleetStatus().catch(() => null),
-          dashboard.getSummary(),
-          vehicles.list(),
-          vehicles.maintenanceItems.list().catch(() => []),
-          notifications.feed({ limit: 10 }).catch(() => []),
-          notifications.unreadCount().catch(() => ({ count: 0 })),
-          projects.stats().catch(() => null),
-        ])
-        setWeather(w)
-        setFleetStatus(fs)
-        setSummary(s)
-        setVehiclesList(v)
-        setMaintenanceItems(items)
-        setNotificationFeed(Array.isArray(nFeed) ? nFeed : [])
-        setUnreadCount(nCount?.count || 0)
-        setProjectStats(pStats)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+  // Build dashboard API params from localStorage vehicle selection
+  function getDashboardParams() {
+    const id = localStorage.getItem('dashboard_vehicle_id')
+    if (id && id !== 'all') return { vehicle_id: id }
+    return {}
+  }
+
+  async function loadDashboard() {
+    try {
+      const params = getDashboardParams()
+      const [w, fs, s, v, items, nFeed, nCount, pStats] = await Promise.all([
+        dashboard.getWeather().catch(() => null),
+        dashboard.getFleetStatus(params).catch(() => null),
+        dashboard.getSummary(params),
+        vehicles.list(),
+        vehicles.maintenanceItems.list().catch(() => []),
+        notifications.feed({ limit: 10 }).catch(() => []),
+        notifications.unreadCount().catch(() => ({ count: 0 })),
+        projects.stats().catch(() => null),
+      ])
+      setWeather(w)
+      setFleetStatus(fs)
+      setSummary(s)
+      setVehiclesList(v)
+      setMaintenanceItems(items)
+      setNotificationFeed(Array.isArray(nFeed) ? nFeed : [])
+      setUnreadCount(nCount?.count || 0)
+      setProjectStats(pStats)
+
+      // If no localStorage selection, default to primary vehicle
+      const storedId = localStorage.getItem('dashboard_vehicle_id')
+      if (!storedId && s.primary_vehicle_id) {
+        localStorage.setItem('dashboard_vehicle_id', String(s.primary_vehicle_id))
       }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
-    load()
+  }
+
+  useEffect(() => {
+    loadDashboard()
+
+    // Listen for vehicle selection changes from the gear dropdown
+    function onVehicleChanged() {
+      loadDashboard()
+    }
+    window.addEventListener('vehicle-selection-changed', onVehicleChanged)
+    return () => window.removeEventListener('vehicle-selection-changed', onVehicleChanged)
   }, [])
 
   async function handleQuickAddMaintenance(data) {
     try {
+      const params = getDashboardParams()
       await vehicles.addMaintenance(data.vehicle_id, data)
       const [s, fs] = await Promise.all([
-        dashboard.getSummary(),
-        dashboard.getFleetStatus(),
+        dashboard.getSummary(params),
+        dashboard.getFleetStatus(params),
       ])
       setSummary(s)
       setFleetStatus(fs)
@@ -106,10 +129,11 @@ export default function LCARSDashboard() {
 
   async function handleQuickAddFuel(data) {
     try {
+      const params = getDashboardParams()
       await vehicles.fuelLogs.create(data.vehicle_id, data)
       const [s, fs] = await Promise.all([
-        dashboard.getSummary(),
-        dashboard.getFleetStatus(),
+        dashboard.getSummary(params),
+        dashboard.getFleetStatus(params),
       ])
       setSummary(s)
       setFleetStatus(fs)

@@ -29,6 +29,7 @@ class Vehicle(db.Model):
     license_plate = db.Column(db.String(20))
     current_mileage = db.Column(db.Integer)
     notes = db.Column(db.Text)                              # Any extra info
+    is_primary = db.Column(db.Boolean, default=False)         # Favorite vehicle for dashboard
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationship: one vehicle has many maintenance logs
@@ -74,6 +75,7 @@ class Vehicle(db.Model):
             'license_plate': self.license_plate,
             'current_mileage': self.current_mileage,
             'notes': self.notes,
+            'is_primary': self.is_primary or False,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'maintenance_count': len(self.maintenance_logs),
             'component_count': len(self.components),

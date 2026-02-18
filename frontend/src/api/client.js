@@ -31,8 +31,14 @@ async function apiFetch(path, options = {}) {
 
 export const dashboard = {
   getWeather: () => apiFetch("/dashboard/weather"),
-  getSummary: () => apiFetch("/dashboard/summary"),
-  getFleetStatus: () => apiFetch("/dashboard/fleet-status"),
+  getSummary: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/dashboard/summary${query ? '?' + query : ''}`)
+  },
+  getFleetStatus: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/dashboard/fleet-status${query ? '?' + query : ''}`)
+  },
 }
 
 // ── Vehicles ──────────────────────────────────────────────────
@@ -50,6 +56,9 @@ export const vehicles = {
   }),
   delete: (id) => apiFetch(`/vehicles/${id}`, {
     method: "DELETE",
+  }),
+  setPrimary: (id) => apiFetch(`/vehicles/${id}/set-primary`, {
+    method: "PUT",
   }),
 
   // Maintenance logs

@@ -6,10 +6,11 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
+import { vehicles as vehiclesApi } from './api/client'
 
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
@@ -294,9 +295,20 @@ function AppShell() {
  */
 function HeaderBar({ isMobile, onMenuClick }) {
   const [gearOpen, setGearOpen] = useState(false)
+  const [vehicleList, setVehicleList] = useState([])
+  const [selectedVehicleId, setSelectedVehicleId] = useState(
+    localStorage.getItem('dashboard_vehicle_id') || 'all'
+  )
   const gearRef = useRef(null)
   const navigate = useNavigate()
   const { theme, setTheme, isLCARS } = useTheme()
+
+  // Fetch vehicle list when gear dropdown opens
+  useEffect(() => {
+    if (gearOpen && vehicleList.length === 0) {
+      vehiclesApi.list().then(setVehicleList).catch(() => {})
+    }
+  }, [gearOpen])
 
   // Close gear dropdown when clicking outside
   useEffect(() => {
@@ -308,6 +320,12 @@ function HeaderBar({ isMobile, onMenuClick }) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  function handleVehicleSelect(id) {
+    setSelectedVehicleId(id)
+    localStorage.setItem('dashboard_vehicle_id', id)
+    window.dispatchEvent(new Event('vehicle-selection-changed'))
+  }
 
   return (
     <div style={{
@@ -405,6 +423,73 @@ function HeaderBar({ isMobile, onMenuClick }) {
             >
               Notifications
             </button>
+
+            {/* Vehicle Selector */}
+            {vehicleList.length > 0 && (
+              <div style={{ borderTop: '1px solid var(--color-surface-0)' }}>
+                <div style={{
+                  padding: '0.5rem 1rem 0.25rem',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: 'var(--color-subtext-0)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Dashboard Vehicle
+                </div>
+                <button
+                  onClick={() => handleVehicleSelect('all')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    width: '100%',
+                    padding: '0.4rem 1rem',
+                    background: 'none',
+                    border: 'none',
+                    color: selectedVehicleId === 'all' ? 'var(--color-blue)' : 'var(--color-text)',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    fontFamily: 'inherit',
+                    textAlign: 'left',
+                    fontWeight: selectedVehicleId === 'all' ? 600 : 400,
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  All Fleet
+                </button>
+                {vehicleList.map(v => (
+                  <button
+                    key={v.id}
+                    onClick={() => handleVehicleSelect(String(v.id))}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      width: '100%',
+                      padding: '0.4rem 1rem',
+                      background: 'none',
+                      border: 'none',
+                      color: selectedVehicleId === String(v.id) ? 'var(--color-blue)' : 'var(--color-text)',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      fontFamily: 'inherit',
+                      textAlign: 'left',
+                      fontWeight: selectedVehicleId === String(v.id) ? 600 : 400,
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    {v.is_primary && <Star size={12} fill="var(--color-yellow)" style={{ color: 'var(--color-yellow)', flexShrink: 0 }} />}
+                    {v.year} {v.make} {v.model}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Theme Toggle */}
             <button
               onClick={() => {

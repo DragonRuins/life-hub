@@ -25,35 +25,75 @@ export default function Dashboard() {
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
+  const [selectedVehicleName, setSelectedVehicleName] = useState(null)
+
+  // Build dashboard API params from localStorage vehicle selection
+  function getDashboardParams() {
+    const id = localStorage.getItem('dashboard_vehicle_id')
+    if (id && id !== 'all') return { vehicle_id: id }
+    return {}
+  }
+
+  // Resolve the selected vehicle name for the header
+  function resolveVehicleName(vList, summaryData) {
+    const id = localStorage.getItem('dashboard_vehicle_id')
+    if (!id || id === 'all') {
+      setSelectedVehicleName(null)
+      return
+    }
+    // First try the already-loaded vehicle list
+    const match = vList.find(v => String(v.id) === id)
+    if (match) {
+      setSelectedVehicleName(`${match.year} ${match.make} ${match.model}`)
+    } else {
+      setSelectedVehicleName(null)
+    }
+  }
+
+  async function loadDashboard() {
+    try {
+      const params = getDashboardParams()
+      const [w, s, v, items, pStats] = await Promise.all([
+        dashboard.getWeather(),
+        dashboard.getSummary(params),
+        vehicles.list(),
+        vehicles.maintenanceItems.list().catch(() => []),
+        projects.stats().catch(() => null),
+      ])
+      setWeather(w)
+      setSummary(s)
+      setVehiclesList(v)
+      setMaintenanceItems(items)
+      setProjectStats(pStats)
+
+      // If no localStorage selection, default to primary vehicle
+      const storedId = localStorage.getItem('dashboard_vehicle_id')
+      if (!storedId && s.primary_vehicle_id) {
+        localStorage.setItem('dashboard_vehicle_id', String(s.primary_vehicle_id))
+      }
+      resolveVehicleName(v, s)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function load() {
-      try {
-        const [w, s, v, items, pStats] = await Promise.all([
-          dashboard.getWeather(),
-          dashboard.getSummary(),
-          vehicles.list(),
-          vehicles.maintenanceItems.list().catch(() => []),
-          projects.stats().catch(() => null),
-        ])
-        setWeather(w)
-        setSummary(s)
-        setVehiclesList(v)
-        setMaintenanceItems(items)
-        setProjectStats(pStats)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
+    loadDashboard()
+
+    // Listen for vehicle selection changes from the gear dropdown
+    function onVehicleChanged() {
+      loadDashboard()
     }
-    load()
+    window.addEventListener('vehicle-selection-changed', onVehicleChanged)
+    return () => window.removeEventListener('vehicle-selection-changed', onVehicleChanged)
   }, [])
 
   async function handleQuickAddMaintenance(data) {
     try {
       await vehicles.addMaintenance(data.vehicle_id, data)
-      const s = await dashboard.getSummary()
+      const s = await dashboard.getSummary(getDashboardParams())
       setSummary(s)
       setShowQuickAdd(false)
     } catch (err) {
@@ -64,7 +104,7 @@ export default function Dashboard() {
   async function handleQuickAddFuel(data) {
     try {
       await vehicles.fuelLogs.create(data.vehicle_id, data)
-      const s = await dashboard.getSummary()
+      const s = await dashboard.getSummary(getDashboardParams())
       setSummary(s)
       setShowQuickAddFuel(false)
     } catch (err) {
@@ -126,9 +166,11 @@ export default function Dashboard() {
                 <Car size={18} style={{ color: 'var(--color-blue)' }} />
               </div>
               <div>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Vehicles</h3>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
+                  {selectedVehicleName || 'Vehicles'}
+                </h3>
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
-                  {summary?.vehicles?.count || 0} tracked
+                  {selectedVehicleName ? 'filtered' : `${summary?.vehicles?.count || 0} tracked`}
                 </span>
               </div>
             </div>

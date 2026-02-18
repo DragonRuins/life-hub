@@ -12,7 +12,7 @@ Open-Meteo requires no API key, which keeps things simple.
 """
 from datetime import date, timedelta
 
-from flask import Blueprint, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy.orm import joinedload, subqueryload
 import requests
 
@@ -60,12 +60,25 @@ def get_summary():
     """
     Quick stats for the dashboard cards.
     Returns counts and recent items from each module.
+
+    Optional query param:
+      ?vehicle_id=X  → filter maintenance and fuel logs to a single vehicle
     """
+    vehicle_id = request.args.get('vehicle_id', type=int)
+
+    # Find primary vehicle for frontend default
+    primary_vehicle = Vehicle.query.filter_by(is_primary=True).first()
+    primary_vehicle_id = primary_vehicle.id if primary_vehicle else None
+
     # Vehicle stats
     vehicle_count = Vehicle.query.count()
+
+    # Build maintenance query with optional vehicle filter
+    maint_query = db.session.query(MaintenanceLog).join(Vehicle)
+    if vehicle_id:
+        maint_query = maint_query.filter(MaintenanceLog.vehicle_id == vehicle_id)
     recent_maintenance = (
-        db.session.query(MaintenanceLog)
-        .join(Vehicle)
+        maint_query
         .order_by(MaintenanceLog.date.desc(), MaintenanceLog.id.desc())
         .limit(5)
         .all()
@@ -83,11 +96,14 @@ def get_summary():
         }
         maintenance_with_vehicle.append(log_dict)
 
-    # Fuel log stats
-    fuel_log_count = FuelLog.query.count()
+    # Build fuel log query with optional vehicle filter
+    fuel_query = db.session.query(FuelLog).join(Vehicle)
+    if vehicle_id:
+        fuel_query = fuel_query.filter(FuelLog.vehicle_id == vehicle_id)
+
+    fuel_log_count = fuel_query.count()
     recent_fuel_logs = (
-        db.session.query(FuelLog)
-        .join(Vehicle)
+        fuel_query
         .order_by(FuelLog.date.desc(), FuelLog.id.desc())
         .limit(5)
         .all()
@@ -117,6 +133,7 @@ def get_summary():
     )
 
     return jsonify({
+        'primary_vehicle_id': primary_vehicle_id,
         'vehicles': {
             'count': vehicle_count,
             'recent_maintenance': maintenance_with_vehicle,
@@ -145,21 +162,29 @@ def get_fleet_status():
       - tire_sets: Currently equipped tire sets
       - active_components: Installed parts (excluding tires/rims)
       - activity_timeline: 15 most recent events across all types
+
+    Optional query param:
+      ?vehicle_id=X  → filter all sections to a single vehicle
     """
     today = date.today()
     thirty_days_ago = today - timedelta(days=30)
     year_start = date(today.year, 1, 1)
 
+    vehicle_id = request.args.get('vehicle_id', type=int)
+
     # Eager-load all vehicle relationships using subqueryload for collections.
     # joinedload on multiple collections creates a cartesian product that
     # can blow up memory; subqueryload issues separate queries per relationship.
-    vehicles_list = Vehicle.query.options(
+    query = Vehicle.query.options(
         subqueryload(Vehicle.maintenance_intervals).joinedload(VehicleMaintenanceInterval.item),
         subqueryload(Vehicle.tire_sets).subqueryload(TireSet.components),
         subqueryload(Vehicle.components),
         subqueryload(Vehicle.fuel_logs),
         subqueryload(Vehicle.maintenance_logs),
-    ).all()
+    )
+    if vehicle_id:
+        query = query.filter(Vehicle.id == vehicle_id)
+    vehicles_list = query.all()
 
     # Severity ranking for sorting alerts and determining worst status
     severity = {'unknown': 0, 'ok': 1, 'due_soon': 2, 'due': 3, 'overdue': 4}
@@ -424,14 +449,16 @@ def get_fleet_status():
             'vehicle_name': vehicle_name_map.get(fl.vehicle_id, 'Unknown'),
         })
 
-    # Include recent non-trashed notes in the timeline
-    recent_notes_for_timeline = (
-        Note.query
-        .filter_by(is_trashed=False)
-        .order_by(Note.updated_at.desc())
-        .limit(15)
-        .all()
-    )
+    # Include recent non-trashed notes in the timeline (only for fleet-wide view)
+    recent_notes_for_timeline = []
+    if not vehicle_id:
+        recent_notes_for_timeline = (
+            Note.query
+            .filter_by(is_trashed=False)
+            .order_by(Note.updated_at.desc())
+            .limit(15)
+            .all()
+        )
     for n in recent_notes_for_timeline:
         note_date = n.updated_at or n.created_at
         # Build subtitle from folder name or first tag
