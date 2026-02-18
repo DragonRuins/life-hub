@@ -18,14 +18,14 @@
   <rect x="152" y="172" width="148" height="24" rx="12" fill="#99ccff"/>
   <rect x="152" y="210" width="172" height="24" rx="12" fill="#ffcc99"/>
 
-  <!-- "LH" text in LCARS style (tall, narrow) -->
+  <!-- "DC" text in LCARS style (tall, narrow) -->
   <text x="290" y="400"
         font-family="'Antonio', 'Helvetica Neue', Arial, sans-serif"
         font-weight="700"
         font-size="200"
         letter-spacing="0.05em"
         fill="#f1c655"
-        text-anchor="middle">LH</text>
+        text-anchor="middle">DC</text>
 
   <!-- Small decorative dots (status indicators) -->
   <circle cx="420" cy="146" r="10" fill="#a6e3a1"/>

@@ -1,5 +1,5 @@
 """
-Services package for Life Hub.
+Services package for Datacore.
 
 Contains business logic and service layers that sit between
 routes (API endpoints) and models (database). This keeps route

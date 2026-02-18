@@ -72,7 +72,7 @@ class EmailChannel(BaseChannel):
             'label': 'From Name',
             'type': 'text',
             'required': False,
-            'default': 'Life Hub',
+            'default': 'Datacore',
             'help': 'Display name for the sender',
         },
         {
@@ -102,7 +102,7 @@ class EmailChannel(BaseChannel):
             'label': 'Subject Prefix',
             'type': 'text',
             'required': False,
-            'help': 'Prefix added to every email subject, e.g. "[Life Hub] "',
+            'help': 'Prefix added to every email subject, e.g. "[Datacore] "',
         },
     ]
 
@@ -124,13 +124,13 @@ class EmailChannel(BaseChannel):
         """
         # -- Build the subject line --
         prefix = config.get('email_subject_prefix', '')
-        subject = f"{prefix}{title}" if title else f"{prefix}Life Hub Notification"
+        subject = f"{prefix}{title}" if title else f"{prefix}Datacore Notification"
 
         # -- Construct the MIME message --
         msg = MIMEMultipart()
 
         # Format the "From" header with display name if provided
-        from_name = config.get('from_name', 'Life Hub')
+        from_name = config.get('from_name', 'Datacore')
         from_address = config['from_address']
         msg['From'] = f"{from_name} <{from_address}>"
 

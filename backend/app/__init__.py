@@ -1,5 +1,5 @@
 """
-Life Hub - Flask Application Factory
+Datacore - Flask Application Factory
 
 This is the "app factory" pattern. Instead of creating the Flask app
 at module level, we create it inside a function. This makes testing
@@ -92,7 +92,7 @@ def create_app():
     # Simple health check endpoint
     @app.route('/api/health')
     def health():
-        return {'status': 'ok', 'app': 'Life Hub'}
+        return {'status': 'ok', 'app': 'Datacore'}
 
     return app
 

@@ -1,7 +1,7 @@
 {
   "name": "Fuel Log",
   "short_name": "Fuel Log",
-  "description": "Log fuel fill-ups from Life Hub",
+  "description": "Log fuel fill-ups from Datacore",
   "start_url": "/fuel/add/2",
   "scope": "/fuel/",
   "display": "standalone",

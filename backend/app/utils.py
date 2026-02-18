@@ -1,5 +1,5 @@
 """
-Utility functions shared across the Life Hub application.
+Utility functions shared across the Datacore application.
 """
 import re
 from urllib.parse import urlparse

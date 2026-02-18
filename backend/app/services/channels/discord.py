@@ -46,7 +46,7 @@ class DiscordChannel(BaseChannel):
             'label': 'Bot Name',
             'type': 'text',
             'required': False,
-            'default': 'Life Hub',
+            'default': 'Datacore',
             'help': 'Custom username shown on the webhook message',
         },
         {
@@ -68,7 +68,7 @@ class DiscordChannel(BaseChannel):
             'label': 'Footer Text',
             'type': 'text',
             'required': False,
-            'default': 'Life Hub Notifications',
+            'default': 'Datacore Notifications',
             'help': 'Text shown in the embed footer',
         },
         {
@@ -146,13 +146,13 @@ class DiscordChannel(BaseChannel):
 
         # -- Build the embed object --
         embed = {
-            'title': title or 'Life Hub Notification',
+            'title': title or 'Datacore Notification',
             'description': body,
             'color': embed_color,
         }
 
         # Footer
-        footer_text = config.get('embed_footer_text', 'Life Hub Notifications')
+        footer_text = config.get('embed_footer_text', 'Datacore Notifications')
         if footer_text:
             embed['footer'] = {'text': footer_text}
             if config.get('embed_footer_icon_url'):

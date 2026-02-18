@@ -3,7 +3,7 @@
  *
  * Shows a single project's header info, tech stack, and tags,
  * with a tab bar for Kanban, Changelog, and Settings views.
- * Uses URL slug for routing (e.g., /projects/life-hub).
+ * Uses URL slug for routing (e.g., /projects/datacore).
  */
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'

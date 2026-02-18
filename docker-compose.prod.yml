@@ -1,4 +1,4 @@
-# Life Hub - Production Override for HexOS/Dockge
+# Datacore - Production Override for HexOS/Dockge
 # This file uses pre-built images from GitHub Container Registry
 # instead of building from source.
 #

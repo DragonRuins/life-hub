@@ -162,7 +162,7 @@ def create_project():
 
     Expects JSON:
     {
-        "name": "Life Hub",
+        "name": "Datacore",
         "description": "Personal dashboard app",
         "status": "active",
         "color": "#89b4fa",

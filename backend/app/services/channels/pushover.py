@@ -143,7 +143,7 @@ class PushoverChannel(BaseChannel):
         Raises:
             Exception: If the Pushover API returns a non-200 status code.
         """
-        # Map Life Hub priority strings to Pushover priority numbers.
+        # Map Datacore priority strings to Pushover priority numbers.
         # If the user has set a default_priority in their config, that
         # takes precedence over the automatic mapping.
         priority_map = {'low': -1, 'normal': 0, 'high': 1, 'critical': 2}
@@ -156,7 +156,7 @@ class PushoverChannel(BaseChannel):
         payload = {
             'token': config['api_token'],
             'user': config['user_key'],
-            'title': title or 'Life Hub',
+            'title': title or 'Datacore',
             'message': body,
             'priority': int(pushover_priority),
             'html': 1 if config.get('html') else 0,

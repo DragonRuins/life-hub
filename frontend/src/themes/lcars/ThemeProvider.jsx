@@ -15,7 +15,7 @@ import './lcars-variables.css'
 import './lcars-components.css'
 import './lcars-animations.css'
 
-const STORAGE_KEY = 'life-hub-theme'
+const STORAGE_KEY = 'datacore-theme'
 const BOOT_DURATION = 1500 // ms for the boot sequence animation
 
 const ThemeContext = createContext(null)

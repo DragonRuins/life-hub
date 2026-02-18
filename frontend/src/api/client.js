@@ -1,5 +1,5 @@
 /**
- * API Helper for Life Hub
+ * API Helper for Datacore
  *
  * Centralizes all HTTP requests to backend.
  * Components import functions from here instead of

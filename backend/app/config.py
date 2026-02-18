@@ -1,5 +1,5 @@
 """
-Configuration for the Life Hub application.
+Configuration for the Datacore application.
 Reads from environment variables so we can change settings
 without modifying code (important for dev vs production).
 """

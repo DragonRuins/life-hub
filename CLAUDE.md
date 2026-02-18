@@ -1,4 +1,4 @@
-# Life Hub - CLAUDE.md
+# Datacore - CLAUDE.md
 
 ## Important Notes for Agents
 
@@ -51,7 +51,7 @@ Similarly, when reading files for context, read only the relevant sections or li
 
 ## Project Overview
 
-Life Hub is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, fuel economy, notifications, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser. The app supports two switchable themes: Catppuccin Mocha (default) and LCARS (Star Trek computer interface).
+Datacore is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, fuel economy, notifications, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser. The app supports two switchable themes: Catppuccin Mocha (default) and LCARS (Star Trek computer interface).
 
 **Owner:** Chase — has minimal Python experience, learning React. Explain things clearly and comment code well.
 
@@ -66,7 +66,7 @@ Life Hub is a self-hosted personal dashboard and database application. It's a mo
 ## Project Structure
 
 ```
-life-hub/
+datacore/
 ├── docker-compose.yml              # Dev: builds from source with volume mounts
 ├── docker-compose.prod.yml         # Prod: uses pre-built GHCR images for Dockge
 ├── .env.example                    # Environment variable template

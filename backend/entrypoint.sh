@@ -1,5 +1,5 @@
 #!/bin/bash
-# Life Hub Backend Entrypoint
+# Datacore Backend Entrypoint
 #
 # Runs database migrations before starting the app server.
 # Handles two scenarios:

@@ -80,7 +80,7 @@ export default function LCARSHeader() {
             paddingLeft: '0.5rem',
           }}
         >
-          Life Hub
+          Datacore
         </span>
       </div>
 

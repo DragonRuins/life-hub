@@ -1,4 +1,4 @@
-# 🏠 Life Hub
+# 🏠 Datacore
 
 A self-hosted personal dashboard and database for tracking everything in your life. Built with Flask, React, and PostgreSQL.
 
@@ -25,8 +25,8 @@ A self-hosted personal dashboard and database for tracking everything in your li
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/life-hub.git
-cd life-hub
+git clone https://github.com/YOUR_USERNAME/datacore.git
+cd datacore
 
 # 2. Create your environment file
 cp .env.example .env
@@ -56,7 +56,7 @@ To restart: `docker compose up -d` (runs in background)
 ### Using Claude Code
 
 ```bash
-cd life-hub
+cd datacore
 claude
 # Then just describe what you want:
 # "Add a fuel log feature to the vehicles module"
@@ -103,7 +103,7 @@ Replace `<server-ip>` with your server's IP address and `<vehicle-id>` with the 
 ## Project Structure
 
 ```
-life-hub/
+datacore/
 ├── backend/          # Flask API (Python)
 │   ├── app/
 │   │   ├── models/   # Database table definitions

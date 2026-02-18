@@ -123,26 +123,19 @@ function AppShell() {
               minHeight: '64px',
             }}
           >
-            <div
+            <img
+              src="/icon.svg"
+              alt="Datacore"
               style={{
                 width: '32px',
                 height: '32px',
                 borderRadius: '8px',
-                background: 'linear-gradient(135deg, var(--color-blue), var(--color-mauve))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.875rem',
-                fontWeight: 700,
-                color: 'var(--color-crust)',
                 flexShrink: 0,
               }}
-            >
-              LH
-            </div>
+            />
             {!sidebarCollapsed && (
               <span style={{ fontWeight: 600, fontSize: '1.05rem', letterSpacing: '-0.01em' }}>
-                Life Hub
+                Datacore
               </span>
             )}
           </div>
@@ -213,23 +206,16 @@ function AppShell() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                <div
+                <img
+                  src="/icon.svg"
+                  alt="Datacore"
                   style={{
                     width: '32px',
                     height: '32px',
                     borderRadius: '8px',
-                    background: 'linear-gradient(135deg, var(--color-blue), var(--color-mauve))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.875rem',
-                    fontWeight: 700,
-                    color: 'var(--color-crust)',
                   }}
-                >
-                  LH
-                </div>
-                <span style={{ fontWeight: 600, fontSize: '1.05rem' }}>Life Hub</span>
+                />
+                <span style={{ fontWeight: 600, fontSize: '1.05rem' }}>Datacore</span>
               </div>
               <button
                 onClick={() => setDrawerOpen(false)}

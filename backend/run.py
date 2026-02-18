@@ -1,5 +1,5 @@
 """
-Entry point for the Life Hub backend.
+Entry point for the Datacore backend.
 Run with: python run.py
 """
 from app import create_app

@@ -242,7 +242,7 @@ def test_channel(channel_id):
     """
     Send a test notification through a channel.
 
-    Sends a simple "Test notification from Life Hub" message using
+    Sends a simple "Test notification from Datacore" message using
     the channel's configured handler and settings.
 
     Returns:
@@ -254,8 +254,8 @@ def test_channel(channel_id):
         handler = get_channel_handler(channel.channel_type)
         handler.send(
             config=channel.config,
-            title='Life Hub Test',
-            body='Test notification from Life Hub. If you see this, your channel is working!',
+            title='Datacore Test',
+            body='Test notification from Datacore. If you see this, your channel is working!',
             priority='normal',
         )
         return jsonify({'message': 'Test notification sent successfully'})
