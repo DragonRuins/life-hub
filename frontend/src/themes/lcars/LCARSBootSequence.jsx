@@ -228,18 +228,39 @@ export default function LCARSBootSequence({ onComplete }) {
       {phase >= 2 && phase < 4 && (
         <div
           style={{
-            fontFamily: "'Antonio', 'Helvetica Neue', sans-serif",
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.3em',
-            color: BOOT_COLORS[0],
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
             opacity: phase >= 3 ? 0 : 0.7,
             transition: 'opacity 0.3s',
             zIndex: 1,
           }}
         >
-          Initializing
+          <div
+            style={{
+              fontFamily: "'Antonio', 'Helvetica Neue', sans-serif",
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.3em',
+              color: BOOT_COLORS[0],
+            }}
+          >
+            Initializing
+          </div>
+          <div
+            style={{
+              fontFamily: "'Antonio', 'Helvetica Neue', sans-serif",
+              fontSize: '0.72rem',
+              fontWeight: 400,
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: BOOT_COLORS[2],
+            }}
+          >
+            Library Computer Access/Retrieval System
+          </div>
         </div>
       )}
     </div>

@@ -17,10 +17,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, Star, X,
   Fuel, Thermometer, AlertTriangle, DollarSign, Gauge,
-  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban
+  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen
 } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-import { dashboard, vehicles, notifications, projects } from '../../api/client'
+import { dashboard, vehicles, notifications, projects, kb } from '../../api/client'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import { getComponentType } from '../../constants/componentTypes'
 import MaintenanceForm from '../../components/MaintenanceForm'
@@ -58,6 +58,7 @@ export default function LCARSDashboard() {
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
+  const [kbStats, setKbStats] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
   function getDashboardParams() {
@@ -69,7 +70,7 @@ export default function LCARSDashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, fs, s, v, items, nFeed, nCount, pStats] = await Promise.all([
+      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats] = await Promise.all([
         dashboard.getWeather().catch(() => null),
         dashboard.getFleetStatus(params).catch(() => null),
         dashboard.getSummary(params),
@@ -78,6 +79,7 @@ export default function LCARSDashboard() {
         notifications.feed({ limit: 10 }).catch(() => []),
         notifications.unreadCount().catch(() => ({ count: 0 })),
         projects.stats().catch(() => null),
+        kb.stats().catch(() => null),
       ])
       setWeather(w)
       setFleetStatus(fs)
@@ -87,6 +89,7 @@ export default function LCARSDashboard() {
       setNotificationFeed(Array.isArray(nFeed) ? nFeed : [])
       setUnreadCount(nCount?.count || 0)
       setProjectStats(pStats)
+      setKbStats(kStats)
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -267,6 +270,11 @@ export default function LCARSDashboard() {
       {/* Row 7: Projects */}
       <div style={{ marginBottom: '1rem' }}>
         <LCARSProjectsPanel stats={projectStats} />
+      </div>
+
+      {/* Row 8: Library Computer */}
+      <div style={{ marginBottom: '1rem' }}>
+        <LCARSLibraryComputerPanel stats={kbStats} />
       </div>
 
       {/* Quick Add Maintenance Modal */}
@@ -1465,6 +1473,95 @@ function LCARSProjectsPanel({ stats }) {
                   label={task.title}
                   value={task.project_name}
                   color="var(--lcars-lilac)"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </LCARSPanel>
+  )
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Panel 12: Library Computer (Knowledge Base)
+// ═══════════════════════════════════════════════════════════════════════════
+function LCARSLibraryComputerPanel({ stats }) {
+  return (
+    <LCARSPanel
+      title="Library Computer"
+      color="var(--lcars-gold)"
+      headerRight={
+        <Link to="/kb" style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.72rem',
+          textTransform: 'uppercase',
+          color: '#000000',
+          textDecoration: 'none',
+          letterSpacing: '0.05em',
+        }}>
+          Access
+        </Link>
+      }
+    >
+      {!stats || stats.total === 0 ? (
+        <LCARSEmptyState
+          message="No database entries"
+          linkTo="/kb"
+          linkLabel="Create First Entry"
+        />
+      ) : (
+        <div>
+          {/* Stats row */}
+          <div style={{
+            display: 'flex',
+            gap: '1.5rem',
+            marginBottom: '0.75rem',
+            flexWrap: 'wrap',
+          }}>
+            <LCARSStat
+              label="Entries"
+              value={stats.total}
+              color="var(--lcars-gold)"
+            />
+            <LCARSStat
+              label="Verified"
+              value={stats.by_status?.published || 0}
+              color="var(--lcars-green)"
+            />
+            <LCARSStat
+              label="Preliminary"
+              value={stats.by_status?.draft || 0}
+              color="var(--lcars-sunflower)"
+            />
+            <LCARSStat
+              label="Classifications"
+              value={stats.categories_count || 0}
+              color="var(--lcars-ice)"
+            />
+          </div>
+
+          {/* Recent entries */}
+          {stats.recent?.length > 0 && (
+            <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
+              <div style={{
+                fontFamily: "'Antonio', sans-serif",
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'var(--lcars-gray)',
+                marginBottom: '0.375rem',
+              }}>
+                Recent Database Entries
+              </div>
+              {stats.recent.slice(0, 4).map((article) => (
+                <LCARSDataRow
+                  key={article.id}
+                  icon={<BookOpen size={13} />}
+                  label={article.title}
+                  value={article.status === 'published' ? 'VERIFIED' : article.status?.toUpperCase()}
+                  color="var(--lcars-gold)"
                 />
               ))}
             </div>

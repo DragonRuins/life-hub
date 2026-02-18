@@ -6,7 +6,7 @@
  * Active route is highlighted with a distinct accent color.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen } from 'lucide-react'
 
 // Fixed color assignments per navigation item
 const NAV_ITEMS = [
@@ -36,6 +36,13 @@ const NAV_ITEMS = [
     label: 'Projects',
     icon: FolderKanban,
     color: 'var(--lcars-lilac)',          // #CC99CC
+    activeColor: 'var(--lcars-butterscotch)',
+  },
+  {
+    to: '/kb',
+    label: 'Library Computer',
+    icon: BookOpen,
+    color: 'var(--lcars-gold)',           // #FFAA00
     activeColor: 'var(--lcars-butterscotch)',
   },
 ]

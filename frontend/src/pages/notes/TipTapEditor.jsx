@@ -15,8 +15,13 @@
  *   - Link (internal note links + external URLs)
  *   - Underline, TextAlign, Highlight
  *   - Placeholder
+ *
+ * KB-only extensions (opt-in via enableKBExtensions prop):
+ *   - CalloutBlock (info/warning/tip/danger admonitions)
+ *   - CollapsibleBlock (details/summary toggle sections)
+ *   - MermaidBlock (Mermaid diagram rendering, lazy-loaded)
  */
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { Placeholder } from '@tiptap/extension-placeholder'
@@ -36,27 +41,37 @@ import { common, createLowlight } from 'lowlight'
 
 import './tiptap.css'
 
+// KB extensions — only loaded when enableKBExtensions is true
+import CalloutBlock from '../../components/tiptap-extensions/CalloutBlock'
+import { CollapsibleBlock, CollapsibleSummary, CollapsibleContent } from '../../components/tiptap-extensions/CollapsibleBlock'
+import MermaidBlock from '../../components/tiptap-extensions/MermaidBlock'
+import WikiLink from '../../components/tiptap-extensions/WikiLink'
+import '../../components/tiptap-extensions/tiptap-kb-extensions.css'
+
 const lowlight = createLowlight(common)
 
-export default function TipTapEditor({ content, onUpdate, editable = true }) {
-  const editor = useEditor({
-    extensions: [
+export default function TipTapEditor({
+  content,
+  onUpdate,
+  editable = true,
+  enableKBExtensions = false,
+  placeholder = 'Start writing...',
+}) {
+  // Build extension list — memoized so it doesn't change on every render
+  const extensions = useMemo(() => {
+    const base = [
       StarterKit.configure({
         // Disable the default code block — we use CodeBlockLowlight instead
         codeBlock: false,
       }),
-      Placeholder.configure({
-        placeholder: 'Start writing...',
-      }),
+      Placeholder.configure({ placeholder }),
       TaskList,
       TaskItem.configure({
         nested: true, // Allow nested checklists
       }),
-      CodeBlockLowlight.configure({
-        lowlight,
-      }),
+      CodeBlockLowlight.configure({ lowlight }),
       Table.configure({
-        resizable: true,
+        resizable: editable,
       }),
       TableRow,
       TableHeader,
@@ -66,8 +81,8 @@ export default function TipTapEditor({ content, onUpdate, editable = true }) {
         allowBase64: false, // Force server-uploaded URLs
       }),
       Link.configure({
-        openOnClick: false,  // Don't navigate while editing
-        autolink: true,      // Auto-detect URLs
+        openOnClick: !editable,  // Only navigate in read mode
+        autolink: true,
         HTMLAttributes: {
           rel: 'noopener noreferrer',
         },
@@ -77,7 +92,25 @@ export default function TipTapEditor({ content, onUpdate, editable = true }) {
         types: ['heading', 'paragraph'],
       }),
       Highlight,
-    ],
+    ]
+
+    // Add KB-specific extensions when opted in
+    if (enableKBExtensions) {
+      base.push(
+        CalloutBlock,
+        CollapsibleBlock,
+        CollapsibleSummary,
+        CollapsibleContent,
+        MermaidBlock,
+        WikiLink,
+      )
+    }
+
+    return base
+  }, [enableKBExtensions, editable, placeholder])
+
+  const editor = useEditor({
+    extensions,
     content,
     editable,
     onUpdate: ({ editor }) => {
@@ -109,4 +142,3 @@ export default function TipTapEditor({ content, onUpdate, editable = true }) {
 
   return <EditorContent editor={editor} />
 }
-

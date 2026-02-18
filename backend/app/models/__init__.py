@@ -13,3 +13,7 @@ from .project import (
     Project, ProjectTechStack, ProjectTag, project_tag_map,
     ProjectKanbanColumn, ProjectTask, ProjectChangelog
 )
+from .kb import (
+    KBCategory, KBTag, kb_article_tags, KBArticle,
+    KBArticleLink, KBArticleRevision, KBBookmark, KBRecentView
+)

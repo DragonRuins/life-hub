@@ -9,8 +9,8 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban } from 'lucide-react'
-import { dashboard, vehicles, projects } from '../api/client'
+import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban, BookOpen } from 'lucide-react'
+import { dashboard, vehicles, projects, kb } from '../api/client'
 import { getWeatherInfo, getDayName } from '../components/weatherCodes'
 import MaintenanceForm from '../components/MaintenanceForm'
 import FuelForm from '../components/FuelForm'
@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
+  const [kbStats, setKbStats] = useState(null)
   const [selectedVehicleName, setSelectedVehicleName] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
@@ -53,18 +54,20 @@ export default function Dashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, s, v, items, pStats] = await Promise.all([
+      const [w, s, v, items, pStats, kStats] = await Promise.all([
         dashboard.getWeather(),
         dashboard.getSummary(params),
         vehicles.list(),
         vehicles.maintenanceItems.list().catch(() => []),
         projects.stats().catch(() => null),
+        kb.stats().catch(() => null),
       ])
       setWeather(w)
       setSummary(s)
       setVehiclesList(v)
       setMaintenanceItems(items)
       setProjectStats(pStats)
+      setKbStats(kStats)
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -376,6 +379,93 @@ export default function Dashboard() {
               message="No projects yet"
               linkTo="/projects"
               linkLabel="Create your first project"
+            />
+          )}
+        </div>
+
+        {/* Knowledge Base Card */}
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '8px',
+                background: 'rgba(166, 227, 161, 0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <BookOpen size={18} style={{ color: 'var(--color-green)' }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Knowledge Base</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                  {kbStats?.total || 0} articles
+                </span>
+              </div>
+            </div>
+            <Link to="/kb" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+          </div>
+
+          {kbStats && kbStats.total > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Quick stats */}
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{
+                  fontSize: '0.75rem', color: 'var(--color-subtext-0)',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-green)' }}>{kbStats.by_status?.published || 0}</span>
+                  published
+                </div>
+                <div style={{
+                  fontSize: '0.75rem', color: 'var(--color-subtext-0)',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{kbStats.by_status?.draft || 0}</span>
+                  drafts
+                </div>
+                <div style={{
+                  fontSize: '0.75rem', color: 'var(--color-subtext-0)',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{kbStats.categories_count || 0}</span>
+                  categories
+                </div>
+              </div>
+
+              {/* Recent articles */}
+              {kbStats.recent?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-subtext-0)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                    Recent Articles
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    {kbStats.recent.slice(0, 3).map((article) => (
+                      <Link
+                        key={article.id}
+                        to={`/kb/${article.slug}`}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.625rem',
+                          padding: '0.5rem 0.625rem', background: 'var(--color-mantle)',
+                          borderRadius: '8px', fontSize: '0.85rem', textDecoration: 'none', color: 'inherit',
+                        }}
+                      >
+                        <BookOpen size={14} style={{ color: 'var(--color-green)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {article.title}
+                        </span>
+                        <span style={{ color: 'var(--color-subtext-0)', fontSize: '0.75rem', flexShrink: 0 }}>
+                          {article.status}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <EmptyState
+              message="No articles yet"
+              linkTo="/kb"
+              linkLabel="Create your first article"
             />
           )}
         </div>

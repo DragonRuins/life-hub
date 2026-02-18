@@ -412,6 +412,129 @@ export const projects = {
   },
 }
 
+// ── Knowledge Base ───────────────────────────────────────────
+
+export const kb = {
+  // Categories
+  categories: {
+    list: () => apiFetch('/kb/categories'),
+    create: (data) => apiFetch('/kb/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/kb/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/kb/categories/${id}`, { method: 'DELETE' }),
+    reorder: (data) => apiFetch('/kb/categories/reorder', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  },
+
+  // Articles
+  articles: {
+    list: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/kb/articles${query ? '?' + query : ''}`)
+    },
+    get: (slug) => apiFetch(`/kb/articles/${slug}`),
+    create: (data) => apiFetch('/kb/articles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (slug, data) => apiFetch(`/kb/articles/${slug}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (slug) => apiFetch(`/kb/articles/${slug}`, { method: 'DELETE' }),
+    backlinks: (slug) => apiFetch(`/kb/articles/${slug}/backlinks`),
+    subPages: (slug) => apiFetch(`/kb/articles/${slug}/sub-pages`),
+    setParent: (slug, data) => apiFetch(`/kb/articles/${slug}/parent`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    recordView: (slug) => apiFetch(`/kb/articles/${slug}/view`, { method: 'POST' }),
+    toggleBookmark: (slug) => apiFetch(`/kb/articles/${slug}/bookmark`, { method: 'POST' }),
+  },
+
+  // Tags (Phase 3)
+  tags: {
+    list: () => apiFetch('/kb/tags'),
+    create: (data) => apiFetch('/kb/tags', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/kb/tags/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/kb/tags/${id}`, { method: 'DELETE' }),
+  },
+
+  // Revisions
+  revisions: {
+    list: (slug) => apiFetch(`/kb/articles/${slug}/revisions`),
+    get: (slug, revisionId) => apiFetch(`/kb/articles/${slug}/revisions/${revisionId}`),
+    restore: (slug, revisionId) => apiFetch(`/kb/articles/${slug}/revisions/${revisionId}/restore`, {
+      method: 'POST',
+    }),
+  },
+
+  // Templates
+  templates: {
+    list: () => apiFetch('/kb/templates'),
+    saveAs: (slug, data) => apiFetch(`/kb/articles/${slug}/save-template`, {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    }),
+    createFrom: (data) => apiFetch('/kb/articles/from-template', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  },
+
+  // Search
+  search: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/kb/search${query ? '?' + query : ''}`)
+  },
+
+  // Recently viewed
+  recentViews: (limit = 20) => apiFetch(`/kb/recent-views?limit=${limit}`),
+
+  // Bookmarks
+  bookmarks: {
+    list: () => apiFetch('/kb/bookmarks'),
+  },
+
+  // Export (returns blob, not JSON)
+  exportArticle: async (slug) => {
+    const response = await fetch(`${API_BASE}/kb/articles/${slug}/export`)
+    if (!response.ok) throw new Error('Export failed')
+    return response
+  },
+
+  // Import (multipart upload)
+  importArticle: async (file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch(`${API_BASE}/kb/import`, {
+      method: 'POST',
+      body: formData,
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Import failed' }))
+      throw new Error(err.error || 'Import failed')
+    }
+    return response.json()
+  },
+
+  // Stats
+  stats: () => apiFetch('/kb/stats'),
+}
+
 // -- Notifications --------------------------------------------------------
 
 export const notifications = {

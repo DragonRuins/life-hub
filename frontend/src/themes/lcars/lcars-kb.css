@@ -1,0 +1,132 @@
+/**
+ * LCARS Knowledge Base / Library Computer styles
+ *
+ * Scoped under .lcars-theme so these only apply when LCARS is active.
+ * Provides LCARS-authentic styling for the KB article reader/editor,
+ * category tree, and search interface.
+ */
+
+/* Scanner animation - gold line sweep on article load */
+.lcars-kb-scanner {
+  position: relative;
+  overflow: hidden;
+}
+
+.lcars-kb-scanner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--lcars-gold), transparent);
+  animation: lcars-kb-scan 0.6s ease-out forwards;
+}
+
+@keyframes lcars-kb-scan {
+  from { left: -100%; }
+  to { left: 100%; }
+}
+
+/* TipTap content overrides for LCARS KB reader */
+.lcars-kb-content .ProseMirror {
+  color: var(--lcars-space-white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.lcars-kb-content .ProseMirror h1,
+.lcars-kb-content .ProseMirror h2,
+.lcars-kb-content .ProseMirror h3 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lcars-kb-content .ProseMirror h1 {
+  color: var(--lcars-gold);
+  font-size: 1.2rem;
+  border-bottom: 2px solid var(--lcars-gold);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.lcars-kb-content .ProseMirror h2 {
+  color: var(--lcars-sunflower);
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(102, 102, 136, 0.3);
+  padding-bottom: 0.375rem;
+}
+
+.lcars-kb-content .ProseMirror h3 {
+  color: var(--lcars-ice);
+  font-size: 0.9rem;
+}
+
+.lcars-kb-content .ProseMirror a {
+  color: var(--lcars-ice);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(153, 204, 255, 0.3);
+}
+
+.lcars-kb-content .ProseMirror a:hover {
+  border-bottom-color: var(--lcars-ice);
+}
+
+.lcars-kb-content .ProseMirror code {
+  background: rgba(102, 102, 136, 0.15);
+  color: var(--lcars-sunflower);
+  padding: 0.125rem 0.375rem;
+  border-radius: 2px;
+  font-size: 0.82rem;
+}
+
+.lcars-kb-content .ProseMirror pre {
+  background: rgba(102, 102, 136, 0.08);
+  border: 1px solid rgba(102, 102, 136, 0.3);
+  border-left: 3px solid var(--lcars-gold);
+  padding: 1rem;
+}
+
+.lcars-kb-content .ProseMirror blockquote {
+  border-left: 3px solid var(--lcars-african-violet);
+  padding-left: 1rem;
+  color: var(--lcars-gray);
+  font-style: italic;
+}
+
+.lcars-kb-content .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.lcars-kb-content .ProseMirror th {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lcars-gold);
+  border-bottom: 2px solid var(--lcars-gold);
+  padding: 0.5rem;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+.lcars-kb-content .ProseMirror td {
+  border-bottom: 1px solid rgba(102, 102, 136, 0.2);
+  padding: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.lcars-kb-content .ProseMirror hr {
+  border: none;
+  border-top: 1px solid rgba(102, 102, 136, 0.3);
+  margin: 1.5rem 0;
+}
+
+/* Reduce animations for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .lcars-kb-scanner::after {
+    animation: none;
+  }
+}

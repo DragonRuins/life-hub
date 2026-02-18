@@ -1,0 +1,232 @@
+/**
+ * KB Print Styles
+ *
+ * Applied via @media print. Hides navigation, sidebar, buttons,
+ * and formats the article content for clean paper output.
+ * Imported by KBArticleReader.jsx.
+ */
+
+@media print {
+  /* Hide all navigation, sidebar, header, footer chrome */
+  nav,
+  header,
+  footer,
+  .sidebar,
+  .lcars-sidebar,
+  .lcars-header,
+  .lcars-footer,
+  .lcars-elbow,
+  .lcars-data-cascade,
+  .lcars-mobile-nav,
+  [class*="LCARSLayout"],
+  [class*="LCARSSidebar"],
+  [class*="LCARSHeader"],
+  [class*="LCARSFooter"] {
+    display: none !important;
+  }
+
+  /* Hide interactive elements */
+  button,
+  .btn,
+  .btn-primary,
+  .btn-ghost,
+  .btn-danger,
+  input[type="file"] {
+    display: none !important;
+  }
+
+  /* Hide KB sidebar panel */
+  .card:has(> [class*="KBSidebar"]),
+  [style*="gridTemplateColumns: 260px"] > :first-child {
+    display: none !important;
+  }
+
+  /* Full-width content */
+  main,
+  [role="main"],
+  .content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Reset any grid layouts to single column */
+  [style*="grid-template-columns"],
+  [style*="gridTemplateColumns"] {
+    display: block !important;
+  }
+
+  /* Hide TOC sidebar (floating TOC in reader) */
+  .kb-toc,
+  [class*="TableOfContents"] {
+    display: none !important;
+  }
+
+  /* Article content: clean, readable */
+  .tiptap-content,
+  .lcars-kb-content {
+    border: none !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+  }
+
+  /* Headings */
+  .tiptap-content h1,
+  .tiptap-content h2,
+  .tiptap-content h3,
+  .tiptap-content h4,
+  .lcars-kb-content h1,
+  .lcars-kb-content h2,
+  .lcars-kb-content h3,
+  .lcars-kb-content h4 {
+    color: black !important;
+    page-break-after: avoid;
+    font-family: system-ui, sans-serif !important;
+  }
+
+  /* Links: show URL */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Don't show URL for internal nav links */
+  a[href^="/"]::after,
+  a[href^="#"]::after {
+    content: none;
+  }
+
+  /* Code blocks */
+  .tiptap-content pre,
+  .lcars-kb-content pre {
+    background: #f5f5f5 !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+    padding: 0.5rem !important;
+    page-break-inside: avoid;
+    font-size: 10pt !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+
+  .tiptap-content code,
+  .lcars-kb-content code {
+    color: black !important;
+    background: #f0f0f0 !important;
+  }
+
+  /* Tables */
+  .tiptap-content table,
+  .lcars-kb-content table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .tiptap-content th,
+  .tiptap-content td,
+  .lcars-kb-content th,
+  .lcars-kb-content td {
+    border: 1px solid #999 !important;
+    padding: 0.35rem 0.5rem !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  .tiptap-content th,
+  .lcars-kb-content th {
+    background: #eee !important;
+    font-weight: bold !important;
+  }
+
+  /* Images: constrain to page */
+  .tiptap-content img,
+  .lcars-kb-content img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Mermaid diagrams: page break avoidance */
+  .kb-mermaid {
+    page-break-inside: avoid;
+  }
+
+  .kb-mermaid-preview svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Callout blocks: border-based styling for print */
+  .kb-callout {
+    border: 1px solid #999 !important;
+    border-left: 4px solid #666 !important;
+    background: #fafafa !important;
+    color: black !important;
+    padding: 0.5rem !important;
+    page-break-inside: avoid;
+    margin: 0.5rem 0 !important;
+  }
+
+  /* Blockquotes */
+  .tiptap-content blockquote,
+  .lcars-kb-content blockquote {
+    border-left: 3px solid #999 !important;
+    color: #333 !important;
+    padding-left: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  /* Status badges, backlinks, revision panel: hide */
+  .kb-revision-history,
+  [class*="RevisionHistory"] {
+    display: none !important;
+  }
+
+  /* Article title: prominent */
+  h1 {
+    font-size: 18pt !important;
+    color: black !important;
+    margin-bottom: 0.5rem !important;
+    font-family: system-ui, sans-serif !important;
+  }
+
+  /* Metadata row: subtle */
+  .article-meta {
+    font-size: 9pt !important;
+    color: #666 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Page breaks */
+  h1, h2, h3, h4 {
+    page-break-after: avoid;
+  }
+
+  p, li, blockquote {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Cards: remove styling */
+  .card {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  /* Force color for text elements */
+  p, li, span, div {
+    color: black !important;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1.5cm;
+  }
+}
