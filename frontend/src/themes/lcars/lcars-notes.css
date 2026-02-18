@@ -1,0 +1,280 @@
+/*
+ * LCARS ProseMirror Overrides
+ *
+ * Scoped under .lcars-theme so these only apply when the LCARS theme is active.
+ * Overrides the Catppuccin tiptap.css styles with LCARS colors, Antonio font
+ * for headings, and LCARS-themed code blocks/tables.
+ */
+
+/* ── Base Editor ───────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror {
+  outline: none;
+  min-height: 200px;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--lcars-space-white);
+}
+
+.lcars-theme .ProseMirror > * + * {
+  margin-top: 0.5em;
+}
+
+/* Placeholder */
+.lcars-theme .ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--lcars-gray);
+}
+
+/* ── Headings ──────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror h1 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: var(--lcars-sunflower);
+}
+
+.lcars-theme .ProseMirror h2 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1.25em;
+  margin-bottom: 0.4em;
+  color: var(--lcars-ice);
+}
+
+.lcars-theme .ProseMirror h3 {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 1em;
+  margin-bottom: 0.3em;
+  color: var(--lcars-african-violet);
+}
+
+/* ── Inline Formatting ─────────────────────────────────────── */
+
+.lcars-theme .ProseMirror strong {
+  font-weight: 700;
+  color: var(--lcars-space-white);
+}
+
+.lcars-theme .ProseMirror code {
+  background: rgba(102, 102, 136, 0.15);
+  color: var(--lcars-butterscotch);
+  padding: 0.15em 0.35em;
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+
+.lcars-theme .ProseMirror mark {
+  background: rgba(255, 204, 153, 0.2);
+  color: inherit;
+  padding: 0.05em 0.1em;
+  border-radius: 2px;
+}
+
+/* ── Links ─────────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror a {
+  color: var(--lcars-ice);
+  text-decoration: underline;
+  text-decoration-color: rgba(153, 204, 255, 0.4);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.lcars-theme .ProseMirror a:hover {
+  text-decoration-color: var(--lcars-ice);
+}
+
+/* ── Blockquote ────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror blockquote {
+  border-left: 3px solid var(--lcars-sunflower);
+  padding-left: 1em;
+  color: var(--lcars-gray);
+  margin: 0.75em 0;
+}
+
+/* ── Horizontal Rule ───────────────────────────────────────── */
+
+.lcars-theme .ProseMirror hr {
+  border: none;
+  border-top: 2px solid var(--lcars-sunflower);
+  margin: 1.5em 0;
+}
+
+/* ── Lists ─────────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror ul,
+.lcars-theme .ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.lcars-theme .ProseMirror li {
+  margin: 0.2em 0;
+}
+
+.lcars-theme .ProseMirror li > p {
+  margin: 0;
+}
+
+/* ── Task Lists ───────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin: 0.25em 0;
+}
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25em;
+}
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--lcars-sunflower);
+  cursor: pointer;
+}
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.lcars-theme .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  color: var(--lcars-gray);
+}
+
+/* ── Code Blocks ──────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror pre {
+  background: rgba(102, 102, 136, 0.08);
+  border: 1px solid rgba(102, 102, 136, 0.25);
+  border-left: 3px solid var(--lcars-butterscotch);
+  border-radius: 0;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.lcars-theme .ProseMirror pre code {
+  background: none;
+  color: var(--lcars-space-white);
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Syntax highlighting (LCARS palette) */
+.lcars-theme .ProseMirror pre .hljs-keyword   { color: var(--lcars-african-violet); }
+.lcars-theme .ProseMirror pre .hljs-string    { color: var(--lcars-green); }
+.lcars-theme .ProseMirror pre .hljs-number    { color: var(--lcars-butterscotch); }
+.lcars-theme .ProseMirror pre .hljs-comment   { color: var(--lcars-gray); font-style: italic; }
+.lcars-theme .ProseMirror pre .hljs-function  { color: var(--lcars-ice); }
+.lcars-theme .ProseMirror pre .hljs-title     { color: var(--lcars-ice); }
+.lcars-theme .ProseMirror pre .hljs-params    { color: var(--lcars-space-white); }
+.lcars-theme .ProseMirror pre .hljs-built_in  { color: var(--lcars-tomato); }
+.lcars-theme .ProseMirror pre .hljs-literal   { color: var(--lcars-butterscotch); }
+.lcars-theme .ProseMirror pre .hljs-type      { color: var(--lcars-sunflower); }
+.lcars-theme .ProseMirror pre .hljs-attr      { color: var(--lcars-sunflower); }
+.lcars-theme .ProseMirror pre .hljs-selector-class { color: var(--lcars-green); }
+.lcars-theme .ProseMirror pre .hljs-selector-tag   { color: var(--lcars-african-violet); }
+.lcars-theme .ProseMirror pre .hljs-meta      { color: var(--lcars-ice); }
+.lcars-theme .ProseMirror pre .hljs-variable  { color: var(--lcars-tomato); }
+.lcars-theme .ProseMirror pre .hljs-regexp    { color: var(--lcars-butterscotch); }
+.lcars-theme .ProseMirror pre .hljs-tag       { color: var(--lcars-african-violet); }
+.lcars-theme .ProseMirror pre .hljs-name      { color: var(--lcars-ice); }
+.lcars-theme .ProseMirror pre .hljs-attribute { color: var(--lcars-sunflower); }
+
+/* ── Tables ────────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75em 0;
+  overflow: hidden;
+}
+
+.lcars-theme .ProseMirror th,
+.lcars-theme .ProseMirror td {
+  border: 1px solid rgba(102, 102, 136, 0.3);
+  padding: 0.4em 0.65em;
+  text-align: left;
+  vertical-align: top;
+  position: relative;
+  min-width: 80px;
+}
+
+.lcars-theme .ProseMirror th {
+  background: rgba(255, 204, 153, 0.1);
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lcars-sunflower);
+  border-bottom: 2px solid var(--lcars-sunflower);
+}
+
+.lcars-theme .ProseMirror td {
+  font-size: 0.85rem;
+  color: var(--lcars-space-white);
+}
+
+.lcars-theme .ProseMirror .selectedCell {
+  background: rgba(153, 204, 255, 0.1);
+}
+
+.lcars-theme .ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--lcars-ice);
+  cursor: col-resize;
+  z-index: 10;
+}
+
+/* ── Images ────────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  margin: 0.5em 0;
+  border: 1px solid rgba(102, 102, 136, 0.3);
+}
+
+.lcars-theme .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--lcars-ice);
+  outline-offset: 2px;
+}
+
+/* ── Gapcursor ─────────────────────────────────────────────── */
+
+.lcars-theme .ProseMirror .ProseMirror-gapcursor:after {
+  border-top: 1px solid var(--lcars-space-white);
+}

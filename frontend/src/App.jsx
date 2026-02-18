@@ -6,7 +6,7 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
@@ -14,10 +14,12 @@ import useIsMobile from './hooks/useIsMobile'
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
 import VehicleDetail from './pages/VehicleDetail'
-import Notes from './pages/Notes'
+import Notes from './pages/notes/Notes'
 import Notifications from './pages/Notifications'
 import FuelEconomy from './pages/FuelEconomy'
 import FuelEntry from './pages/FuelEntry'
+import Projects from './pages/Projects'
+import ProjectDetail from './pages/ProjectDetail'
 import NotificationBell from './components/NotificationBell'
 import LCARSLayout from './themes/lcars/LCARSLayout'
 import LCARSBootSequence from './themes/lcars/LCARSBootSequence'
@@ -25,6 +27,9 @@ import LCARSDashboard from './themes/lcars/LCARSDashboard'
 import LCARSFuelEconomy from './themes/lcars/LCARSFuelEconomy'
 import LCARSVehicles from './themes/lcars/LCARSVehicles'
 import LCARSVehicleDetail from './themes/lcars/LCARSVehicleDetail'
+import LCARSNotes from './themes/lcars/LCARSNotes'
+import LCARSProjects from './themes/lcars/LCARSProjects'
+import LCARSProjectDetail from './themes/lcars/LCARSProjectDetail'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
@@ -66,7 +71,9 @@ function LCARSAppShell() {
         <Route path="/vehicles" element={<LCARSVehicles />} />
         <Route path="/vehicles/:id" element={<LCARSVehicleDetail />} />
         <Route path="/vehicles/:id/fuel" element={<LCARSFuelEconomy />} />
-        <Route path="/notes" element={<Notes />} />
+        <Route path="/notes" element={<LCARSNotes />} />
+        <Route path="/projects" element={<LCARSProjects />} />
+        <Route path="/projects/:slug" element={<LCARSProjectDetail />} />
         <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </LCARSLayout>
@@ -144,6 +151,7 @@ function AppShell() {
             <SidebarLink to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" collapsed={sidebarCollapsed} />
             <SidebarLink to="/vehicles" icon={<Car size={20} />} label="Vehicles" collapsed={sidebarCollapsed} />
             <SidebarLink to="/notes" icon={<StickyNote size={20} />} label="Notes" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -242,6 +250,7 @@ function AppShell() {
               <SidebarLink to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/vehicles" icon={<Car size={20} />} label="Vehicles" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/notes" icon={<StickyNote size={20} />} label="Notes" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -268,6 +277,8 @@ function AppShell() {
             <Route path="/vehicles/:id" element={<VehicleDetail />} />
             <Route path="/vehicles/:id/fuel" element={<FuelEconomy />} />
             <Route path="/notes" element={<Notes />} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/notifications" element={<Notifications />} />
           </Routes>
         </div>

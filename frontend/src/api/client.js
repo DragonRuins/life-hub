@@ -205,7 +205,202 @@ export const notes = {
   delete: (id) => apiFetch(`/notes/${id}`, {
     method: "DELETE",
   }),
-  categories: () => apiFetch("/notes/categories"),
+  restore: (id) => apiFetch(`/notes/${id}/restore`, { method: "PUT" }),
+  permanentDelete: (id) => apiFetch(`/notes/${id}/permanent`, { method: "DELETE" }),
+  emptyTrash: () => apiFetch("/notes/empty-trash", { method: "POST" }),
+  move: (id, folderId) => apiFetch(`/notes/${id}/move`, {
+    method: "POST",
+    body: JSON.stringify({ folder_id: folderId }),
+  }),
+  recent: (limit = 10) => apiFetch(`/notes/recent?limit=${limit}`),
+  stats: () => apiFetch("/notes/stats"),
+
+  // Tags
+  tags: {
+    list: () => apiFetch("/notes/tags"),
+    create: (data) => apiFetch("/notes/tags", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/notes/tags/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/notes/tags/${id}`, { method: "DELETE" }),
+  },
+}
+
+// ── Folders ───────────────────────────────────────────────────
+
+export const folders = {
+  list: () => apiFetch("/folders/"),
+  create: (data) => apiFetch("/folders/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+  update: (id, data) => apiFetch(`/folders/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  }),
+  delete: (id, action = 'move_to_root') => apiFetch(`/folders/${id}?action=${action}`, {
+    method: "DELETE",
+  }),
+  reorder: (id, position) => apiFetch(`/folders/${id}/reorder`, {
+    method: "PUT",
+    body: JSON.stringify({ position }),
+  }),
+}
+
+// ── Attachments ───────────────────────────────────────────────
+
+/**
+ * Upload helper - sends FormData without setting Content-Type header
+ * so the browser can set the correct multipart boundary.
+ */
+async function apiUpload(path, file, extraFields = {}) {
+  const formData = new FormData()
+  formData.append('file', file)
+  for (const [key, value] of Object.entries(extraFields)) {
+    formData.append(key, value)
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Upload failed' }))
+    throw new Error(error.error || `HTTP ${response.status}`)
+  }
+  return response.json()
+}
+
+export const attachments = {
+  upload: (file, noteId) => apiUpload('/attachments/upload', file, noteId ? { note_id: noteId } : {}),
+  list: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/attachments/${query ? '?' + query : ''}`)
+  },
+  get: (id) => apiFetch(`/attachments/${id}`),
+  delete: (id, force = false) => apiFetch(`/attachments/${id}${force ? '?force=true' : ''}`, {
+    method: 'DELETE',
+  }),
+  fileUrl: (id) => `${API_BASE}/attachments/${id}/file`,
+}
+
+// ── Projects ─────────────────────────────────────────────────
+
+export const projects = {
+  list: (params = {}) => {
+    const query = new URLSearchParams(params).toString()
+    return apiFetch(`/projects/${query ? '?' + query : ''}`)
+  },
+  get: (slug) => apiFetch(`/projects/${slug}`),
+  create: (data) => apiFetch('/projects/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (slug, data) => apiFetch(`/projects/${slug}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (slug) => apiFetch(`/projects/${slug}`, { method: 'DELETE' }),
+  reorder: (ids) => apiFetch('/projects/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ ids }),
+  }),
+  stats: () => apiFetch('/projects/stats'),
+
+  // Tech Stack
+  techStack: {
+    list: (slug) => apiFetch(`/projects/${slug}/tech-stack`),
+    add: (slug, data) => apiFetch(`/projects/${slug}/tech-stack`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/projects/tech-stack/${id}`, { method: 'DELETE' }),
+  },
+
+  // Tags (global project tags)
+  tags: {
+    list: () => apiFetch('/projects/tags'),
+    create: (data) => apiFetch('/projects/tags', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/projects/tags/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/projects/tags/${id}`, { method: 'DELETE' }),
+    assign: (slug, tagId) => apiFetch(`/projects/${slug}/tags`, {
+      method: 'POST',
+      body: JSON.stringify({ tag_id: tagId }),
+    }),
+    remove: (slug, tagId) => apiFetch(`/projects/${slug}/tags/${tagId}`, { method: 'DELETE' }),
+  },
+
+  // Kanban Columns
+  columns: {
+    list: (slug) => apiFetch(`/projects/${slug}/columns`),
+    create: (slug, data) => apiFetch(`/projects/${slug}/columns`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/projects/columns/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/projects/columns/${id}`, { method: 'DELETE' }),
+    reorder: (slug, ids) => apiFetch(`/projects/${slug}/columns/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ ids }),
+    }),
+  },
+
+  // Tasks
+  tasks: {
+    list: (slug, params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/projects/${slug}/tasks${query ? '?' + query : ''}`)
+    },
+    get: (id) => apiFetch(`/projects/tasks/${id}`),
+    create: (slug, data) => apiFetch(`/projects/${slug}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/projects/tasks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/projects/tasks/${id}`, { method: 'DELETE' }),
+    move: (id, data) => apiFetch(`/projects/tasks/${id}/move`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    batchReorder: (slug, items) => apiFetch(`/projects/${slug}/tasks/reorder`, {
+      method: 'PUT',
+      body: JSON.stringify({ items }),
+    }),
+  },
+
+  // Changelog
+  changelog: {
+    list: (slug, params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/projects/${slug}/changelog${query ? '?' + query : ''}`)
+    },
+    create: (slug, data) => apiFetch(`/projects/${slug}/changelog`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/projects/changelog/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/projects/changelog/${id}`, { method: 'DELETE' }),
+  },
 }
 
 // -- Notifications --------------------------------------------------------

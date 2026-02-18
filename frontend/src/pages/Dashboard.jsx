@@ -9,8 +9,8 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, X, Fuel } from 'lucide-react'
-import { dashboard, vehicles } from '../api/client'
+import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban } from 'lucide-react'
+import { dashboard, vehicles, projects } from '../api/client'
 import { getWeatherInfo, getDayName } from '../components/weatherCodes'
 import MaintenanceForm from '../components/MaintenanceForm'
 import FuelForm from '../components/FuelForm'
@@ -24,20 +24,23 @@ export default function Dashboard() {
   const [showQuickAddFuel, setShowQuickAddFuel] = useState(false)
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
+  const [projectStats, setProjectStats] = useState(null)
 
   useEffect(() => {
     async function load() {
       try {
-        const [w, s, v, items] = await Promise.all([
+        const [w, s, v, items, pStats] = await Promise.all([
           dashboard.getWeather(),
           dashboard.getSummary(),
           vehicles.list(),
           vehicles.maintenanceItems.list().catch(() => []),
+          projects.stats().catch(() => null),
         ])
         setWeather(w)
         setSummary(s)
         setVehiclesList(v)
         setMaintenanceItems(items)
+        setProjectStats(pStats)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -227,19 +230,21 @@ export default function Dashboard() {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    {note.is_pinned && <Pin size={12} style={{ color: 'var(--color-yellow)' }} />}
+                    {note.is_starred && <Star size={12} fill="var(--color-yellow)" style={{ color: 'var(--color-yellow)' }} />}
                     <span style={{ fontWeight: 500 }}>{note.title}</span>
                   </div>
-                  <p style={{
-                    color: 'var(--color-subtext-0)',
-                    fontSize: '0.8rem',
-                    marginTop: '0.125rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {note.content}
-                  </p>
+                  {note.content_text && (
+                    <p style={{
+                      color: 'var(--color-subtext-0)',
+                      fontSize: '0.8rem',
+                      marginTop: '0.125rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {note.content_text.slice(0, 80)}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -248,6 +253,87 @@ export default function Dashboard() {
               message="No notes yet"
               linkTo="/notes"
               linkLabel="Create your first note"
+            />
+          )}
+        </div>
+
+        {/* Projects Card */}
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '8px',
+                background: 'rgba(249, 226, 175, 0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FolderKanban size={18} style={{ color: 'var(--color-yellow)' }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Projects</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                  {projectStats?.active_projects || 0} active
+                </span>
+              </div>
+            </div>
+            <Link to="/projects" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+          </div>
+
+          {projectStats && projectStats.active_projects > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Quick stats */}
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{
+                  fontSize: '0.75rem', color: 'var(--color-subtext-0)',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{projectStats.tasks_in_progress || 0}</span>
+                  in progress
+                </div>
+                <div style={{
+                  fontSize: '0.75rem', color: 'var(--color-subtext-0)',
+                  display: 'flex', alignItems: 'center', gap: '0.25rem',
+                }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-green)' }}>{projectStats.tasks_completed || 0}</span>
+                  completed
+                </div>
+                {projectStats.overdue_tasks > 0 && (
+                  <div style={{
+                    fontSize: '0.75rem', color: 'var(--color-red)',
+                    display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  }}>
+                    <span style={{ fontWeight: 600 }}>{projectStats.overdue_tasks}</span>
+                    overdue
+                  </div>
+                )}
+              </div>
+
+              {/* Recent tasks */}
+              {projectStats.recent_tasks?.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-subtext-0)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                    Recent Tasks
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    {projectStats.recent_tasks.slice(0, 3).map((task) => (
+                      <div key={task.id} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', background: 'var(--color-mantle)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                        <FolderKanban size={14} style={{ color: 'var(--color-yellow)', flexShrink: 0 }} />
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {task.title}
+                        </span>
+                        <span style={{ color: 'var(--color-subtext-0)', fontSize: '0.75rem', flexShrink: 0 }}>
+                          {task.project_name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <EmptyState
+              message="No projects yet"
+              linkTo="/projects"
+              linkLabel="Create your first project"
             />
           )}
         </div>

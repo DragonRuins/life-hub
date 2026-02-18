@@ -2,6 +2,15 @@
 
 ## Important Notes for Agents
 
+**IMPORTANT: Dual-Theme Requirement (LCARS Parity)**
+Every new feature, page, or component MUST be implemented in BOTH themes:
+1. **Catppuccin Mocha** (default) — the standard dark theme using CSS variables and `.card`/`.btn` classes.
+2. **LCARS** (Star Trek) — a fully custom theme that mimics the LCARS operating system aesthetic. LCARS versions are NOT simple reskins. They must be purpose-built components in `frontend/src/themes/lcars/` that use LCARS panels, color variables (`--lcars-*`), the Antonio font, pill-shaped buttons, and the distinctive LCARS layout language (elbows, cascades, horizontal rule segments). Study existing LCARS components before building new ones to match the visual language.
+
+Never ship a feature in only one theme. If you build `pages/NewFeature.jsx`, you must also build `themes/lcars/LCARSNewFeature.jsx` and wire it up in `ThemeProvider.jsx`.
+
+---
+
 **IMPORTANT**: Interview-Driven Development
 Before generating any plan or writing any code, conduct a minimum of 3-4 rounds of clarifying questions. Each round should focus on a different dimension:
 
@@ -42,7 +51,7 @@ Similarly, when reading files for context, read only the relevant sections or li
 
 ## Project Overview
 
-Life Hub is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser.
+Life Hub is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, fuel economy, notifications, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser. The app supports two switchable themes: Catppuccin Mocha (default) and LCARS (Star Trek computer interface).
 
 **Owner:** Chase — has minimal Python experience, learning React. Explain things clearly and comment code well.
 
@@ -50,49 +59,101 @@ Life Hub is a self-hosted personal dashboard and database application. It's a mo
 
 - **Backend:** Python 3.12, Flask, SQLAlchemy ORM, PostgreSQL
 - **Frontend:** React 19 (Vite), React Router v7, Tailwind CSS v4, Lucide icons
+- **Theming:** Dual-theme system via `ThemeProvider.jsx` — Catppuccin Mocha + LCARS
+- **Mobile:** Responsive down to 375px via `useIsMobile()` hook + CSS utility classes
 - **Infrastructure:** Docker Compose for local dev, GitHub Actions builds images to GHCR, deployed on HexOS (TrueNAS-based) via Dockge
 
 ## Project Structure
 
 ```
 life-hub/
-├── docker-compose.yml          # Dev: builds from source with volume mounts
-├── docker-compose.prod.yml     # Prod: uses pre-built GHCR images for Dockge
-├── .env.example                # Environment variable template
+├── docker-compose.yml              # Dev: builds from source with volume mounts
+├── docker-compose.prod.yml         # Prod: uses pre-built GHCR images for Dockge
+├── .env.example                    # Environment variable template
 ├── .github/workflows/
-│   └── docker-build.yml        # Auto-builds Docker images on push to main
+│   └── docker-build.yml            # Auto-builds Docker images on push to main
 ├── backend/
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── run.py                  # Entry point
+│   ├── run.py                      # Entry point
 │   └── app/
-│       ├── __init__.py         # Flask app factory, registers all blueprints
-│       ├── config.py           # Config from environment variables
-│       ├── models/             # SQLAlchemy database models
-│       │   ├── vehicle.py      # Vehicle + MaintenanceLog models
-│       │   └── note.py         # Note model
-│       └── routes/             # API endpoint blueprints
-│           ├── dashboard.py    # Weather proxy + summary stats
-│           ├── vehicles.py     # Full CRUD for vehicles & maintenance
-│           └── notes.py        # Full CRUD with search/filter/pin
+│       ├── __init__.py             # Flask app factory, registers all blueprints
+│       ├── config.py               # Config from environment variables
+│       ├── models/
+│       │   ├── vehicle.py          # Vehicle, MaintenanceLog, FuelLog, TireSet, Component, ComponentLog
+│       │   ├── note.py             # Note model
+│       │   ├── notification.py     # NotificationRule, NotificationHistory, NotificationPreferences
+│       │   └── maintenance_interval.py  # MaintenanceInterval (service intervals)
+│       └── routes/
+│           ├── dashboard.py        # Weather proxy + summary stats + fleet status
+│           ├── vehicles.py         # Full CRUD for vehicles, maintenance, fuel, tires, components
+│           ├── notes.py            # Full CRUD with search/filter/pin
+│           ├── fuel.py             # Fuel log endpoints
+│           └── notifications.py    # Notification rules, history, preferences, channels
 ├── frontend/
 │   ├── Dockerfile
 │   ├── package.json
-│   ├── vite.config.js          # Vite config with API proxy
+│   ├── vite.config.js              # Vite config with API proxy
 │   ├── index.html
 │   └── src/
-│       ├── main.jsx            # React entry point
-│       ├── index.css           # Global styles, Catppuccin Mocha theme
-│       ├── App.jsx             # Router + sidebar layout
+│       ├── main.jsx                # React entry point
+│       ├── index.css               # Global styles, Catppuccin theme, responsive utilities
+│       ├── App.jsx                 # Router, sidebar layout, mobile hamburger drawer
 │       ├── api/
-│       │   └── client.js       # API helper (all backend calls go through here)
-│       ├── components/
-│       │   └── weatherCodes.js # WMO weather code → description/emoji mapping
-│       └── pages/
-│           ├── Dashboard.jsx   # Main landing page with weather + module cards
-│           ├── Vehicles.jsx    # Vehicle list + add form
-│           ├── VehicleDetail.jsx # Single vehicle + maintenance log CRUD
-│           └── Notes.jsx       # Notes with search, categories, pinning
+│       │   └── client.js           # API helper (all backend calls go through here)
+│       ├── hooks/
+│       │   └── useIsMobile.js      # Responsive breakpoint hook (768px)
+│       ├── components/             # Shared components (used by BOTH themes)
+│       │   ├── MaintenanceForm.jsx
+│       │   ├── FuelForm.jsx
+│       │   ├── TireSetForm.jsx
+│       │   ├── TireSetCard.jsx
+│       │   ├── ComponentForm.jsx
+│       │   ├── ComponentCard.jsx
+│       │   ├── ComponentLogForm.jsx
+│       │   ├── ServiceIntervalsTab.jsx
+│       │   ├── NotificationBell.jsx
+│       │   ├── Tooltip.jsx
+│       │   └── weatherCodes.js     # WMO weather code mapping
+│       ├── pages/                  # Catppuccin theme pages
+│       │   ├── Dashboard.jsx
+│       │   ├── Vehicles.jsx
+│       │   ├── VehicleDetail.jsx   # Tabs: maintenance, fuel, tires, components, service intervals
+│       │   ├── Notes.jsx
+│       │   ├── FuelEconomy.jsx     # Fleet-wide fuel analytics with charts
+│       │   ├── FuelEntry.jsx       # Standalone fuel log entry page
+│       │   ├── Notifications.jsx   # Notification settings parent page
+│       │   └── notifications/      # Notification sub-pages
+│       │       ├── GeneralTab.jsx
+│       │       ├── RulesTab.jsx
+│       │       ├── RuleForm.jsx
+│       │       ├── ChannelsTab.jsx
+│       │       ├── ChannelForm.jsx
+│       │       ├── IntervalsTab.jsx
+│       │       └── HistoryTab.jsx
+│       └── themes/lcars/           # LCARS theme (Star Trek)
+│           ├── ThemeProvider.jsx    # Theme switcher, routes LCARS components
+│           ├── LCARSLayout.jsx     # Grid frame: elbows, sidebar, header, footer
+│           ├── LCARSLayout.css     # CSS Grid for LCARS frame + mobile overrides
+│           ├── lcars-variables.css  # LCARS color palette (--lcars-*)
+│           ├── lcars-components.css # Shared LCARS component styles
+│           ├── lcars-animations.css # LCARS-specific animations
+│           ├── LCARSElbow.jsx      # Corner elbow decorations
+│           ├── LCARSHeader.jsx     # Top bar with notification dropdown
+│           ├── LCARSFooter.jsx     # Bottom bar with stardate/UTC
+│           ├── LCARSSidebar.jsx    # Left nav with pill buttons
+│           ├── LCARSMobileNav.jsx  # Bottom nav bar (mobile only)
+│           ├── LCARSDataCascade.jsx # Animated data stream decoration
+│           ├── LCARSBootSequence.jsx # Startup animation
+│           ├── LCARSPanel.jsx      # Reusable panel component
+│           ├── LCARSModal.jsx      # Modal with LCARS styling
+│           ├── LCARSDashboard.jsx  # 8-panel dashboard (weather, fleet, fuel, maintenance, etc.)
+│           ├── LCARSVehicles.jsx   # Vehicle list + add form
+│           ├── LCARSVehicleDetail.jsx # Vehicle detail with tabbed interface
+│           ├── LCARSFuelEconomy.jsx   # Fuel analytics with LCARS charts
+│           ├── LCARSServiceIntervalsTab.jsx
+│           ├── LCARSTireSetCard.jsx
+│           └── LCARSComponentCard.jsx
 ```
 
 ## How to Add a New Module
@@ -121,17 +182,33 @@ Add a new section in `frontend/src/api/client.js`:
 
 - Export an object with list/get/create/update/delete functions
 
-### 4. Create frontend pages
+### 4. Create frontend pages (BOTH themes)
 
-Create page components in `frontend/src/pages/`:
-
+**Catppuccin version:**
+- Create page components in `frontend/src/pages/`
 - Add routes in `frontend/src/App.jsx`
-- Add sidebar nav link in the `App.jsx` sidebar section
-- Add a summary card on the Dashboard page
+- Add sidebar nav link in `App.jsx`
+- Add a summary card on `Dashboard.jsx`
+
+**LCARS version (required):**
+- Create `frontend/src/themes/lcars/LCARS<ModuleName>.jsx`
+- Use `LCARSPanel` for content sections, LCARS color variables, Antonio font
+- Register the component in `ThemeProvider.jsx` so it renders when LCARS is active
+- Add nav entry in `LCARSSidebar.jsx` and `LCARSMobileNav.jsx`
+- Add a summary panel on `LCARSDashboard.jsx`
+
+### 5. Ensure mobile responsiveness
+
+- Use `className="form-grid-2col"` or `"form-grid-3col"` for form layouts (NOT inline grid styles)
+- Use `min()` for modal max-widths: `maxWidth: 'min(500px, calc(100vw - 2rem))'`
+- Use `100dvh` instead of `100vh` for full-height layouts
+- For data-dense tables, provide a card-view alternative on mobile using `useIsMobile()`
 
 ## Design System
 
-The app uses a **Catppuccin Mocha** dark theme. Key CSS variables are defined in `frontend/src/index.css`:
+### Catppuccin Mocha Theme (default)
+
+Key CSS variables defined in `frontend/src/index.css`:
 
 - Backgrounds: `--color-crust`, `--color-mantle`, `--color-base`
 - Text: `--color-text`, `--color-subtext-0`, `--color-subtext-1`
@@ -140,6 +217,28 @@ The app uses a **Catppuccin Mocha** dark theme. Key CSS variables are defined in
 
 Fonts: **Outfit** for UI text, **JetBrains Mono** for code/monospace.
 Reusable CSS classes: `.card`, `.btn`, `.btn-primary`, `.btn-ghost`, `.btn-danger`
+
+### LCARS Theme (Star Trek)
+
+LCARS variables defined in `frontend/src/themes/lcars/lcars-variables.css`:
+
+- Colors: `--lcars-gold`, `--lcars-sunflower`, `--lcars-tanoi`, `--lcars-african-violet`, `--lcars-lilac`, `--lcars-rust`, `--lcars-red-alert`, etc.
+- Font: **Antonio** (tall, narrow — the canonical LCARS typeface)
+- Layout: CSS Grid frame with elbows, sidebar, header/footer bars, cascade column
+- Components: `LCARSPanel` for content sections, `LCARSModal` for dialogs, pill-shaped buttons
+- Visual language: Rounded rectangles, horizontal rule segments, data cascade animation, boot sequence
+
+### Responsive Utilities (both themes)
+
+Defined in `index.css`, collapse to single column at 768px:
+
+- `.form-grid-2col` — 2-column form grid
+- `.form-grid-3col` — 3-column form grid
+- `.card-grid` — auto-fit card grid (`minmax(280px, 1fr)`)
+
+Mobile navigation:
+- Catppuccin: Hamburger icon in header opens a slide-out drawer overlay
+- LCARS: Bottom pill-button nav bar (`LCARSMobileNav.jsx`)
 
 ## API Conventions
 
@@ -184,6 +283,9 @@ function handleSubmit() {
 - **Tags on notes:** Stored as comma-separated string for simplicity. Can migrate to many-to-many table later if needed.
 - **Database:** Tables auto-created on Flask startup via `db.create_all()`. For production schema changes, use Flask-Migrate (alembic).
 - **No auth yet:** This is a personal, local-network-only app. Authentication can be added later if needed.
+- **Theming:** `ThemeProvider.jsx` wraps the app and swaps between Catppuccin and LCARS component trees. Theme preference is stored in localStorage.
+- **Mobile viewport:** Uses `100dvh` (not `100vh`) to account for mobile browser chrome (Safari toolbar).
+- **Responsive grids:** CSS utility classes (`.form-grid-2col`, `.form-grid-3col`) instead of inline styles, so `@media` queries can collapse columns on mobile.
 
 ## Running Locally
 
@@ -206,31 +308,33 @@ docker compose down
 
 ## Deployment to HexOS
 
-1. Push to `main` branch → GitHub Actions builds images → pushed to GHCR
+1. Push to `main` branch -> GitHub Actions builds images -> pushed to GHCR
 2. In Dockge on HexOS, create a stack using `docker-compose.prod.yml` contents
 3. Replace `YOUR_GITHUB_USERNAME` with actual username
 4. Set `DB_PASSWORD` and `SECRET_KEY` in Dockge environment variables
 5. Deploy the stack
 
-## Current Status (Phase 1 Complete)
+## Current Status
 
 ### What's built:
 
-- ✅ Dashboard with weather widget (5-day forecast) and module summary cards
-- ✅ Vehicles module: add vehicles, view details, full maintenance log CRUD
-- ✅ Notes module: create/edit/delete, search, category filter, pin to top
-- ✅ Sidebar navigation with collapsible toggle
-- ✅ Docker Compose for dev and prod
-- ✅ GitHub Actions CI/CD pipeline
-- ✅ Catppuccin Mocha dark theme
+- Dashboard with weather widget (5-day forecast) and module summary cards
+- Vehicles module: add/edit vehicles, full maintenance log CRUD, fuel logging, tire set management, component tracking, service intervals
+- Notes module: create/edit/delete, search, category filter, pin to top
+- Fuel Economy module: fleet-wide analytics with charts (MPG trends, cost analysis), per-vehicle breakdowns, standalone fuel entry page
+- Notifications module: configurable rules, channels, history, quiet hours, in-app bell with dropdown
+- LCARS theme: full Star Trek computer interface with boot sequence, 8-panel dashboard, elbows/cascade/sidebar frame, all vehicle pages, fuel economy, service intervals
+- Dual-theme system with localStorage preference and seamless switching
+- Mobile-responsive: hamburger nav (Catppuccin), bottom nav (LCARS), collapsing form grids, card views for tables, viewport-safe modals
+- Sidebar navigation with collapsible toggle
+- Docker Compose for dev and prod
+- GitHub Actions CI/CD pipeline
 
 ### Planned future modules/features:
 
-- Fuel logging (integrate Fuelly-like tracking)
 - Finance/expense tracking
 - Project/task management
 - Inventory/collections tracking
 - Dashboard activity feed (recent actions across all modules)
 - Data export/backup functionality
-- Mobile-responsive improvements
 - Inline editing on vehicle details (currently need to use API directly to edit vehicle info)

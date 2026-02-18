@@ -47,11 +47,20 @@ def create_app():
     from app.routes.notes import notes_bp
     app.register_blueprint(notes_bp, url_prefix='/api/notes')
 
+    from app.routes.folders import folders_bp
+    app.register_blueprint(folders_bp, url_prefix='/api/folders')
+
+    from app.routes.attachments import attachments_bp
+    app.register_blueprint(attachments_bp, url_prefix='/api/attachments')
+
     from app.routes.fuel import fuel_bp
     app.register_blueprint(fuel_bp, url_prefix='/api/fuel')
 
     from app.routes.notifications import notifications_bp
     app.register_blueprint(notifications_bp, url_prefix='/api/notifications')
+
+    from app.routes.projects import projects_bp
+    app.register_blueprint(projects_bp, url_prefix='/api/projects')
 
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
@@ -61,7 +70,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project  # noqa: F401
         db.create_all()
 
         # Auto-seed preset maintenance items if the table is empty.

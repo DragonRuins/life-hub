@@ -105,11 +105,12 @@ def get_summary():
         }
         fuel_logs_with_vehicle.append(log_dict)
 
-    # Notes stats
-    note_count = Note.query.count()
-    pinned_notes = Note.query.filter_by(is_pinned=True).all()
+    # Notes stats (exclude trashed notes)
+    note_count = Note.query.filter_by(is_trashed=False).count()
+    starred_notes = Note.query.filter_by(is_trashed=False, is_starred=True).all()
     recent_notes = (
         Note.query
+        .filter_by(is_trashed=False)
         .order_by(Note.updated_at.desc())
         .limit(5)
         .all()
@@ -124,8 +125,8 @@ def get_summary():
         },
         'notes': {
             'count': note_count,
-            'pinned': [n.to_dict() for n in pinned_notes],
-            'recent': [n.to_dict() for n in recent_notes],
+            'starred': [n.to_dict(include_content=False) for n in starred_notes],
+            'recent': [n.to_dict(include_content=False) for n in recent_notes],
         },
     })
 
@@ -423,21 +424,28 @@ def get_fleet_status():
             'vehicle_name': vehicle_name_map.get(fl.vehicle_id, 'Unknown'),
         })
 
-    # Include recent notes in the timeline
+    # Include recent non-trashed notes in the timeline
     recent_notes_for_timeline = (
         Note.query
+        .filter_by(is_trashed=False)
         .order_by(Note.updated_at.desc())
         .limit(15)
         .all()
     )
     for n in recent_notes_for_timeline:
         note_date = n.updated_at or n.created_at
+        # Build subtitle from folder name or first tag
+        subtitle = None
+        if n.folder and n.folder.name:
+            subtitle = n.folder.name
+        elif n.tags:
+            subtitle = n.tags[0].name
         timeline.append({
             'type': 'note',
             'id': n.id,
             'date': note_date.isoformat() if note_date else None,
             'title': n.title or 'Untitled',
-            'subtitle': n.category,
+            'subtitle': subtitle,
             'vehicle_id': None,
             'vehicle_name': None,
         })

@@ -36,6 +36,7 @@ services:
       - FUEL_API_KEY=${FUEL_API_KEY:-send-fuel-logs-here}
     volumes:
       - ./backend:/app  # Hot-reload: edit files, see changes instantly
+      - uploads:/app/uploads  # Persistent file storage for note attachments
     command: python run.py  # Dev: Flask dev server with hot-reload
     ports:
       - "5001:5000"
@@ -62,3 +63,4 @@ services:
 
 volumes:
   pgdata:  # Persistent database storage
+  uploads:  # Persistent file storage for note attachments

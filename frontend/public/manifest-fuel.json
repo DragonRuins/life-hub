@@ -1,0 +1,22 @@
+{
+  "name": "Fuel Log",
+  "short_name": "Fuel Log",
+  "description": "Log fuel fill-ups from Life Hub",
+  "start_url": "/fuel/add/2",
+  "scope": "/fuel/",
+  "display": "standalone",
+  "background_color": "#11111b",
+  "theme_color": "#11111b",
+  "icons": [
+    {
+      "src": "/fuel-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/fuel-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

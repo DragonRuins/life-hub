@@ -1,0 +1,271 @@
+/*
+ * TipTap / ProseMirror Styles for Catppuccin Theme
+ *
+ * Targets the .ProseMirror element rendered by TipTap.
+ * LCARS theme overrides these via scoped selectors in LCARS CSS.
+ */
+
+/* ── Base Editor ───────────────────────────────────────────── */
+
+.ProseMirror {
+  outline: none;
+  min-height: 200px;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--color-text);
+}
+
+.ProseMirror > * + * {
+  margin-top: 0.5em;
+}
+
+/* Placeholder text */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--color-overlay-0);
+  pointer-events: none;
+  height: 0;
+}
+
+/* ── Headings ──────────────────────────────────────────────── */
+
+.ProseMirror h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  color: var(--color-text);
+}
+
+.ProseMirror h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 1.25em;
+  margin-bottom: 0.4em;
+  color: var(--color-text);
+}
+
+.ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.3em;
+  color: var(--color-text);
+}
+
+/* ── Inline Formatting ─────────────────────────────────────── */
+
+.ProseMirror strong {
+  font-weight: 700;
+}
+
+.ProseMirror code {
+  background: var(--color-surface-0);
+  color: var(--color-peach);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+
+.ProseMirror mark {
+  background: rgba(249, 226, 175, 0.25);
+  color: inherit;
+  padding: 0.05em 0.1em;
+  border-radius: 2px;
+}
+
+/* ── Links ─────────────────────────────────────────────────── */
+
+.ProseMirror a {
+  color: var(--color-blue);
+  text-decoration: underline;
+  text-decoration-color: rgba(137, 180, 250, 0.4);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.ProseMirror a:hover {
+  text-decoration-color: var(--color-blue);
+}
+
+/* ── Blockquote ────────────────────────────────────────────── */
+
+.ProseMirror blockquote {
+  border-left: 3px solid var(--color-surface-2);
+  padding-left: 1em;
+  color: var(--color-subtext-0);
+  margin: 0.75em 0;
+}
+
+/* ── Horizontal Rule ───────────────────────────────────────── */
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-surface-1);
+  margin: 1.5em 0;
+}
+
+/* ── Lists ─────────────────────────────────────────────────── */
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.ProseMirror li {
+  margin: 0.2em 0;
+}
+
+.ProseMirror li > p {
+  margin: 0;
+}
+
+/* ── Task Lists (Checklists) ───────────────────────────────── */
+
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  margin: 0.25em 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25em;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-blue);
+  cursor: pointer;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  color: var(--color-overlay-0);
+}
+
+/* ── Code Blocks (Syntax Highlighted) ──────────────────────── */
+
+.ProseMirror pre {
+  background: var(--color-mantle);
+  border: 1px solid var(--color-surface-0);
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  margin: 0.75em 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.ProseMirror pre code {
+  background: none;
+  color: var(--color-text);
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Lowlight syntax highlighting (Catppuccin-ish) */
+.ProseMirror pre .hljs-keyword { color: var(--color-mauve); }
+.ProseMirror pre .hljs-string { color: var(--color-green); }
+.ProseMirror pre .hljs-number { color: var(--color-peach); }
+.ProseMirror pre .hljs-comment { color: var(--color-overlay-0); font-style: italic; }
+.ProseMirror pre .hljs-function { color: var(--color-blue); }
+.ProseMirror pre .hljs-title { color: var(--color-blue); }
+.ProseMirror pre .hljs-params { color: var(--color-text); }
+.ProseMirror pre .hljs-built_in { color: var(--color-red); }
+.ProseMirror pre .hljs-literal { color: var(--color-peach); }
+.ProseMirror pre .hljs-type { color: var(--color-yellow); }
+.ProseMirror pre .hljs-attr { color: var(--color-yellow); }
+.ProseMirror pre .hljs-selector-class { color: var(--color-green); }
+.ProseMirror pre .hljs-selector-tag { color: var(--color-mauve); }
+.ProseMirror pre .hljs-meta { color: var(--color-teal); }
+.ProseMirror pre .hljs-variable { color: var(--color-red); }
+.ProseMirror pre .hljs-regexp { color: var(--color-peach); }
+.ProseMirror pre .hljs-tag { color: var(--color-mauve); }
+.ProseMirror pre .hljs-name { color: var(--color-blue); }
+.ProseMirror pre .hljs-attribute { color: var(--color-yellow); }
+
+/* ── Tables ────────────────────────────────────────────────── */
+
+.ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75em 0;
+  overflow: hidden;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid var(--color-surface-1);
+  padding: 0.4em 0.65em;
+  text-align: left;
+  vertical-align: top;
+  position: relative;
+  min-width: 80px;
+}
+
+.ProseMirror th {
+  background: var(--color-surface-0);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+
+.ProseMirror td {
+  font-size: 0.85rem;
+}
+
+/* Selected cell highlight */
+.ProseMirror .selectedCell {
+  background: rgba(137, 180, 250, 0.12);
+}
+
+/* Column resize handle */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--color-blue);
+  cursor: col-resize;
+  z-index: 10;
+}
+
+/* ── Images ────────────────────────────────────────────────── */
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  margin: 0.5em 0;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
+/* ── Gapcursor ─────────────────────────────────────────────── */
+
+.ProseMirror .ProseMirror-gapcursor:after {
+  border-top: 1px solid var(--color-text);
+}

@@ -15,12 +15,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, X,
+  Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, Star, X,
   Fuel, Thermometer, AlertTriangle, DollarSign, Gauge,
-  Clock, Cpu, Bell, BellOff, CircleDot
+  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban
 } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-import { dashboard, vehicles, notifications } from '../../api/client'
+import { dashboard, vehicles, notifications, projects } from '../../api/client'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import { getComponentType } from '../../constants/componentTypes'
 import MaintenanceForm from '../../components/MaintenanceForm'
@@ -57,11 +57,12 @@ export default function LCARSDashboard() {
   const [showQuickAddFuel, setShowQuickAddFuel] = useState(false)
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
+  const [projectStats, setProjectStats] = useState(null)
 
   useEffect(() => {
     async function load() {
       try {
-        const [w, fs, s, v, items, nFeed, nCount] = await Promise.all([
+        const [w, fs, s, v, items, nFeed, nCount, pStats] = await Promise.all([
           dashboard.getWeather().catch(() => null),
           dashboard.getFleetStatus().catch(() => null),
           dashboard.getSummary(),
@@ -69,6 +70,7 @@ export default function LCARSDashboard() {
           vehicles.maintenanceItems.list().catch(() => []),
           notifications.feed({ limit: 10 }).catch(() => []),
           notifications.unreadCount().catch(() => ({ count: 0 })),
+          projects.stats().catch(() => null),
         ])
         setWeather(w)
         setFleetStatus(fs)
@@ -77,6 +79,7 @@ export default function LCARSDashboard() {
         setMaintenanceItems(items)
         setNotificationFeed(Array.isArray(nFeed) ? nFeed : [])
         setUnreadCount(nCount?.count || 0)
+        setProjectStats(pStats)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -228,13 +231,18 @@ export default function LCARSDashboard() {
       </div>
 
       {/* Row 6: Notifications + Notes */}
-      <div className="form-grid-2col">
+      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <NotificationFeedPanel
           feed={notificationFeed}
           unreadCount={unreadCount}
           onMarkAllRead={handleMarkAllRead}
         />
         <LCARSNotesPanel notes={summary?.notes} />
+      </div>
+
+      {/* Row 7: Projects */}
+      <div style={{ marginBottom: '1rem' }}>
+        <LCARSProjectsPanel stats={projectStats} />
       </div>
 
       {/* Quick Add Maintenance Modal */}
@@ -1294,8 +1302,8 @@ function LCARSNotesPanel({ notes }) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {note.is_pinned && (
-                  <Pin size={11} style={{ color: 'var(--lcars-sunflower)', flexShrink: 0 }} />
+                {note.is_starred && (
+                  <Star size={11} fill="var(--lcars-sunflower)" style={{ color: 'var(--lcars-sunflower)', flexShrink: 0 }} />
                 )}
                 <span style={{
                   fontFamily: "'JetBrains Mono', monospace",
@@ -1309,30 +1317,34 @@ function LCARSNotesPanel({ notes }) {
                   {note.title}
                 </span>
               </div>
-              <div style={{
-                fontSize: '0.75rem',
-                color: 'var(--lcars-gray)',
-                marginTop: '0.125rem',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {note.content}
-              </div>
-              {note.category && (
-                <span style={{
-                  display: 'inline-block',
-                  marginTop: '0.25rem',
-                  fontSize: '0.65rem',
-                  padding: '0.06rem 0.4rem',
-                  background: 'rgba(204, 153, 255, 0.15)',
-                  color: 'var(--lcars-african-violet)',
-                  fontFamily: "'Antonio', sans-serif",
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+              {note.content_text && (
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--lcars-gray)',
+                  marginTop: '0.125rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
                 }}>
-                  {note.category}
-                </span>
+                  {note.content_text.slice(0, 80)}
+                </div>
+              )}
+              {note.tags && note.tags.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
+                  {note.tags.slice(0, 2).map(tag => (
+                    <span key={tag.id} style={{
+                      fontSize: '0.65rem',
+                      padding: '0.06rem 0.4rem',
+                      background: 'rgba(204, 153, 255, 0.15)',
+                      color: tag.color || 'var(--lcars-african-violet)',
+                      fontFamily: "'Antonio', sans-serif",
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}>
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
           ))}
@@ -1343,6 +1355,97 @@ function LCARSNotesPanel({ notes }) {
           linkTo="/notes"
           linkLabel="Create First Entry"
         />
+      )}
+    </LCARSPanel>
+  )
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Panel 11: Projects
+// ═══════════════════════════════════════════════════════════════════════════
+function LCARSProjectsPanel({ stats }) {
+  return (
+    <LCARSPanel
+      title="Project Tracker"
+      color="var(--lcars-lilac)"
+      headerRight={
+        <Link to="/projects" style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.72rem',
+          textTransform: 'uppercase',
+          color: '#000000',
+          textDecoration: 'none',
+          letterSpacing: '0.05em',
+        }}>
+          View All
+        </Link>
+      }
+    >
+      {!stats || stats.active_projects === 0 ? (
+        <LCARSEmptyState
+          message="No projects registered"
+          linkTo="/projects"
+          linkLabel="Create First Project"
+        />
+      ) : (
+        <div>
+          {/* Stats row */}
+          <div style={{
+            display: 'flex',
+            gap: '1.5rem',
+            marginBottom: '0.75rem',
+            flexWrap: 'wrap',
+          }}>
+            <LCARSStat
+              label="Active"
+              value={stats.active_projects}
+              color="var(--lcars-lilac)"
+            />
+            <LCARSStat
+              label="In Progress"
+              value={stats.tasks_in_progress || 0}
+              color="var(--lcars-butterscotch)"
+            />
+            <LCARSStat
+              label="Completed"
+              value={stats.tasks_completed || 0}
+              color="var(--lcars-green)"
+            />
+            {stats.overdue_tasks > 0 && (
+              <LCARSStat
+                label="Overdue"
+                value={stats.overdue_tasks}
+                color="var(--lcars-tomato)"
+              />
+            )}
+          </div>
+
+          {/* Recent tasks */}
+          {stats.recent_tasks?.length > 0 && (
+            <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
+              <div style={{
+                fontFamily: "'Antonio', sans-serif",
+                fontSize: '0.65rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: 'var(--lcars-gray)',
+                marginBottom: '0.375rem',
+              }}>
+                Recent Tasks
+              </div>
+              {stats.recent_tasks.slice(0, 4).map((task, i) => (
+                <LCARSDataRow
+                  key={task.id}
+                  icon={<FolderKanban size={13} />}
+                  label={task.title}
+                  value={task.project_name}
+                  color="var(--lcars-lilac)"
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </LCARSPanel>
   )

@@ -6,7 +6,7 @@
  * and LCARS styling as LCARSSidebar.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban } from 'lucide-react'
 
 const NAV_ITEMS = [
   {
@@ -28,6 +28,13 @@ const NAV_ITEMS = [
     label: 'Notes',
     icon: StickyNote,
     color: 'var(--lcars-african-violet)',
+    activeColor: 'var(--lcars-butterscotch)',
+  },
+  {
+    to: '/projects',
+    label: 'Projects',
+    icon: FolderKanban,
+    color: 'var(--lcars-lilac)',
     activeColor: 'var(--lcars-butterscotch)',
   },
 ]

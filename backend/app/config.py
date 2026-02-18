@@ -25,3 +25,12 @@ class Config:
     # API key for the fuel module (used by Apple Shortcut)
     # Set this in your .env or Docker environment
     FUEL_API_KEY = os.environ.get('FUEL_API_KEY', '')
+
+    # Attachment storage for the notes module
+    UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_UPLOAD_SIZE', 50 * 1024 * 1024))  # 50MB default
+    ALLOWED_EXTENSIONS = {
+        'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg',              # Images
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'md', 'csv', # Documents
+        'zip', 'tar', 'gz',                                        # Archives
+    }

@@ -1,0 +1,100 @@
+/**
+ * LCARS Project Tracker — CSS Overrides
+ *
+ * Scoped under .lcars-kanban and .lcars-changelog to restyle the
+ * shared KanbanBoard, TaskCard, TaskDetailModal, and ChangelogTimeline
+ * components with LCARS visual language.
+ */
+
+/* ── Kanban Board ──────────────────────────────────────────────── */
+
+.lcars-kanban .kanban-scroll-container {
+  gap: 0.75rem;
+}
+
+.lcars-kanban .kanban-column {
+  background: #000000;
+  border: 1px solid rgba(102, 102, 136, 0.3);
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Column header area */
+.lcars-kanban .kanban-column > div:first-child {
+  padding: 0.5rem 0.625rem;
+}
+
+/* Column header text */
+.lcars-kanban .kanban-column > div:first-child span {
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  letter-spacing: 0.08em;
+}
+
+/* Task cards in LCARS */
+.lcars-kanban .task-card {
+  background: rgba(102, 102, 136, 0.06);
+  border: 1px solid rgba(102, 102, 136, 0.2);
+  border-radius: 0;
+}
+
+.lcars-kanban .task-card:hover {
+  border-color: rgba(102, 102, 136, 0.4);
+}
+
+.lcars-kanban .task-card[data-overlay] {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  border-color: var(--lcars-butterscotch);
+}
+
+/* Quick-add input */
+.lcars-kanban .kanban-column input {
+  background: rgba(102, 102, 136, 0.08);
+  border: 1px solid rgba(102, 102, 136, 0.25);
+  border-radius: 0;
+  color: var(--lcars-space-white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.lcars-kanban .kanban-column input::placeholder {
+  color: var(--lcars-gray);
+}
+
+/* ── Task Detail Modal (LCARS override) ────────────────────────── */
+
+.lcars-task-modal .task-tiptap-editor .ProseMirror {
+  color: var(--lcars-space-white);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+
+.lcars-task-modal .task-tiptap-editor .ProseMirror code {
+  background: rgba(102, 102, 136, 0.15);
+}
+
+.lcars-task-modal .task-tiptap-editor .ProseMirror pre {
+  background: rgba(102, 102, 136, 0.08);
+  border-color: rgba(102, 102, 136, 0.25);
+}
+
+.lcars-task-modal .task-tiptap-editor .ProseMirror blockquote {
+  border-left-color: var(--lcars-gray);
+}
+
+/* ── Changelog Timeline (LCARS override) ───────────────────────── */
+
+.lcars-changelog .card {
+  background: #000000;
+  border: 1px solid rgba(102, 102, 136, 0.3);
+  border-radius: 0;
+}
+
+.lcars-changelog select,
+.lcars-changelog input,
+.lcars-changelog textarea {
+  background: rgba(102, 102, 136, 0.08);
+  border: 1px solid rgba(102, 102, 136, 0.25);
+  border-radius: 0;
+  color: var(--lcars-space-white);
+  font-family: 'JetBrains Mono', monospace;
+}

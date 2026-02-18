@@ -84,7 +84,19 @@ AVAILABLE_EVENTS = [
         'name': 'note.created',
         'module': 'notes',
         'description': 'When a new note is created',
-        'fields': ['title', 'category', 'tags'],
+        'fields': ['title', 'tags'],
+    },
+    {
+        'name': 'note.trashed',
+        'module': 'notes',
+        'description': 'When a note is moved to trash',
+        'fields': ['title'],
+    },
+    {
+        'name': 'note.starred',
+        'module': 'notes',
+        'description': 'When a note is starred',
+        'fields': ['title'],
     },
     {
         'name': 'tire_set.swapped',
