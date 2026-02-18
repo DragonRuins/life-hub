@@ -333,6 +333,7 @@ function HeaderBar({ isMobile, onMenuClick }) {
       alignItems: 'center',
       justifyContent: isMobile ? 'space-between' : 'flex-end',
       padding: isMobile ? '0.5rem 1rem' : '0.5rem 1.5rem',
+      paddingTop: isMobile ? 'calc(0.5rem + env(safe-area-inset-top, 0px))' : '0.5rem',
       borderBottom: '1px solid var(--color-surface-0)',
       background: 'var(--color-mantle)',
       gap: '0.5rem',

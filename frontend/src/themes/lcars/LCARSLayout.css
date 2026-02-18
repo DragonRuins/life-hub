@@ -22,6 +22,8 @@
   height: 100dvh;
   background: #000000;
   overflow: hidden;
+  /* Push content below iOS status bar in standalone PWA mode */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .lcars-elbow-tl {
