@@ -17,19 +17,35 @@ import { astrometrics as api } from '../../api/client'
 import useIsMobile from '../../hooks/useIsMobile'
 import { Satellite, Users, Eye } from 'lucide-react'
 
-// Custom ISS marker icon
+// ISS silhouette icon — truss with solar panel arrays
 const issIcon = L.divIcon({
   className: '',
-  html: `<div style="
-    width: 24px; height: 24px; background: var(--color-blue, #89b4fa);
-    border-radius: 50%; border: 2px solid #fff;
-    box-shadow: 0 0 12px rgba(137, 180, 250, 0.6);
-    display: flex; align-items: center; justify-content: center;
-  "><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5">
-    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
-  </svg></div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+  html: `<div style="filter: drop-shadow(0 0 6px rgba(137, 180, 250, 0.7));">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Main truss (horizontal beam) -->
+      <rect x="2" y="19" width="36" height="2" rx="1" fill="#89b4fa"/>
+      <!-- Central module cluster -->
+      <rect x="16" y="15" width="8" height="10" rx="1.5" fill="#f5c2e7" opacity="0.9"/>
+      <rect x="18" y="17" width="4" height="6" rx="1" fill="#89b4fa" opacity="0.6"/>
+      <!-- Left solar panels (4 panels) -->
+      <rect x="2" y="10" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.8" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="2" y="22" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.8" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="9" y="10" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.7" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="9" y="22" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.7" stroke="#cdd6f4" stroke-width="0.4"/>
+      <!-- Right solar panels (4 panels) -->
+      <rect x="25" y="10" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.7" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="25" y="22" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.7" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="32" y="10" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.8" stroke="#cdd6f4" stroke-width="0.4"/>
+      <rect x="32" y="22" width="6" height="8" rx="0.5" fill="#89b4fa" opacity="0.8" stroke="#cdd6f4" stroke-width="0.4"/>
+      <!-- Panel grid lines (detail) -->
+      <line x1="5" y1="10" x2="5" y2="18" stroke="#cdd6f4" stroke-width="0.3" opacity="0.5"/>
+      <line x1="5" y1="22" x2="5" y2="30" stroke="#cdd6f4" stroke-width="0.3" opacity="0.5"/>
+      <line x1="35" y1="10" x2="35" y2="18" stroke="#cdd6f4" stroke-width="0.3" opacity="0.5"/>
+      <line x1="35" y1="22" x2="35" y2="30" stroke="#cdd6f4" stroke-width="0.3" opacity="0.5"/>
+    </svg>
+  </div>`,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
 })
 
 // Component to move map when ISS position changes
@@ -47,18 +63,38 @@ function MapUpdater({ position }) {
  * Split an array of [lat, lng] points into segments at the antimeridian
  * (where longitude jumps across +/-180). Without this, Leaflet draws a
  * line across the entire map when the orbit wraps around.
+ *
+ * Interpolates boundary points at ±180° so each segment extends cleanly
+ * to the map edge with no gaps.
  */
 function splitAtAntimeridian(points) {
+  if (points.length < 2) return points.length === 1 ? [points] : []
+
   const segments = []
-  let current = []
-  for (let i = 0; i < points.length; i++) {
-    current.push(points[i])
-    if (i > 0 && Math.abs(points[i][1] - points[i - 1][1]) > 180) {
-      // Crossed the antimeridian — start a new segment
-      segments.push(current.slice(0, -1))
-      current = [points[i]]
+  let current = [points[0]]
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1]
+    const curr = points[i]
+    const lngDiff = curr[1] - prev[1]
+
+    if (Math.abs(lngDiff) > 180) {
+      // Interpolate latitude at the antimeridian crossing
+      const sign = prev[1] > 0 ? 1 : -1
+      const prevToEdge = sign * 180 - prev[1]
+      const edgeToCurr = curr[1] - (-sign * 180)
+      const totalSpan = Math.abs(prevToEdge) + Math.abs(edgeToCurr)
+      const fraction = totalSpan === 0 ? 0.5 : Math.abs(prevToEdge) / totalSpan
+      const edgeLat = prev[0] + fraction * (curr[0] - prev[0])
+
+      current.push([edgeLat, sign * 180])
+      segments.push(current)
+      current = [[edgeLat, -sign * 180], curr]
+    } else {
+      current.push(curr)
     }
   }
+
   if (current.length > 1) segments.push(current)
   return segments
 }
@@ -138,35 +174,48 @@ export default function AstroIssTracker() {
               zoom={3}
               style={{ height: '100%', width: '100%' }}
               zoomControl={!isMobile}
+              worldCopyJump={true}
             >
               <TileLayer
                 attribution='&copy; <a href="https://carto.com">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               />
               <MapUpdater position={position} />
-              <Marker position={position} icon={issIcon}>
-                <Popup>
-                  <div style={{ fontSize: '0.85rem' }}>
-                    <strong>ISS</strong><br />
-                    Lat: {position[0].toFixed(4)}<br />
-                    Lng: {position[1].toFixed(4)}
-                  </div>
-                </Popup>
-              </Marker>
-              {/* Projected orbital path (full orbit) */}
-              {groundTrack && groundTrack.map((segment, i) => (
-                <Polyline
-                  key={`orbit-${i}`}
-                  positions={segment}
-                  pathOptions={{ color: '#585b70', weight: 1.5, opacity: 0.5 }}
-                />
+              {/* ISS marker rendered at 3 world offsets for wrap visibility */}
+              {[-360, 0, 360].map(offset => (
+                <Marker
+                  key={`iss-${offset}`}
+                  position={[position[0], position[1] + offset]}
+                  icon={issIcon}
+                >
+                  <Popup>
+                    <div style={{ fontSize: '0.85rem' }}>
+                      <strong>ISS</strong><br />
+                      Lat: {position[0].toFixed(4)}<br />
+                      Lng: {position[1].toFixed(4)}
+                    </div>
+                  </Popup>
+                </Marker>
               ))}
-              {/* Recent position trail */}
-              {trail.length > 1 && (
-                <Polyline
-                  positions={trail}
-                  pathOptions={{ color: '#89b4fa', weight: 2, opacity: 0.6, dashArray: '5 5' }}
-                />
+              {/* Projected orbital path — rendered at 3 world offsets for wrap visibility */}
+              {groundTrack && groundTrack.flatMap((segment, si) =>
+                [-360, 0, 360].map(offset => (
+                  <Polyline
+                    key={`orbit-${si}-${offset}`}
+                    positions={offset === 0 ? segment : segment.map(([lat, lng]) => [lat, lng + offset])}
+                    pathOptions={{ color: '#89b4fa', weight: 2.5, opacity: 0.7 }}
+                  />
+                ))
+              )}
+              {/* Recent position trail — rendered at 3 world offsets */}
+              {splitAtAntimeridian(trail).flatMap((segment, si) =>
+                [-360, 0, 360].map(offset => (
+                  <Polyline
+                    key={`trail-${si}-${offset}`}
+                    positions={offset === 0 ? segment : segment.map(([lat, lng]) => [lat, lng + offset])}
+                    pathOptions={{ color: '#cba6f7', weight: 2, opacity: 0.5, dashArray: '5 5' }}
+                  />
+                ))
               )}
             </MapContainer>
           ) : (

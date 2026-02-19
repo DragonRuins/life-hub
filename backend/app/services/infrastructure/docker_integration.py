@@ -253,6 +253,21 @@ class DockerIntegration(BaseIntegration):
                 except Exception as e:
                     logger.warning(f"Failed to get stats for container '{dc.name}': {e}")
 
+        # Remove stale containers that no longer exist in Docker
+        # (e.g., after a reboot, containers get new IDs — old entries are orphans)
+        removed_count = 0
+        stale = []
+        if synced_ids:
+            stale = InfraContainer.query.filter(
+                InfraContainer.host_id == self.host_id,
+                ~InfraContainer.container_id.in_(synced_ids),
+            ).all()
+        for s in stale:
+            # Also remove associated metrics to avoid orphaned data
+            InfraMetric.query.filter_by(source_type='container', source_id=s.id).delete()
+            db.session.delete(s)
+            removed_count += 1
+
         db.session.commit()
         client.close()
 
@@ -273,6 +288,7 @@ class DockerIntegration(BaseIntegration):
             'success': True,
             'created': created_count,
             'updated': updated_count,
+            'removed': removed_count,
             'metrics_recorded': metrics_count,
             'status_changes': len(status_changes),
             'total_containers': len(docker_containers),

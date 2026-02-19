@@ -12,6 +12,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
 import LCARSPanel, { LCARSDataRow, LCARSStat } from '../../themes/lcars/LCARSPanel'
 
+/**
+ * Format a countdown string: "014D 05H 11M 08S"
+ * Returns the formatted string for character-level diffing.
+ */
+function formatCountdown(cd) {
+  if (!cd || cd.passed) return null
+  return `T-${String(cd.d).padStart(2,'0')}D ${String(cd.h).padStart(2,'0')}H ${String(cd.m).padStart(2,'0')}M ${String(cd.s).padStart(2,'0')}S`
+}
+
 export default function LCARSAstroOverview() {
   const [apod, setApod] = useState(null)
   const [nextLaunch, setNextLaunch] = useState(null)
@@ -20,6 +29,10 @@ export default function LCARSAstroOverview() {
   const [crew, setCrew] = useState(null)
   const [loading, setLoading] = useState(true)
   const [countdown, setCountdown] = useState(null)
+
+  // Track previous countdown string for digit roll animation
+  const prevCountdownStr = useRef('')
+  const [countdownChanged, setCountdownChanged] = useState(new Set())
 
   const intervalRef = useRef(null)
   const pollRef = useRef(null)
@@ -76,6 +89,21 @@ export default function LCARSAstroOverview() {
     intervalRef.current = setInterval(update, 1000)
     return () => clearInterval(intervalRef.current)
   }, [nextLaunch])
+
+  // Compute which countdown characters changed for digit roll
+  useEffect(() => {
+    const str = formatCountdown(countdown) || ''
+    const changed = new Set()
+    for (let i = 0; i < str.length; i++) {
+      if (str[i] !== prevCountdownStr.current[i]) changed.add(i)
+    }
+    prevCountdownStr.current = str
+    if (changed.size > 0) {
+      setCountdownChanged(changed)
+      const timer = setTimeout(() => setCountdownChanged(new Set()), 250)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   if (loading) {
     return (
@@ -160,15 +188,27 @@ export default function LCARSAstroOverview() {
             {launchData.launch_service_provider.name}
           </div>
         )}
-        {countdown && !countdown.passed && (
-          <div style={{
-            fontFamily: "'JetBrains Mono', monospace", fontSize: '1.5rem',
-            fontWeight: 700, color: 'var(--lcars-gold)',
-            textAlign: 'center', letterSpacing: '0.05em',
-          }}>
-            T - {String(countdown.d).padStart(3, '0')} : {String(countdown.h).padStart(2, '0')} : {String(countdown.m).padStart(2, '0')} : {String(countdown.s).padStart(2, '0')}
-          </div>
-        )}
+        {countdown && !countdown.passed && (() => {
+          const str = formatCountdown(countdown)
+          return (
+            <div style={{
+              fontFamily: "'JetBrains Mono', monospace", fontSize: 'clamp(0.85rem, 3.5vw, 1.15rem)',
+              fontWeight: 700, color: 'var(--lcars-gold)',
+              textAlign: 'center', letterSpacing: '0.03em',
+              whiteSpace: 'nowrap', overflow: 'hidden',
+            }}>
+              {str.split('').map((char, i) => (
+                <span
+                  key={`${i}-${char}`}
+                  className={countdownChanged.has(i) && /\d/.test(char) ? 'lcars-digit-roll' : undefined}
+                  style={{ display: 'inline-block' }}
+                >
+                  {char}
+                </span>
+              ))}
+            </div>
+          )
+        })()}
         {countdown?.passed && (
           <div style={{
             fontFamily: "'Antonio', sans-serif", fontSize: '1rem',

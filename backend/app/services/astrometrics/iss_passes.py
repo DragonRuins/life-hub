@@ -131,39 +131,48 @@ def get_visible_passes(lat, lng, days_ahead=7):
         return []
 
 
-def get_ground_track(minutes=90, step_seconds=30):
+def get_ground_track(minutes=90, step_seconds=30, history_minutes=45):
     """
-    Compute the ISS ground track (sub-satellite points) for the next N minutes.
+    Compute the ISS ground track (sub-satellite points) spanning both past
+    and future positions so the station appears in the middle of the track.
 
     Uses Skyfield to propagate the ISS TLE and sample lat/lng positions at
-    regular intervals.  The default 90 minutes covers roughly one full orbit.
+    regular intervals.
 
     Args:
-        minutes: How far ahead to compute (default 90 ≈ 1 orbit)
+        minutes: How far ahead to compute (default 90 ~ 1 orbit)
         step_seconds: Interval between sample points (default 30s)
+        history_minutes: How far back to compute (default 45 ~ half orbit)
 
     Returns:
-        list of [lat, lng] pairs (floats), or empty list on failure
+        dict with:
+          - points: list of [lat, lng] pairs (floats), past through future
+          - current_index: index of the point closest to "now"
+        Or empty dict on failure.
     """
     try:
         from skyfield.api import load, wgs84, EarthSatellite
     except ImportError:
         logger.error("Skyfield not installed — ground track unavailable")
-        return []
+        return {}
 
     try:
         ts = load.timescale()
         tle_lines = _fetch_iss_tle()
         if not tle_lines:
-            return []
+            return {}
 
         satellite = EarthSatellite(tle_lines[1], tle_lines[2], tle_lines[0], ts)
 
         points = []
         now = datetime.now(timezone.utc)
-        total_steps = (minutes * 60) // step_seconds
 
-        for i in range(total_steps + 1):
+        # Compute backward steps (past track)
+        back_steps = (history_minutes * 60) // step_seconds
+        # Compute forward steps (future track)
+        fwd_steps = (minutes * 60) // step_seconds
+
+        for i in range(-back_steps, fwd_steps + 1):
             dt = now + timedelta(seconds=i * step_seconds)
             t = ts.utc(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
             geocentric = satellite.at(t)
@@ -173,11 +182,14 @@ def get_ground_track(minutes=90, step_seconds=30):
                 round(subpoint.longitude.degrees, 4),
             ])
 
-        return points
+        return {
+            'points': points,
+            'current_index': back_steps,
+        }
 
     except Exception as e:
         logger.error(f"Ground track computation failed: {e}")
-        return []
+        return {}
 
 
 def _fetch_iss_tle():

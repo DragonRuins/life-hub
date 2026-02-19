@@ -328,10 +328,10 @@ def get_iss_crew():
 @astrometrics_bp.route('/iss/groundtrack', methods=['GET'])
 def get_iss_groundtrack():
     """
-    Get the projected ISS ground track for the next ~90 minutes (one orbit).
+    Get the ISS ground track spanning ~45 minutes past and ~90 minutes ahead.
 
-    Returns an array of [lat, lng] pairs computed from TLE propagation.
-    Cached for 5 minutes since orbital position drifts slowly.
+    Returns points (array of [lat, lng] pairs) and current_index (the point
+    closest to the station's current position). Cached for 5 minutes.
 
     Query params:
       minutes (optional): How far ahead (default 90, max 180)
@@ -352,10 +352,10 @@ def get_iss_groundtrack():
 
 
 def _compute_ground_track(minutes):
-    """Call the ISS ground track computation."""
+    """Call the ISS ground track computation (past + future)."""
     from app.services.astrometrics.iss_passes import get_ground_track
-    points = get_ground_track(minutes=minutes, step_seconds=30)
-    return {'points': points}
+    result = get_ground_track(minutes=minutes, step_seconds=30, history_minutes=45)
+    return result or {'points': [], 'current_index': 0}
 
 
 @astrometrics_bp.route('/iss/passes', methods=['GET'])
