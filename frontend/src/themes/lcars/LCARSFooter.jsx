@@ -42,15 +42,37 @@ export default function LCARSFooter() {
   const [infraStatus, setInfraStatus] = useState({ hosts: 0, containers: 0 })
   const pollTimerRef = useRef(null)
 
+  // Track previous UTC time for digit roll animation
+  const prevUtcRef = useRef(utc)
+  // Track which character indices changed on this tick
+  const [changedIndices, setChangedIndices] = useState(new Set())
+
   // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date()
-      setUtc(formatUTC(now))
+      const newUtc = formatUTC(now)
+      setUtc(prev => {
+        // Compare old vs new character-by-character
+        const changed = new Set()
+        for (let i = 0; i < newUtc.length; i++) {
+          if (newUtc[i] !== prev[i]) changed.add(i)
+        }
+        if (changed.size > 0) setChangedIndices(changed)
+        prevUtcRef.current = prev
+        return newUtc
+      })
       setStardate(calculateStardate(now))
     }, 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Clear the changed indices after the animation completes (200ms)
+  useEffect(() => {
+    if (changedIndices.size === 0) return
+    const timer = setTimeout(() => setChangedIndices(new Set()), 250)
+    return () => clearTimeout(timer)
+  }, [changedIndices])
 
   // Fetch real data from API on mount and every 30 seconds
   const fetchData = useCallback(async () => {
@@ -94,13 +116,43 @@ export default function LCARSFooter() {
         gap: '3px',
       }}
     >
-      {/* Stardate + UTC time segment */}
-      <StatusSegment
-        label={`SD ${stardate} // ${utc} UTC`}
-        color="var(--lcars-african-violet)"
-        flex={1}
-        mono
-      />
+      {/* Stardate + UTC time segment with digit roll on time changes */}
+      <div
+        style={{
+          flex: 1,
+          background: 'var(--lcars-african-violet)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '0 0.5rem',
+          overflow: 'hidden',
+        }}
+      >
+        <span
+          style={{
+            color: '#000000',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {`SD ${stardate} // `}
+          {utc.split('').map((char, i) => (
+            <span
+              key={`${i}-${char}`}
+              className={changedIndices.has(i) ? 'lcars-digit-roll' : undefined}
+              style={{ display: 'inline-block' }}
+            >
+              {char}
+            </span>
+          ))}
+          {' UTC'}
+        </span>
+      </div>
 
       {/* Notifications segment */}
       <StatusSegment

@@ -80,7 +80,7 @@ export default function LCARSNotificationSettings() {
             onClick={() => setActiveTab(tab.key)}
             style={{
               padding: '0.375rem 1rem',
-              background: activeTab === tab.key ? 'var(--lcars-butterscotch)' : 'var(--lcars-gray)',
+              background: activeTab === tab.key ? 'var(--lcars-butterscotch)' : 'var(--lcars-sunflower)',
               color: '#000',
               border: 'none',
               borderRadius: '999px',
@@ -90,7 +90,7 @@ export default function LCARSNotificationSettings() {
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               cursor: 'pointer',
-              opacity: activeTab === tab.key ? 1 : 0.6,
+              opacity: activeTab === tab.key ? 1 : 0.55,
               transition: 'all 0.15s ease',
             }}
           >

@@ -149,11 +149,110 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(153, 204, 255, 0.04),
+    rgba(153, 204, 255, 0.10),
     transparent
   );
   animation: lcars-scan-stripe 4s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* ── Panel Glow Pulse (for alert-state panels) ────────────── */
+
+@keyframes lcars-panel-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px var(--lcars-glow-color, rgba(153, 204, 255, 0.15))); }
+  50% { filter: drop-shadow(0 0 10px var(--lcars-glow-color, rgba(153, 204, 255, 0.25))); }
+}
+
+.lcars-panel-glow-pulse {
+  animation: lcars-panel-glow 3s ease-in-out infinite;
+}
+
+/* ── Alert State Animations (Frame-Level) ────────────────── */
+/* Red alert: elbows pulse opacity, header/footer bars glow red */
+
+@keyframes lcars-red-alert-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes lcars-red-alert-glow {
+  0%, 100% { box-shadow: 0 0 4px var(--lcars-tomato); }
+  50% { box-shadow: 0 0 12px var(--lcars-tomato), 0 0 24px rgba(255, 69, 58, 0.15); }
+}
+
+/* ── Page Route Transition ───────────────────────────────── */
+
+.lcars-content {
+  transition: opacity 150ms ease;
+}
+
+.lcars-content.lcars-page-out {
+  opacity: 0;
+}
+
+/* ── Sidebar Idle Color Cycling ──────────────────────────── */
+/* Each decorative block cycles through different LCARS colors at 10s */
+
+@keyframes lcars-idle-cycle-1 {
+  0%, 100% { background-color: var(--lcars-gray); }
+  25% { background-color: var(--lcars-tanoi); }
+  50% { background-color: var(--lcars-almond-creme); }
+  75% { background-color: var(--lcars-lilac); }
+}
+
+@keyframes lcars-idle-cycle-2 {
+  0%, 100% { background-color: var(--lcars-almond-creme); }
+  25% { background-color: var(--lcars-african-violet); }
+  50% { background-color: var(--lcars-ice); }
+  75% { background-color: var(--lcars-sunflower); }
+}
+
+@keyframes lcars-idle-cycle-3 {
+  0%, 100% { background-color: var(--lcars-moonlit-violet); }
+  25% { background-color: var(--lcars-gold); }
+  50% { background-color: var(--lcars-tanoi); }
+  75% { background-color: var(--lcars-african-violet); }
+}
+
+.lcars-idle-block-1 {
+  animation: lcars-idle-cycle-1 10s ease-in-out infinite;
+}
+
+.lcars-idle-block-2 {
+  animation: lcars-idle-cycle-2 10s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+.lcars-idle-block-3 {
+  animation: lcars-idle-cycle-3 10s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+/* ── Footer Digit Roll ───────────────────────────────────── */
+
+@keyframes lcars-digit-roll {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.lcars-digit-roll {
+  display: inline-block;
+  animation: lcars-digit-roll 200ms ease-out;
+}
+
+/* ── Notification Comm Flash ─────────────────────────────── */
+/* Double-flash amber pattern mimicking TNG incoming-comm indicator */
+
+@keyframes lcars-comm-flash {
+  0% { background-color: transparent; }
+  15% { background-color: rgba(255, 170, 51, 0.3); }
+  40% { background-color: transparent; }
+  55% { background-color: rgba(255, 170, 51, 0.2); }
+  100% { background-color: transparent; }
+}
+
+.lcars-comm-flash {
+  animation: lcars-comm-flash 600ms ease-out;
 }
 
 /* ── Reduced Motion ────────────────────────────────────────── */
@@ -180,5 +279,43 @@
   .lcars-scan-stripe::after {
     animation: none !important;
     display: none !important;
+  }
+
+  .lcars-panel-glow-pulse {
+    animation: none !important;
+  }
+
+  /* Chunk 2: Alert states */
+  .lcars-alert-red .lcars-elbow-tl,
+  .lcars-alert-red .lcars-elbow-bl {
+    animation: none !important;
+  }
+
+  .lcars-alert-red .lcars-header,
+  .lcars-alert-red .lcars-footer {
+    animation: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Chunk 3: Page transitions */
+  .lcars-content {
+    transition: none !important;
+  }
+
+  /* Chunk 4A: Sidebar idle cycles */
+  .lcars-idle-block-1,
+  .lcars-idle-block-2,
+  .lcars-idle-block-3 {
+    animation: none !important;
+  }
+
+  /* Chunk 4B: Footer digit roll */
+  .lcars-digit-roll {
+    animation: none !important;
+  }
+
+  /* Chunk 6: Comm flash */
+  .lcars-comm-flash {
+    animation: none !important;
   }
 }

@@ -39,6 +39,7 @@ export const dashboard = {
     const query = new URLSearchParams(params).toString()
     return apiFetch(`/dashboard/fleet-status${query ? '?' + query : ''}`)
   },
+  getSystemStats: () => apiFetch("/dashboard/system-stats"),
 }
 
 // ── Vehicles ──────────────────────────────────────────────────

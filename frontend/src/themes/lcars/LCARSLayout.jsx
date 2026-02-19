@@ -18,6 +18,8 @@
  *   │  ELBOW (BL)  │ E │     FOOTER / STATUS BAR    │
  *   └──────────────┴───┴────────────────────────────┘
  */
+import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import './LCARSLayout.css'
 import LCARSElbow from './LCARSElbow'
 import LCARSSidebar from './LCARSSidebar'
@@ -26,12 +28,36 @@ import LCARSFooter from './LCARSFooter'
 import LCARSDataCascade from './LCARSDataCascade'
 import LCARSMobileNav from './LCARSMobileNav'
 import useIsMobile from '../../hooks/useIsMobile'
+import { useTheme } from './ThemeProvider'
 
 export default function LCARSLayout({ children }) {
   const isMobile = useIsMobile()
+  const { alertCondition } = useTheme()
+  const location = useLocation()
+
+  // ── Page Route Transition (Chunk 3) ──────────────────────
+  // On pathname change, briefly fade content out then back in
+  const [pageOut, setPageOut] = useState(false)
+  const prevPathRef = useRef(location.pathname)
+
+  useEffect(() => {
+    if (location.pathname !== prevPathRef.current) {
+      prevPathRef.current = location.pathname
+      setPageOut(true)
+      const timer = setTimeout(() => setPageOut(false), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [location.pathname])
+
+  // Build root class based on alert condition
+  const alertClass = alertCondition === 'red'
+    ? 'lcars-alert-red'
+    : alertCondition === 'yellow'
+      ? 'lcars-alert-yellow'
+      : ''
 
   return (
-    <div className="lcars-layout">
+    <div className={`lcars-layout ${alertClass}`}>
       {/* Top-left elbow connecting sidebar to header */}
       <div className="lcars-elbow-tl">
         <LCARSElbow color="var(--lcars-sunflower)" />
@@ -53,7 +79,7 @@ export default function LCARSLayout({ children }) {
       </div>
 
       {/* Main content area where Routes/pages render */}
-      <div className="lcars-content">
+      <div className={`lcars-content${pageOut ? ' lcars-page-out' : ''}`}>
         {children}
       </div>
 

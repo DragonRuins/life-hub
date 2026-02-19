@@ -1,31 +1,28 @@
 /**
  * LCARSDashboard.jsx - LCARS Operations Center
  *
- * Full fleet operations dashboard with 8 data panels:
- *   Row 1: Maintenance Alerts (full width)
- *   Row 2: Vehicle Quick Status Cards (full width)
- *   Row 3: Weather / Environmental + Fleet Fuel Economy
- *   Row 4: Cost Analysis + Tire Wear Monitor
- *   Row 5: Activity Timeline + Component Health
- *   Row 6: Notification Feed + Notes Database
+ * Decluttered layout with 5 sections:
+ *   1. Header: Operations Overview + Quick Actions
+ *   2. Maintenance Alerts (full width)
+ *   3. Vehicle Readout + Environmental Sensors (2 columns)
+ *   4. Ship's Log (5 entries, full width)
+ *   5. Systems Status Board (full width, module tiles)
  *
- * Data comes from GET /api/dashboard/fleet-status (single aggregated call)
- * plus weather and summary endpoints.
+ * API calls: weather, fleet-status, system-stats, vehicles.list (for modals)
  */
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
-  Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, Star, X,
-  Fuel, Thermometer, AlertTriangle, DollarSign, Gauge,
-  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen, Server, Telescope
+  StickyNote, Wrench, Plus, Droplets, Wind, X,
+  Fuel, Thermometer,
+  CircleDot, FolderKanban, BookOpen, Server, Telescope,
+  ChevronRight
 } from 'lucide-react'
-import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-import { dashboard, vehicles, notifications, projects, kb, infrastructure as infraApi, astrometrics as astroApi } from '../../api/client'
+import { dashboard, vehicles } from '../../api/client'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
-import { getComponentType } from '../../constants/componentTypes'
 import MaintenanceForm from '../../components/MaintenanceForm'
 import FuelForm from '../../components/FuelForm'
-import LCARSPanel, { LCARSDataRow, LCARSStat } from './LCARSPanel'
+import LCARSPanel, { LCARSDataRow, LCARSGauge, LCARSMiniPanel } from './LCARSPanel'
 
 
 // ── Status color mapping ────────────────────────────────────────────────
@@ -48,19 +45,13 @@ const TIMELINE_COLORS = {
 export default function LCARSDashboard() {
   const [weather, setWeather] = useState(null)
   const [fleetStatus, setFleetStatus] = useState(null)
-  const [summary, setSummary] = useState(null)
-  const [notificationFeed, setNotificationFeed] = useState([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [systemStats, setSystemStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [showQuickAddFuel, setShowQuickAddFuel] = useState(false)
   const [vehiclesList, setVehiclesList] = useState([])
   const [maintenanceItems, setMaintenanceItems] = useState([])
-  const [projectStats, setProjectStats] = useState(null)
-  const [kbStats, setKbStats] = useState(null)
-  const [infraDash, setInfraDash] = useState(null)
-  const [astroData, setAstroData] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
   function getDashboardParams() {
@@ -72,39 +63,23 @@ export default function LCARSDashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats, iDash, astroNext, astroCrew] = await Promise.all([
+      const [w, fs, ss, v, items] = await Promise.all([
         dashboard.getWeather().catch(() => null),
         dashboard.getFleetStatus(params).catch(() => null),
-        dashboard.getSummary(params),
-        vehicles.list(),
+        dashboard.getSystemStats().catch(() => null),
+        vehicles.list().catch(() => []),
         vehicles.maintenanceItems.list().catch(() => []),
-        notifications.feed({ limit: 10 }).catch(() => []),
-        notifications.unreadCount().catch(() => ({ count: 0 })),
-        projects.stats().catch(() => null),
-        kb.stats().catch(() => null),
-        infraApi.dashboard().catch(() => null),
-        astroApi.launches.next().catch(() => null),
-        astroApi.iss.crew().catch(() => null),
       ])
       setWeather(w)
       setFleetStatus(fs)
-      setSummary(s)
+      setSystemStats(ss)
       setVehiclesList(v)
       setMaintenanceItems(items)
-      setNotificationFeed(Array.isArray(nFeed) ? nFeed : [])
-      setUnreadCount(nCount?.count || 0)
-      setProjectStats(pStats)
-      setKbStats(kStats)
-      setInfraDash(iDash)
-      setAstroData({
-        nextLaunch: astroNext?.data || null,
-        crewCount: astroCrew?.data?.number || 0,
-      })
 
-      // If no localStorage selection, default to primary vehicle
+      // If no localStorage selection, default to first vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
-      if (!storedId && s.primary_vehicle_id) {
-        localStorage.setItem('dashboard_vehicle_id', String(s.primary_vehicle_id))
+      if (!storedId && fs?.vehicle_summaries?.length > 0) {
+        localStorage.setItem('dashboard_vehicle_id', String(fs.vehicle_summaries[0].id))
       }
     } catch (err) {
       setError(err.message)
@@ -116,7 +91,6 @@ export default function LCARSDashboard() {
   useEffect(() => {
     loadDashboard()
 
-    // Listen for vehicle selection changes from the gear dropdown
     function onVehicleChanged() {
       loadDashboard()
     }
@@ -128,11 +102,7 @@ export default function LCARSDashboard() {
     try {
       const params = getDashboardParams()
       await vehicles.addMaintenance(data.vehicle_id, data)
-      const [s, fs] = await Promise.all([
-        dashboard.getSummary(params),
-        dashboard.getFleetStatus(params),
-      ])
-      setSummary(s)
+      const fs = await dashboard.getFleetStatus(params)
       setFleetStatus(fs)
       setShowQuickAdd(false)
     } catch (err) {
@@ -144,25 +114,11 @@ export default function LCARSDashboard() {
     try {
       const params = getDashboardParams()
       await vehicles.fuelLogs.create(data.vehicle_id, data)
-      const [s, fs] = await Promise.all([
-        dashboard.getSummary(params),
-        dashboard.getFleetStatus(params),
-      ])
-      setSummary(s)
+      const fs = await dashboard.getFleetStatus(params)
       setFleetStatus(fs)
       setShowQuickAddFuel(false)
     } catch (err) {
       alert('Failed to add fuel log: ' + err.message)
-    }
-  }
-
-  async function handleMarkAllRead() {
-    try {
-      await notifications.markAllRead()
-      setUnreadCount(0)
-      setNotificationFeed(prev => prev.map(n => ({ ...n, is_read: true })))
-    } catch (err) {
-      // Silently fail
     }
   }
 
@@ -171,9 +127,16 @@ export default function LCARSDashboard() {
   const now = new Date()
   const stardate = `${now.getFullYear()}.${String(Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000)).padStart(3, '0')}`
 
+  // Find the selected vehicle
+  const selectedId = localStorage.getItem('dashboard_vehicle_id')
+  const isAllFleet = !selectedId || selectedId === 'all'
+  const selectedVehicle = !isAllFleet
+    ? fleetStatus?.vehicle_summaries?.find(v => String(v.id) === selectedId)
+    : null
+
   return (
     <div style={{ maxWidth: '1400px' }}>
-      {/* Header with Quick Actions */}
+      {/* ── Header with Quick Actions ────────────────────────────────── */}
       <div style={{
         display: 'flex',
         alignItems: 'flex-end',
@@ -234,70 +197,46 @@ export default function LCARSDashboard() {
         </LCARSPanel>
       )}
 
-      {/* Row 1: Maintenance Alerts (full width) */}
+      {/* ── Row 1: Maintenance Alerts (full width) ───────────────────── */}
       <div style={{ marginBottom: '1rem' }}>
         <MaintenanceAlertPanel alerts={fleetStatus?.interval_alerts || []} />
       </div>
 
-      {/* Row 2: Vehicle Quick Status Cards (full width) */}
-      <div style={{ marginBottom: '1rem' }}>
-        <VehicleQuickStatusCards summaries={fleetStatus?.vehicle_summaries || []} />
-      </div>
-
-      {/* Row 3: Weather + Fleet Fuel Economy */}
-      <div className={weather && !weather.error ? 'form-grid-2col' : undefined} style={{
-        ...(!weather || weather.error ? { display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' } : {}),
-        marginBottom: '1rem',
-      }}>
-        {weather && !weather.error && (
-          <LCARSWeatherPanel weather={weather} />
-        )}
-        <FleetFuelEconomyPanel fuelStats={fleetStatus?.fuel_stats} />
-      </div>
-
-      {/* Row 4: Cost Analysis + Tire Wear */}
+      {/* ── Row 2: Vehicle Readout + Weather (2 columns) ─────────────── */}
       <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
-        <CostAnalysisPanel costAnalysis={fleetStatus?.cost_analysis} />
-        <TireWearMonitorPanel tireSets={fleetStatus?.tire_sets || []} />
-      </div>
-
-      {/* Row 5: Activity Timeline + Component Health */}
-      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
-        <ActivityTimelinePanel timeline={fleetStatus?.activity_timeline || []} />
-        <ComponentHealthPanel components={fleetStatus?.active_components || []} />
-      </div>
-
-      {/* Row 6: Notifications + Notes */}
-      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
-        <NotificationFeedPanel
-          feed={notificationFeed}
-          unreadCount={unreadCount}
-          onMarkAllRead={handleMarkAllRead}
+        <VehicleReadoutPanel
+          vehicle={selectedVehicle}
+          fleetStatus={fleetStatus}
+          isAllFleet={isAllFleet}
         />
-        <LCARSNotesPanel notes={summary?.notes} />
+        {weather && !weather.error ? (
+          <LCARSWeatherPanel weather={weather} />
+        ) : (
+          <LCARSPanel title="Environmental Sensors" color="var(--lcars-sunflower)">
+            <div style={{
+              padding: '1.5rem',
+              textAlign: 'center',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.82rem',
+              color: 'var(--lcars-gray)',
+            }}>
+              Sensors offline
+            </div>
+          </LCARSPanel>
+        )}
       </div>
 
-      {/* Row 7: Projects */}
+      {/* ── Row 3: Ship's Log (full width, 5 entries) ────────────────── */}
       <div style={{ marginBottom: '1rem' }}>
-        <LCARSProjectsPanel stats={projectStats} />
+        <ActivityTimelinePanel timeline={fleetStatus?.activity_timeline || []} />
       </div>
 
-      {/* Row 8: Library Computer */}
+      {/* ── Row 4: Systems Status Board (full width) ─────────────────── */}
       <div style={{ marginBottom: '1rem' }}>
-        <LCARSLibraryComputerPanel stats={kbStats} />
+        <SystemsStatusBoard stats={systemStats} />
       </div>
 
-      {/* Row 9: Engineering Status */}
-      <div style={{ marginBottom: '1rem' }}>
-        <LCARSEngineeringPanel data={infraDash} />
-      </div>
-
-      {/* Row 10: Astrometrics */}
-      <div style={{ marginBottom: '1rem' }}>
-        <LCARSAstrometricsPanel data={astroData} />
-      </div>
-
-      {/* Quick Add Maintenance Modal */}
+      {/* ── Quick Add Maintenance Modal ──────────────────────────────── */}
       {showQuickAdd && (
         <LCARSModalOverlay
           title="Log Service Record"
@@ -312,7 +251,7 @@ export default function LCARSDashboard() {
         </LCARSModalOverlay>
       )}
 
-      {/* Quick Add Fuel Log Modal */}
+      {/* ── Quick Add Fuel Log Modal ─────────────────────────────────── */}
       {showQuickAddFuel && (
         <LCARSModalOverlay
           title="Log Fuel Entry"
@@ -380,12 +319,13 @@ function MaintenanceAlertPanel({ alerts }) {
                 borderBottom: i < alerts.length - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
               }}
             >
-              {/* Status color indicator */}
+              {/* Status color indicator with glow on overdue */}
               <div style={{
                 width: '4px',
                 alignSelf: 'stretch',
                 background: STATUS_COLORS[alert.status],
                 flexShrink: 0,
+                boxShadow: alert.status === 'overdue' ? `0 0 6px ${STATUS_COLORS[alert.status]}` : 'none',
               }} />
 
               {/* Alert info */}
@@ -457,128 +397,195 @@ function MaintenanceAlertPanel({ alerts }) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Panel 2: Vehicle Quick Status Cards
+// Panel 2: Vehicle Readout (single vehicle sensor-style)
 // ═══════════════════════════════════════════════════════════════════════════
-function VehicleQuickStatusCards({ summaries }) {
-  const navigate = useNavigate()
+function VehicleReadoutPanel({ vehicle, fleetStatus, isAllFleet }) {
+  const summaries = fleetStatus?.vehicle_summaries || []
 
-  if (summaries.length === 0) {
+  // Fleet aggregate when "All Fleet" is selected
+  if (isAllFleet || !vehicle) {
+    const fuelStats = fleetStatus?.fuel_stats
+
     return (
       <LCARSPanel title="Fleet Status" color="var(--lcars-ice)">
-        <LCARSEmptyState
-          message="No vehicles registered"
-          linkTo="/vehicles"
-          linkLabel="Register First Vehicle"
-        />
+        {summaries.length === 0 ? (
+          <LCARSEmptyState
+            message="No vehicles registered"
+            linkTo="/vehicles"
+            linkLabel="Register First Vehicle"
+          />
+        ) : (
+          <div>
+            <div style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '2rem',
+              fontWeight: 700,
+              color: 'var(--lcars-space-white)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1,
+              marginBottom: '0.75rem',
+            }}>
+              {summaries.length}
+              <span style={{
+                fontSize: '0.7rem',
+                fontWeight: 400,
+                color: 'var(--lcars-gray)',
+                marginLeft: '0.375rem',
+              }}>vehicles</span>
+            </div>
+
+            {fuelStats?.fleet_avg_mpg != null && (
+              <LCARSDataRow
+                icon={<Fuel size={13} />}
+                label="Fleet Avg MPG"
+                value={fuelStats.fleet_avg_mpg}
+                color="var(--lcars-green)"
+              />
+            )}
+
+            <div style={{ marginTop: '0.75rem' }}>
+              <Link to="/vehicles" style={{
+                fontFamily: "'Antonio', sans-serif",
+                fontSize: '0.72rem',
+                textTransform: 'uppercase',
+                color: 'var(--lcars-ice)',
+                textDecoration: 'none',
+                letterSpacing: '0.05em',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}>
+                Fleet Details <ChevronRight size={14} />
+              </Link>
+            </div>
+          </div>
+        )}
       </LCARSPanel>
     )
   }
 
+  // Single vehicle readout
+  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+  const worstColor = STATUS_COLORS[vehicle.worst_status] || 'var(--lcars-ice)'
+
+  // Find last service from activity timeline
+  const lastService = fleetStatus?.activity_timeline?.find(
+    e => e.type === 'maintenance' && e.vehicle_id === vehicle.id
+  )
+
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-      gap: '1rem',
-    }}>
-      {summaries.map(v => {
-        const accentColor = STATUS_COLORS[v.worst_status] || 'var(--lcars-ice)'
+    <LCARSPanel title="Vehicle Readout" color={worstColor}>
+      {/* Vehicle designation */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <span style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.92rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--lcars-space-white)',
+        }}>
+          {vehicleName}
+        </span>
+        <StatusBadge status={vehicle.worst_status} />
+      </div>
+
+      {/* Large odometer */}
+      <div style={{
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: '2rem',
+        fontWeight: 700,
+        color: 'var(--lcars-space-white)',
+        letterSpacing: '-0.02em',
+        lineHeight: 1,
+        marginBottom: '0.75rem',
+      }}>
+        {vehicle.current_mileage > 0 ? vehicle.current_mileage.toLocaleString() : '---'}
+        <span style={{
+          fontSize: '0.7rem',
+          fontWeight: 400,
+          color: 'var(--lcars-gray)',
+          marginLeft: '0.25rem',
+        }}>mi</span>
+      </div>
+
+      {/* Data rows */}
+      {vehicle.last_mpg != null && (
+        <LCARSDataRow
+          icon={<Fuel size={13} />}
+          label="Last MPG"
+          value={vehicle.last_mpg}
+          color="var(--lcars-green)"
+        />
+      )}
+      {vehicle.avg_mpg != null && (
+        <LCARSDataRow
+          icon={<Fuel size={13} />}
+          label="Fleet Avg"
+          value={vehicle.avg_mpg}
+          color="var(--lcars-ice)"
+        />
+      )}
+      {vehicle.equipped_tire_set && (
+        <LCARSDataRow
+          icon={<CircleDot size={13} />}
+          label="Tires"
+          value={`${vehicle.equipped_tire_set.name || vehicle.equipped_tire_set.tire_brand || '-'} (${(vehicle.equipped_tire_set.accumulated_mileage || 0).toLocaleString()} mi)`}
+          color="var(--lcars-butterscotch)"
+        />
+      )}
+      {lastService && (
+        <LCARSDataRow
+          icon={<Wrench size={13} />}
+          label="Last Service"
+          value={`${lastService.title} — ${lastService.date}`}
+          color="var(--lcars-sunflower)"
+        />
+      )}
+
+      {/* Gauge bars for maintenance interval alerts */}
+      {(() => {
+        const vehicleAlerts = (fleetStatus?.interval_alerts || [])
+          .filter(a => a.vehicle_id === vehicle.id)
+        if (vehicleAlerts.length === 0) return null
         return (
-          <div
-            key={v.id}
-            onClick={() => navigate(`/vehicles/${v.id}`)}
-            style={{
-              display: 'flex',
-              background: '#000000',
-              border: '1px solid rgba(102, 102, 136, 0.3)',
-              overflow: 'hidden',
-              cursor: 'pointer',
-              transition: 'border-color 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = accentColor}
-            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(102, 102, 136, 0.3)'}
-          >
-            {/* Left accent bar colored by worst status */}
-            <div style={{ width: '6px', background: accentColor, flexShrink: 0 }} />
-
-            <div style={{ flex: 1, padding: '0.625rem 0.75rem' }}>
-              {/* Vehicle name + status badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                <div style={{
-                  fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  color: 'var(--lcars-space-white)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {v.year} {v.make} {v.model}
-                </div>
-                <StatusBadge status={v.worst_status} />
-              </div>
-
-              {/* Odometer (large monospace) */}
-              <div style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                color: 'var(--lcars-space-white)',
-                letterSpacing: '-0.02em',
-                margin: '0.25rem 0',
-              }}>
-                {v.current_mileage > 0 ? v.current_mileage.toLocaleString() : '---'}
-                <span style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 400,
-                  color: 'var(--lcars-gray)',
-                  marginLeft: '0.25rem',
-                }}>mi</span>
-              </div>
-
-              {/* Mini stats row */}
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                flexWrap: 'wrap',
-              }}>
-                {v.last_mpg != null && (
-                  <MiniStat label="MPG" value={v.last_mpg} color="var(--lcars-green)" />
-                )}
-                {v.interval_counts.overdue > 0 && (
-                  <MiniStat
-                    label="Overdue"
-                    value={v.interval_counts.overdue}
-                    color="var(--lcars-tomato)"
-                  />
-                )}
-                {v.interval_counts.due > 0 && (
-                  <MiniStat
-                    label="Due"
-                    value={v.interval_counts.due}
-                    color="var(--lcars-sunflower)"
-                  />
-                )}
-                {v.equipped_tire_set && (
-                  <MiniStat
-                    label="Tires"
-                    value={v.equipped_tire_set.name || v.equipped_tire_set.tire_brand || '-'}
-                    color="var(--lcars-ice)"
-                  />
-                )}
-              </div>
-            </div>
+          <div style={{ marginTop: '0.5rem' }}>
+            {vehicleAlerts.map(alert => (
+              <LCARSGauge
+                key={alert.interval_id}
+                label={alert.item_name}
+                value={`${Math.abs(alert.miles_remaining ?? 0).toLocaleString()} mi`}
+                percent={alert.percent_miles || 0}
+                color={STATUS_COLORS[alert.status]}
+              />
+            ))}
           </div>
         )
-      })}
-    </div>
+      })()}
+
+      {/* Link to detail */}
+      <div style={{ marginTop: '0.75rem' }}>
+        <Link to={`/vehicles/${vehicle.id}`} style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.72rem',
+          textTransform: 'uppercase',
+          color: worstColor,
+          textDecoration: 'none',
+          letterSpacing: '0.05em',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.25rem',
+        }}>
+          Full Readout <ChevronRight size={14} />
+        </Link>
+      </div>
+    </LCARSPanel>
   )
 }
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Panel 3: Weather (preserved from original)
+// Panel 3: Weather / Environmental Sensors
 // ═══════════════════════════════════════════════════════════════════════════
 function LCARSWeatherPanel({ weather }) {
   const current = weather.current
@@ -697,283 +704,11 @@ function LCARSWeatherPanel({ weather }) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Panel 4: Fleet Fuel Economy
-// ═══════════════════════════════════════════════════════════════════════════
-function FleetFuelEconomyPanel({ fuelStats }) {
-  if (!fuelStats) return null
-
-  const hasSparkline = fuelStats.sparkline_data?.length > 1
-
-  return (
-    <LCARSPanel title="Fleet Fuel Economy" color="var(--lcars-ice)">
-      {/* Main stat */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1.5rem' }}>
-        <div style={{ textAlign: 'center', flexShrink: 0 }}>
-          <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '2.25rem',
-            fontWeight: 700,
-            color: 'var(--lcars-space-white)',
-            letterSpacing: '-0.03em',
-            lineHeight: 1,
-          }}>
-            {fuelStats.fleet_avg_mpg != null ? fuelStats.fleet_avg_mpg : '---'}
-          </div>
-          <div style={{
-            fontFamily: "'Antonio', sans-serif",
-            fontSize: '0.68rem',
-            textTransform: 'uppercase',
-            color: 'var(--lcars-ice)',
-            letterSpacing: '0.08em',
-            marginTop: '0.25rem',
-          }}>
-            Fleet Avg MPG
-          </div>
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <DataField
-            label="Fuel Cost (30d)"
-            value={`$${fuelStats.total_fuel_cost_30d.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-            color="var(--lcars-green)"
-          />
-          <DataField
-            label="Gallons (30d)"
-            value={`${fuelStats.total_gallons_30d} gal`}
-          />
-          <DataField
-            label="Fuel Cost (YTD)"
-            value={`$${fuelStats.total_fuel_cost_ytd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-          />
-        </div>
-      </div>
-
-      {/* Sparkline */}
-      {hasSparkline && (
-        <div style={{
-          marginTop: '0.75rem',
-          borderTop: '1px solid rgba(102, 102, 136, 0.3)',
-          paddingTop: '0.75rem',
-        }}>
-          <div style={{
-            fontFamily: "'Antonio', sans-serif",
-            fontSize: '0.65rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--lcars-gray)',
-            marginBottom: '0.375rem',
-          }}>
-            MPG Trend
-          </div>
-          <ResponsiveContainer width="100%" height={80}>
-            <LineChart data={fuelStats.sparkline_data}>
-              <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
-              <Tooltip
-                contentStyle={{
-                  background: '#000000',
-                  border: '1px solid var(--lcars-ice)',
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.72rem',
-                }}
-                labelStyle={{ color: 'var(--lcars-gray)' }}
-                itemStyle={{ color: 'var(--lcars-ice)' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="mpg"
-                stroke="var(--lcars-ice)"
-                strokeWidth={2}
-                dot={{ r: 2, fill: 'var(--lcars-ice)' }}
-                activeDot={{ r: 4, fill: 'var(--lcars-ice)' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 5: Cost Analysis
-// ═══════════════════════════════════════════════════════════════════════════
-function CostAnalysisPanel({ costAnalysis }) {
-  if (!costAnalysis) return null
-
-  const fmt = (val) => `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-
-  return (
-    <LCARSPanel title="Expenditure Analysis" color="var(--lcars-green)">
-      {/* Column headers */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
-        gap: '0.5rem',
-        marginBottom: '0.5rem',
-        paddingBottom: '0.375rem',
-        borderBottom: '1px solid rgba(102, 102, 136, 0.3)',
-      }}>
-        <div />
-        <CostHeader label="30 Day" />
-        <CostHeader label="Year to Date" />
-      </div>
-
-      {/* Cost rows */}
-      <CostRow label="Maintenance" val30d={fmt(costAnalysis.maintenance_30d)} valYtd={fmt(costAnalysis.maintenance_ytd)} />
-      <CostRow label="Fuel" val30d={fmt(costAnalysis.fuel_30d)} valYtd={fmt(costAnalysis.fuel_ytd)} />
-      <CostRow label="Parts" val30d={fmt(costAnalysis.parts_30d)} valYtd={fmt(costAnalysis.parts_ytd)} />
-
-      {/* Total row (highlighted) */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr 1fr',
-        gap: '0.5rem',
-        marginTop: '0.375rem',
-        paddingTop: '0.5rem',
-        borderTop: '1px solid rgba(102, 102, 136, 0.3)',
-      }}>
-        <span style={{
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.75rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          color: 'var(--lcars-green)',
-          fontWeight: 600,
-        }}>
-          Total
-        </span>
-        <span style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.82rem',
-          fontWeight: 700,
-          color: 'var(--lcars-space-white)',
-        }}>
-          {fmt(costAnalysis.total_30d)}
-        </span>
-        <span style={{
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.82rem',
-          fontWeight: 700,
-          color: 'var(--lcars-space-white)',
-        }}>
-          {fmt(costAnalysis.total_ytd)}
-        </span>
-      </div>
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 6: Tire Wear Monitor
-// ═══════════════════════════════════════════════════════════════════════════
-function TireWearMonitorPanel({ tireSets }) {
-  const STANDARD_TIRE_LIFE = 50000 // Standard tire life in miles
-
-  return (
-    <LCARSPanel title="Tire Wear Monitor" color="var(--lcars-butterscotch)" noPadding={tireSets.length > 0}>
-      {tireSets.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '1.5rem 0.75rem',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.82rem',
-          color: 'var(--lcars-gray)',
-        }}>
-          No equipped tire sets
-        </div>
-      ) : (
-        <div>
-          {tireSets.map((ts, i) => {
-            const percent = Math.min((ts.accumulated_mileage / STANDARD_TIRE_LIFE) * 100, 100)
-            const wearColor = percent < 60
-              ? 'var(--lcars-green)'
-              : percent < 80
-                ? 'var(--lcars-butterscotch)'
-                : 'var(--lcars-tomato)'
-
-            return (
-              <div
-                key={ts.id}
-                style={{
-                  padding: '0.625rem 0.75rem',
-                  borderBottom: i < tireSets.length - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                  <div>
-                    <div style={{
-                      fontFamily: "'Antonio', sans-serif",
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      color: 'var(--lcars-space-white)',
-                    }}>
-                      {ts.name || `${ts.tire_brand} ${ts.tire_model || ''}`}
-                    </div>
-                    <div style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: '0.68rem',
-                      color: 'var(--lcars-gray)',
-                    }}>
-                      {ts.vehicle_name}
-                    </div>
-                  </div>
-                  <div style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    color: 'var(--lcars-space-white)',
-                  }}>
-                    {ts.accumulated_mileage.toLocaleString()} mi
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div style={{ marginTop: '0.375rem' }}>
-                  <SquaredProgressBar
-                    percent={percent}
-                    max={100}
-                    color={wearColor}
-                    height={8}
-                  />
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: '0.125rem',
-                  }}>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: '0.6rem',
-                      color: 'var(--lcars-gray)',
-                    }}>
-                      0
-                    </span>
-                    <span style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: '0.6rem',
-                      color: 'var(--lcars-gray)',
-                    }}>
-                      {(STANDARD_TIRE_LIFE / 1000).toLocaleString()}k mi
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 7: Activity Timeline / Ship's Log
+// Panel 4: Activity Timeline / Ship's Log (5 entries)
 // ═══════════════════════════════════════════════════════════════════════════
 function ActivityTimelinePanel({ timeline }) {
+  const entries = timeline.slice(0, 5)
+
   const getIcon = (type) => {
     switch (type) {
       case 'maintenance': return <Wrench size={14} />
@@ -984,8 +719,8 @@ function ActivityTimelinePanel({ timeline }) {
   }
 
   return (
-    <LCARSPanel title="Ship's Log" color="var(--lcars-sunflower)" noPadding={timeline.length > 0}>
-      {timeline.length === 0 ? (
+    <LCARSPanel title="Ship's Log" color="var(--lcars-sunflower)" noPadding={entries.length > 0}>
+      {entries.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '1.5rem 0.75rem',
@@ -997,7 +732,7 @@ function ActivityTimelinePanel({ timeline }) {
         </div>
       ) : (
         <div>
-          {timeline.map((entry, i) => (
+          {entries.map((entry, i) => (
             <div
               key={`${entry.type}-${entry.id}`}
               style={{
@@ -1005,7 +740,7 @@ function ActivityTimelinePanel({ timeline }) {
                 alignItems: 'flex-start',
                 gap: '0.625rem',
                 padding: '0.5rem 0.75rem',
-                borderBottom: i < timeline.length - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
+                borderBottom: i < entries.length - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
               }}
             >
               {/* Type icon */}
@@ -1074,784 +809,160 @@ function ActivityTimelinePanel({ timeline }) {
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Panel 8: Component Health
+// Panel 5: Systems Status Board
 // ═══════════════════════════════════════════════════════════════════════════
-function ComponentHealthPanel({ components }) {
-  const getAgeColor = (days) => {
-    if (days == null) return 'var(--lcars-gray)'
-    if (days < 365) return 'var(--lcars-green)'
-    if (days < 730) return 'var(--lcars-butterscotch)'
-    return 'var(--lcars-tomato)'
-  }
 
-  // Group by vehicle
-  const grouped = {}
-  for (const c of components) {
-    const key = c.vehicle_name
-    if (!grouped[key]) grouped[key] = []
-    grouped[key].push(c)
-  }
+// Module tile definitions
+const SYSTEM_TILES = [
+  {
+    key: 'notes',
+    label: 'Notes Database',
+    icon: StickyNote,
+    color: 'var(--lcars-african-violet)',
+    link: '/notes',
+    getValue: (s) => s?.notes?.count ?? 0,
+    getUnit: () => 'entries',
+    getSecondary: (s) => {
+      const starred = s?.notes?.starred ?? 0
+      return starred > 0 ? `${starred} starred` : null
+    },
+  },
+  {
+    key: 'projects',
+    label: 'Project Tracker',
+    icon: FolderKanban,
+    color: 'var(--lcars-lilac)',
+    link: '/projects',
+    getValue: (s) => s?.projects?.active ?? 0,
+    getUnit: () => 'active',
+    getSecondary: (s) => {
+      const overdue = s?.projects?.overdue ?? 0
+      return overdue > 0 ? `${overdue} overdue` : null
+    },
+    getAlertColor: (s) => {
+      const overdue = s?.projects?.overdue ?? 0
+      return overdue > 0 ? 'var(--lcars-tomato)' : null
+    },
+  },
+  {
+    key: 'kb',
+    label: 'Library Computer',
+    icon: BookOpen,
+    color: 'var(--lcars-gold)',
+    link: '/kb',
+    getValue: (s) => s?.kb?.total ?? 0,
+    getUnit: () => 'entries',
+    getSecondary: (s) => {
+      const pub = s?.kb?.published ?? 0
+      return `${pub} verified`
+    },
+  },
+  {
+    key: 'infrastructure',
+    label: 'Engineering Status',
+    icon: Server,
+    color: 'var(--lcars-tanoi)',
+    link: '/infrastructure',
+    getValue: (s) => {
+      const inc = s?.infrastructure?.active_incidents ?? 0
+      return inc > 0 ? 'ALERT' : 'NOMINAL'
+    },
+    getUnit: (s) => {
+      const h = s?.infrastructure?.hosts ?? 0
+      return `${h}/${h} hosts`
+    },
+    getSecondary: (s) => {
+      const cr = s?.infrastructure?.containers_running ?? 0
+      const ct = s?.infrastructure?.containers_total ?? 0
+      return `${cr}/${ct} containers`
+    },
+    getAlertColor: (s) => {
+      const inc = s?.infrastructure?.active_incidents ?? 0
+      return inc > 0 ? 'var(--lcars-red-alert)' : null
+    },
+    isTextValue: true,
+  },
+  {
+    key: 'astrometrics',
+    label: 'Astrometrics',
+    icon: Telescope,
+    color: 'var(--lcars-ice)',
+    link: '/astrometrics',
+    getValue: (s) => s?.astrometrics?.crew_in_space ?? 0,
+    getUnit: () => 'crew in space',
+    getSecondary: (s) => {
+      const name = s?.astrometrics?.next_launch_name
+      return name ? `Next: ${name.length > 30 ? name.slice(0, 30) + '...' : name}` : null
+    },
+  },
+]
 
+function SystemsStatusBoard({ stats }) {
   return (
-    <LCARSPanel title="Component Health" color="var(--lcars-african-violet)" noPadding={components.length > 0}>
-      {components.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '1.5rem 0.75rem',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.82rem',
-          color: 'var(--lcars-gray)',
-        }}>
-          No active components tracked
-        </div>
-      ) : (
-        <div>
-          {Object.entries(grouped).map(([vehicleName, comps]) => (
-            <div key={vehicleName}>
-              {/* Vehicle group header */}
-              <div style={{
-                padding: '0.375rem 0.75rem',
-                background: 'rgba(102, 102, 136, 0.08)',
-                fontFamily: "'Antonio', sans-serif",
-                fontSize: '0.68rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                color: 'var(--lcars-african-violet)',
-              }}>
-                {vehicleName}
-              </div>
+    <LCARSPanel title="Systems Status" color="var(--lcars-gold)">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '0.5rem',
+      }}>
+        {SYSTEM_TILES.map((tile) => {
+          const Icon = tile.icon
+          const value = tile.getValue(stats)
+          const unit = tile.getUnit(stats)
+          const secondary = tile.getSecondary?.(stats)
+          const alertColor = tile.getAlertColor?.(stats)
 
-              {comps.map((c, i) => {
-                const typeConfig = getComponentType(c.component_type)
-                const ageColor = getAgeColor(c.days_since_install)
-
-                return (
-                  <div
-                    key={c.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.4rem 0.75rem',
-                      borderBottom: '1px solid rgba(102, 102, 136, 0.1)',
-                    }}
-                  >
-                    {/* Component icon */}
-                    <span style={{ fontSize: '0.85rem', flexShrink: 0 }}>
-                      {typeConfig.icon}
-                    </span>
-
-                    {/* Component info */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: 'var(--lcars-space-white)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}>
-                        {c.brand || ''} {c.model || typeConfig.label}
-                      </div>
-                    </div>
-
-                    {/* Age info */}
-                    <div style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: '0.68rem',
-                      color: ageColor,
-                      flexShrink: 0,
-                      textAlign: 'right',
-                    }}>
-                      {c.days_since_install != null ? (
-                        <>
-                          {c.days_since_install}d
-                          {c.miles_since_install != null && (
-                            <span style={{ color: 'var(--lcars-gray)', marginLeft: '0.25rem' }}>
-                              / {c.miles_since_install.toLocaleString()} mi
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span style={{ color: 'var(--lcars-gray)' }}>---</span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 9: Notification Feed
-// ═══════════════════════════════════════════════════════════════════════════
-function NotificationFeedPanel({ feed, unreadCount, onMarkAllRead }) {
-  const accentColor = unreadCount > 0 ? 'var(--lcars-tomato)' : 'var(--lcars-gray)'
-
-  return (
-    <LCARSPanel
-      title="Communications"
-      color={accentColor}
-      headerRight={
-        unreadCount > 0 && (
-          <span style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            color: '#000000',
-          }}>
-            {unreadCount} UNREAD
-          </span>
-        )
-      }
-      noPadding={feed.length > 0}
-      footer={
-        unreadCount > 0 ? (
-          <button
-            onClick={onMarkAllRead}
-            style={{
-              padding: '0.2rem 0.6rem',
-              border: 'none',
-              background: 'rgba(102, 102, 136, 0.2)',
-              color: 'var(--lcars-gray)',
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '0.7rem',
-              fontWeight: 500,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'var(--lcars-ice)'
-              e.currentTarget.style.color = '#000000'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(102, 102, 136, 0.2)'
-              e.currentTarget.style.color = 'var(--lcars-gray)'
-            }}
-          >
-            Mark All Read
-          </button>
-        ) : null
-      }
-    >
-      {feed.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '1.5rem 0.75rem',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '0.82rem',
-          color: 'var(--lcars-gray)',
-        }}>
-          No communications
-        </div>
-      ) : (
-        <div>
-          {feed.map((n, i) => (
-            <div
-              key={n.id}
-              style={{
-                display: 'flex',
-                padding: '0.5rem 0.75rem',
-                borderBottom: i < feed.length - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
-                gap: '0.5rem',
-              }}
+          return (
+            <Link
+              key={tile.key}
+              to={tile.link}
+              style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}
             >
-              {/* Unread indicator */}
-              <div style={{
-                width: '3px',
-                alignSelf: 'stretch',
-                background: !n.is_read ? 'var(--lcars-tomato)' : 'transparent',
-                flexShrink: 0,
-              }} />
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.75rem',
-                  fontWeight: !n.is_read ? 700 : 400,
-                  color: !n.is_read ? 'var(--lcars-space-white)' : 'var(--lcars-gray)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {n.title}
+              <LCARSMiniPanel title={tile.label} color={alertColor || tile.color} style={{ height: '100%' }}>
+                {/* Icon + main value row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem' }}>
+                  <Icon size={13} style={{ color: alertColor || tile.color, flexShrink: 0 }} />
+                  <span style={{
+                    fontFamily: tile.isTextValue ? "'Antonio', sans-serif" : "'JetBrains Mono', monospace",
+                    fontSize: tile.isTextValue ? '1.1rem' : '1.5rem',
+                    fontWeight: 700,
+                    color: alertColor || 'var(--lcars-space-white)',
+                    letterSpacing: tile.isTextValue ? '0.06em' : '-0.02em',
+                    lineHeight: 1.1,
+                  }}>
+                    {value}
+                  </span>
                 </div>
-                {n.body && (
+
+                {/* Unit */}
+                <div style={{
+                  fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.62rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--lcars-gray)',
+                }}>
+                  {unit}
+                </div>
+
+                {/* Secondary stat */}
+                {secondary && (
                   <div style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '0.68rem',
-                    color: 'var(--lcars-gray)',
+                    fontSize: '0.62rem',
+                    color: alertColor || 'var(--lcars-gray)',
+                    marginTop: '0.25rem',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    marginTop: '0.0625rem',
                   }}>
-                    {n.body}
+                    {secondary}
                   </div>
                 )}
-              </div>
-
-              {/* Timestamp */}
-              {n.created_at && (
-                <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.62rem',
-                  color: 'var(--lcars-gray)',
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {new Date(n.created_at).toLocaleDateString()}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 10: Notes Database
-// ═══════════════════════════════════════════════════════════════════════════
-function LCARSNotesPanel({ notes }) {
-  return (
-    <LCARSPanel
-      title="Notes Database"
-      color="var(--lcars-african-violet)"
-      headerRight={
-        <Link to="/notes" style={{
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.72rem',
-          textTransform: 'uppercase',
-          color: '#000000',
-          textDecoration: 'none',
-          letterSpacing: '0.05em',
-        }}>
-          View All
-        </Link>
-      }
-      noPadding
-    >
-      {notes?.recent?.length > 0 ? (
-        <div>
-          {notes.recent.slice(0, 4).map((note, i) => (
-            <div
-              key={note.id}
-              style={{
-                padding: '0.5rem 0.75rem',
-                borderBottom: i < Math.min(notes.recent.length, 4) - 1 ? '1px solid rgba(102, 102, 136, 0.15)' : 'none',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {note.is_starred && (
-                  <Star size={11} fill="var(--lcars-sunflower)" style={{ color: 'var(--lcars-sunflower)', flexShrink: 0 }} />
-                )}
-                <span style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: 'var(--lcars-space-white)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {note.title}
-                </span>
-              </div>
-              {note.content_text && (
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--lcars-gray)',
-                  marginTop: '0.125rem',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {note.content_text.slice(0, 80)}
-                </div>
-              )}
-              {note.tags && note.tags.length > 0 && (
-                <div style={{ display: 'flex', gap: '0.2rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                  {note.tags.slice(0, 2).map(tag => (
-                    <span key={tag.id} style={{
-                      fontSize: '0.65rem',
-                      padding: '0.06rem 0.4rem',
-                      background: 'rgba(204, 153, 255, 0.15)',
-                      color: tag.color || 'var(--lcars-african-violet)',
-                      fontFamily: "'Antonio', sans-serif",
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}>
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <LCARSEmptyState
-          message="No notes in database"
-          linkTo="/notes"
-          linkLabel="Create First Entry"
-        />
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 11: Projects
-// ═══════════════════════════════════════════════════════════════════════════
-function LCARSProjectsPanel({ stats }) {
-  return (
-    <LCARSPanel
-      title="Project Tracker"
-      color="var(--lcars-lilac)"
-      headerRight={
-        <Link to="/projects" style={{
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.72rem',
-          textTransform: 'uppercase',
-          color: '#000000',
-          textDecoration: 'none',
-          letterSpacing: '0.05em',
-        }}>
-          View All
-        </Link>
-      }
-    >
-      {!stats || stats.active_projects === 0 ? (
-        <LCARSEmptyState
-          message="No projects registered"
-          linkTo="/projects"
-          linkLabel="Create First Project"
-        />
-      ) : (
-        <div>
-          {/* Stats row */}
-          <div style={{
-            display: 'flex',
-            gap: '1.5rem',
-            marginBottom: '0.75rem',
-            flexWrap: 'wrap',
-          }}>
-            <LCARSStat
-              label="Active"
-              value={stats.active_projects}
-              color="var(--lcars-lilac)"
-            />
-            <LCARSStat
-              label="In Progress"
-              value={stats.tasks_in_progress || 0}
-              color="var(--lcars-butterscotch)"
-            />
-            <LCARSStat
-              label="Completed"
-              value={stats.tasks_completed || 0}
-              color="var(--lcars-green)"
-            />
-            {stats.overdue_tasks > 0 && (
-              <LCARSStat
-                label="Overdue"
-                value={stats.overdue_tasks}
-                color="var(--lcars-tomato)"
-              />
-            )}
-          </div>
-
-          {/* Recent tasks */}
-          {stats.recent_tasks?.length > 0 && (
-            <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
-              <div style={{
-                fontFamily: "'Antonio', sans-serif",
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: 'var(--lcars-gray)',
-                marginBottom: '0.375rem',
-              }}>
-                Recent Tasks
-              </div>
-              {stats.recent_tasks.slice(0, 4).map((task, i) => (
-                <LCARSDataRow
-                  key={task.id}
-                  icon={<FolderKanban size={13} />}
-                  label={task.title}
-                  value={task.project_name}
-                  color="var(--lcars-lilac)"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Panel 12: Library Computer (Knowledge Base)
-// ═══════════════════════════════════════════════════════════════════════════
-function LCARSLibraryComputerPanel({ stats }) {
-  return (
-    <LCARSPanel
-      title="Library Computer"
-      color="var(--lcars-gold)"
-      headerRight={
-        <Link to="/kb" style={{
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.72rem',
-          textTransform: 'uppercase',
-          color: '#000000',
-          textDecoration: 'none',
-          letterSpacing: '0.05em',
-        }}>
-          Access
-        </Link>
-      }
-    >
-      {!stats || stats.total === 0 ? (
-        <LCARSEmptyState
-          message="No database entries"
-          linkTo="/kb"
-          linkLabel="Create First Entry"
-        />
-      ) : (
-        <div>
-          {/* Stats row */}
-          <div style={{
-            display: 'flex',
-            gap: '1.5rem',
-            marginBottom: '0.75rem',
-            flexWrap: 'wrap',
-          }}>
-            <LCARSStat
-              label="Entries"
-              value={stats.total}
-              color="var(--lcars-gold)"
-            />
-            <LCARSStat
-              label="Verified"
-              value={stats.by_status?.published || 0}
-              color="var(--lcars-green)"
-            />
-            <LCARSStat
-              label="Preliminary"
-              value={stats.by_status?.draft || 0}
-              color="var(--lcars-sunflower)"
-            />
-            <LCARSStat
-              label="Classifications"
-              value={stats.categories_count || 0}
-              color="var(--lcars-ice)"
-            />
-          </div>
-
-          {/* Recent entries */}
-          {stats.recent?.length > 0 && (
-            <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
-              <div style={{
-                fontFamily: "'Antonio', sans-serif",
-                fontSize: '0.65rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                color: 'var(--lcars-gray)',
-                marginBottom: '0.375rem',
-              }}>
-                Recent Database Entries
-              </div>
-              {stats.recent.slice(0, 4).map((article) => (
-                <LCARSDataRow
-                  key={article.id}
-                  icon={<BookOpen size={13} />}
-                  label={article.title}
-                  value={article.status === 'published' ? 'VERIFIED' : article.status?.toUpperCase()}
-                  color="var(--lcars-gold)"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Engineering Status Panel (Infrastructure)
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Infrastructure summary panel for the LCARS dashboard.
- * Shows host/container/service counts and active incidents.
- */
-function LCARSEngineeringPanel({ data }) {
-  if (!data) {
-    return (
-      <LCARSPanel title="Engineering Status" color="var(--lcars-tanoi)">
-        <div style={{
-          padding: '1.5rem',
-          textAlign: 'center',
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.85rem',
-          color: 'var(--lcars-gray)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-        }}>
-          No infrastructure data available
-        </div>
-      </LCARSPanel>
-    )
-  }
-
-  const hosts = data.hosts || {}
-  const containers = data.containers || {}
-  const services = data.services || {}
-  const incidents = data.incidents || {}
-
-  const totalHosts = hosts.total || 0
-  const totalContainers = containers.total || 0
-  const runningContainers = containers.by_status?.running || 0
-  const totalServices = services.total || 0
-  const servicesUp = services.by_status?.up || 0
-  const activeIncidents = incidents.active || 0
-
-  // Determine overall system status
-  let systemStatus = 'NOMINAL'
-  let statusColor = 'var(--lcars-mars)'
-  if (activeIncidents > 0) {
-    systemStatus = 'ALERT'
-    statusColor = 'var(--lcars-red-alert)'
-  } else if (totalServices > 0 && servicesUp < totalServices) {
-    systemStatus = 'ADVISORY'
-    statusColor = 'var(--lcars-gold)'
-  }
-
-  return (
-    <LCARSPanel title="Engineering Status" color="var(--lcars-tanoi)">
-      <div style={{ padding: '0.75rem' }}>
-        {/* System status header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.75rem',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Server size={16} color="var(--lcars-tanoi)" />
-            <span style={{
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: statusColor,
-            }}>
-              System: {systemStatus}
-            </span>
-          </div>
-          <Link
-            to="/infrastructure"
-            style={{
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '0.7rem',
-              color: 'var(--lcars-tanoi)',
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              opacity: 0.8,
-            }}
-          >
-            Full Report &gt;
-          </Link>
-        </div>
-
-        {/* Stats grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: '0.5rem',
-        }}>
-          <LCARSStat
-            label="Hosts"
-            value={totalHosts}
-            color="var(--lcars-tanoi)"
-          />
-          <LCARSStat
-            label="Containers"
-            value={`${runningContainers}/${totalContainers}`}
-            color={runningContainers === totalContainers ? 'var(--lcars-mars)' : 'var(--lcars-gold)'}
-          />
-          <LCARSStat
-            label="Services"
-            value={`${servicesUp}/${totalServices}`}
-            color={servicesUp === totalServices ? 'var(--lcars-mars)' : 'var(--lcars-gold)'}
-          />
-          <LCARSStat
-            label="Incidents"
-            value={activeIncidents}
-            color={activeIncidents > 0 ? 'var(--lcars-red-alert)' : 'var(--lcars-mars)'}
-          />
-        </div>
-
-        {/* Host breakdown if we have hosts */}
-        {totalHosts > 0 && hosts.by_type && (
-          <div style={{ marginTop: '0.75rem' }}>
-            <div style={{
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '0.65rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--lcars-gray)',
-              marginBottom: '0.375rem',
-            }}>
-              Host Registry
-            </div>
-            {Object.entries(hosts.by_type).map(([type, count]) => (
-              <LCARSDataRow
-                key={type}
-                icon={<Server size={13} />}
-                label={type.replace(/_/g, ' ')}
-                value={count}
-                color="var(--lcars-tanoi)"
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </LCARSPanel>
-  )
-}
-
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Astrometrics Panel
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Astrometrics summary panel for the LCARS dashboard.
- * Shows next launch, crew in space count.
- */
-function LCARSAstrometricsPanel({ data }) {
-  if (!data) {
-    return (
-      <LCARSPanel title="Astrometrics" color="var(--lcars-ice)">
-        <div style={{
-          padding: '1.5rem',
-          textAlign: 'center',
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.85rem',
-          color: 'var(--lcars-gray)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-        }}>
-          No astrometrics data available
-        </div>
-      </LCARSPanel>
-    )
-  }
-
-  return (
-    <LCARSPanel
-      title="Astrometrics"
-      color="var(--lcars-ice)"
-      headerRight={
-        <Link to="/astrometrics" style={{
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.72rem',
-          textTransform: 'uppercase',
-          color: '#000000',
-          textDecoration: 'none',
-          letterSpacing: '0.05em',
-        }}>
-          Full Scan
-        </Link>
-      }
-    >
-      <div style={{ padding: '0.75rem' }}>
-        {/* System header */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: '0.75rem',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Telescope size={16} color="var(--lcars-ice)" />
-            <span style={{
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--lcars-ice)',
-            }}>
-              Sensor Array: Online
-            </span>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: '0.5rem',
-          marginBottom: '0.75rem',
-        }}>
-          <LCARSStat
-            label="Crew in Space"
-            value={data.crewCount}
-            color="var(--lcars-ice)"
-          />
-        </div>
-
-        {/* Next launch */}
-        {data.nextLaunch && (
-          <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
-            <div style={{
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '0.65rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--lcars-gray)',
-              marginBottom: '0.375rem',
-            }}>
-              Next Mission
-            </div>
-            <LCARSDataRow
-              icon={<Telescope size={13} />}
-              label={data.nextLaunch.name}
-              value={data.nextLaunch.net
-                ? new Date(data.nextLaunch.net).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-                : 'TBD'}
-              color="var(--lcars-sunflower)"
-            />
-            {data.nextLaunch.launch_service_provider?.name && (
-              <LCARSDataRow
-                icon={<Server size={13} />}
-                label="Provider"
-                value={data.nextLaunch.launch_service_provider.name}
-                color="var(--lcars-gray)"
-              />
-            )}
-          </div>
-        )}
+              </LCARSMiniPanel>
+            </Link>
+          )
+        })}
       </div>
     </LCARSPanel>
   )
@@ -1902,129 +1013,6 @@ function SquaredProgressBar({ percent, max = 100, color, height = 6 }) {
         background: color,
         transition: 'width 0.3s ease',
       }} />
-    </div>
-  )
-}
-
-/**
- * Mini stat for vehicle cards - compact label/value.
- */
-function MiniStat({ label, value, color }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-      <span style={{
-        fontFamily: "'Antonio', sans-serif",
-        fontSize: '0.6rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        color: 'var(--lcars-gray)',
-      }}>
-        {label}:
-      </span>
-      <span style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: '0.72rem',
-        fontWeight: 600,
-        color: color || 'var(--lcars-space-white)',
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        maxWidth: '120px',
-      }}>
-        {value}
-      </span>
-    </div>
-  )
-}
-
-/**
- * Data field for fuel economy panel - compact label/value pair.
- */
-function DataField({ label, value, color }) {
-  return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'baseline',
-      gap: '0.375rem',
-      padding: '0.2rem 0',
-    }}>
-      <span style={{
-        fontFamily: "'Antonio', sans-serif",
-        fontSize: '0.65rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.06em',
-        color: 'var(--lcars-gray)',
-        whiteSpace: 'nowrap',
-      }}>
-        {label}:
-      </span>
-      <span style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        color: color || 'var(--lcars-space-white)',
-        whiteSpace: 'nowrap',
-      }}>
-        {value}
-      </span>
-    </div>
-  )
-}
-
-/**
- * Cost analysis column header.
- */
-function CostHeader({ label }) {
-  return (
-    <span style={{
-      fontFamily: "'Antonio', sans-serif",
-      fontSize: '0.68rem',
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
-      color: 'var(--lcars-green)',
-      textAlign: 'center',
-    }}>
-      {label}
-    </span>
-  )
-}
-
-/**
- * Cost analysis data row.
- */
-function CostRow({ label, val30d, valYtd }) {
-  return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr 1fr',
-      gap: '0.5rem',
-      padding: '0.25rem 0',
-    }}>
-      <span style={{
-        fontFamily: "'Antonio', sans-serif",
-        fontSize: '0.72rem',
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        color: 'var(--lcars-gray)',
-      }}>
-        {label}
-      </span>
-      <span style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        color: 'var(--lcars-space-white)',
-      }}>
-        {val30d}
-      </span>
-      <span style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        color: 'var(--lcars-space-white)',
-      }}>
-        {valYtd}
-      </span>
     </div>
   )
 }
@@ -2159,7 +1147,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
 }
 
 /**
- * LCARS loading skeleton - updated for 6-row layout.
+ * LCARS loading skeleton.
  */
 function LCARSLoadingSkeleton() {
   const skeletonBar = { background: 'rgba(102, 102, 136, 0.08)', border: '1px solid rgba(102, 102, 136, 0.15)' }
@@ -2172,32 +1160,17 @@ function LCARSLoadingSkeleton() {
       {/* Row 1: Full width */}
       <div style={{ height: '80px', marginBottom: '1rem', ...skeletonBar }} />
 
-      {/* Row 2: Full width */}
-      <div style={{ height: '120px', marginBottom: '1rem', ...skeletonBar }} />
-
-      {/* Row 3: 2 cols */}
+      {/* Row 2: 2 cols */}
       <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
         <div style={{ height: '220px', ...skeletonBar }} />
         <div style={{ height: '220px', ...skeletonBar }} />
       </div>
 
-      {/* Row 4: 2 cols */}
-      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
-        <div style={{ height: '180px', ...skeletonBar }} />
-        <div style={{ height: '180px', ...skeletonBar }} />
-      </div>
+      {/* Row 3: Full width */}
+      <div style={{ height: '200px', marginBottom: '1rem', ...skeletonBar }} />
 
-      {/* Row 5: 2 cols */}
-      <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
-        <div style={{ height: '200px', ...skeletonBar }} />
-        <div style={{ height: '200px', ...skeletonBar }} />
-      </div>
-
-      {/* Row 6: 2 cols */}
-      <div className="form-grid-2col">
-        <div style={{ height: '200px', ...skeletonBar }} />
-        <div style={{ height: '200px', ...skeletonBar }} />
-      </div>
+      {/* Row 4: Full width */}
+      <div style={{ height: '120px', ...skeletonBar }} />
     </div>
   )
 }

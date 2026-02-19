@@ -67,6 +67,43 @@
   grid-area: footer;
 }
 
+/* ── Alert State Classes (Frame-Level) ────────────────────── */
+/* Red Alert: elbows pulse red, header/footer bars get red glow */
+
+.lcars-alert-red .lcars-elbow-tl,
+.lcars-alert-red .lcars-elbow-bl {
+  position: relative;
+}
+
+.lcars-alert-red .lcars-elbow-tl::after,
+.lcars-alert-red .lcars-elbow-bl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--lcars-tomato);
+  border-radius: inherit;
+  animation: lcars-red-alert-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.lcars-alert-red .lcars-header > div,
+.lcars-alert-red .lcars-footer > div {
+  animation: lcars-red-alert-glow 2s ease-in-out infinite;
+}
+
+/* Yellow Alert: elbows shift to amber, header/footer get warm glow (static) */
+
+.lcars-alert-yellow .lcars-elbow-tl svg *,
+.lcars-alert-yellow .lcars-elbow-bl svg * {
+  fill: var(--lcars-butterscotch);
+  transition: fill 0.5s ease;
+}
+
+.lcars-alert-yellow .lcars-header > div,
+.lcars-alert-yellow .lcars-footer > div {
+  box-shadow: 0 0 8px rgba(255, 153, 102, 0.2);
+}
+
 /* ── Mobile Fallback (< 768px) ─────────────────────────────── */
 
 @media (max-width: 768px) {

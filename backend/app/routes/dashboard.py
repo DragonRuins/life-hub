@@ -20,6 +20,10 @@ from app import db
 from app.models.vehicle import Vehicle, MaintenanceLog, FuelLog, VehicleComponent, TireSet
 from app.models.maintenance_interval import VehicleMaintenanceInterval
 from app.models.note import Note
+from app.models.project import Project, ProjectTask
+from app.models.kb import KBArticle, KBCategory
+from app.models.infrastructure import InfraHost, InfraContainer, InfraService, InfraIncident
+from app.models.astrometrics import AstroCache
 from app.services.interval_checker import check_interval_status
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -144,6 +148,103 @@ def get_summary():
             'count': note_count,
             'starred': [n.to_dict(include_content=False) for n in starred_notes],
             'recent': [n.to_dict(include_content=False) for n in recent_notes],
+        },
+    })
+
+
+@dashboard_bp.route('/system-stats')
+def get_system_stats():
+    """
+    Consolidated module counts for the dashboard.
+    Returns stats from notes, projects, KB, infrastructure,
+    and astrometrics in a single API call.
+    """
+    today = date.today()
+
+    # ── Notes ────────────────────────────────────────────────────
+    note_count = Note.query.filter_by(is_trashed=False).count()
+    starred_count = Note.query.filter_by(is_trashed=False, is_starred=True).count()
+
+    # ── Projects ─────────────────────────────────────────────────
+    active_projects = Project.query.filter(
+        Project.status.in_(['active', 'planning', 'paused'])
+    ).count()
+    tasks_in_progress = ProjectTask.query.filter(
+        ProjectTask.completed_at.is_(None)
+    ).count()
+    overdue_tasks = ProjectTask.query.filter(
+        ProjectTask.due_date < today,
+        ProjectTask.completed_at.is_(None)
+    ).count()
+
+    # ── Knowledge Base ───────────────────────────────────────────
+    kb_total = KBArticle.query.filter_by(is_template=False).count()
+    kb_published = KBArticle.query.filter_by(
+        is_template=False, status='published'
+    ).count()
+
+    # ── Infrastructure ───────────────────────────────────────────
+    hosts_count = InfraHost.query.count()
+    containers_total = InfraContainer.query.count()
+    containers_running = InfraContainer.query.filter_by(status='running').count()
+    services_total = InfraService.query.count()
+    services_up = InfraService.query.filter_by(status='up').count()
+    active_incidents = InfraIncident.query.filter_by(status='active').count()
+
+    # ── Astrometrics (from cache) ────────────────────────────────
+    crew_in_space = 0
+    next_launch_name = None
+    next_launch_time = None
+
+    try:
+        crew_cache = AstroCache.query.filter_by(
+            source='people_in_space', cache_key='current'
+        ).first()
+        if crew_cache and crew_cache.data:
+            cache_data = crew_cache.data
+            if isinstance(cache_data, dict) and 'number' in cache_data:
+                crew_in_space = cache_data['number']
+    except Exception:
+        pass
+
+    try:
+        launch_cache = AstroCache.query.filter_by(
+            source='launches_next', cache_key='next'
+        ).first()
+        if launch_cache and launch_cache.data:
+            launch_data = launch_cache.data
+            if isinstance(launch_data, dict):
+                next_launch_name = launch_data.get('name')
+                next_launch_time = launch_data.get('net')
+    except Exception:
+        pass
+
+    return jsonify({
+        'notes': {
+            'count': note_count,
+            'starred': starred_count,
+        },
+        'projects': {
+            'active': active_projects,
+            'tasks_in_progress': tasks_in_progress,
+            'overdue': overdue_tasks,
+        },
+        'kb': {
+            'total': kb_total,
+            'published': kb_published,
+        },
+        'infrastructure': {
+            'hosts': hosts_count,
+            'containers_running': containers_running,
+            'containers_total': containers_total,
+            'services_up': services_up,
+            'services_total': services_total,
+            'active_incidents': active_incidents,
+        },
+        'astrometrics': {
+            'crew_in_space': crew_in_space,
+            'next_launch_name': next_launch_name,
+            'next_launch_time': next_launch_time,
         },
     })
 

@@ -14,6 +14,7 @@
  *   const { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme } = useTheme()
  */
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { dashboard } from '../../api/client'
 
 // Import all LCARS CSS files so they're available when the theme is active
 import './lcars-variables.css'
@@ -181,7 +182,44 @@ export function ThemeProvider({ children }) {
     }
   }, [])
 
-  const value = { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme }
+  // ── Alert Condition (LCARS frame-level) ──────────────────────
+  // Polls fleet status to determine maintenance alert state:
+  //   'red'    = overdue maintenance items
+  //   'yellow' = due soon / due now items
+  //   'green'  = nominal (no animation)
+  const [alertCondition, setAlertCondition] = useState('green')
+
+  useEffect(() => {
+    if (!isLCARS) return
+
+    let cancelled = false
+
+    async function fetchAlertCondition() {
+      try {
+        const data = await dashboard.getFleetStatus()
+        if (cancelled) return
+        const alerts = data?.interval_alerts || []
+        if (alerts.some(a => a.status === 'overdue')) {
+          setAlertCondition('red')
+        } else if (alerts.some(a => a.status === 'due' || a.status === 'due_soon')) {
+          setAlertCondition('yellow')
+        } else {
+          setAlertCondition('green')
+        }
+      } catch {
+        // Silently fail — default to green
+      }
+    }
+
+    fetchAlertCondition()
+    const pollTimer = setInterval(fetchAlertCondition, 60000)
+    return () => {
+      cancelled = true
+      clearInterval(pollTimer)
+    }
+  }, [isLCARS])
+
+  const value = { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme, alertCondition }
 
   return (
     <ThemeContext.Provider value={value}>

@@ -28,16 +28,31 @@ const CASCADE_COLORS = [
   '#999933', // green
 ]
 
+// Generate a pseudo-random 4-character hex string
+const HEX_CHARS = '0123456789ABCDEF'
+function randomHex(seed) {
+  // Simple seeded pseudo-random to keep it stable across renders
+  let s = seed
+  return Array.from({ length: 4 }, () => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff
+    return HEX_CHARS[s % 16]
+  }).join('')
+}
+
 export default function LCARSDataCascade() {
   // Generate a fixed set of blocks on mount (memoized so they don't re-randomize)
   const blocks = useMemo(() => {
     const result = []
     // Generate enough blocks to fill ~2x the viewport height
     for (let i = 0; i < 60; i++) {
+      const height = 8 + ((i * 7) % 12) // pseudo-random heights between 8-19px
+      // ~20% of blocks tall enough (>=12px) get a hex code overlay
+      const hasText = height >= 12 && ((i * 13) % 5 === 0)
       result.push({
         color: CASCADE_COLORS[i % CASCADE_COLORS.length],
-        height: 8 + ((i * 7) % 12), // pseudo-random heights between 8-19px
+        height,
         gap: 2 + ((i * 3) % 4),     // pseudo-random gaps between 2-5px
+        text: hasText ? randomHex(i * 997 + 42) : null,
       })
     }
     return result
@@ -67,15 +82,30 @@ export default function LCARSDataCascade() {
           <div key={i}>
             {/* Gap spacer */}
             <div style={{ height: `${block.gap}px`, background: '#000000' }} />
-            {/* Colored block */}
+            {/* Colored block with optional hex code overlay */}
             <div
               style={{
                 width: '100%',
                 height: `${block.height}px`,
                 background: block.color,
                 borderRadius: '1px',
+                overflow: 'hidden',
               }}
-            />
+            >
+              {block.text && (
+                <span style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.5rem',
+                  color: 'rgba(0, 0, 0, 0.45)',
+                  letterSpacing: '0.05em',
+                  paddingLeft: '1px',
+                  lineHeight: `${block.height}px`,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {block.text}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </div>

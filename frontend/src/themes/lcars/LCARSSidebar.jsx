@@ -78,31 +78,31 @@ export default function LCARSSidebar() {
         <LCARSNavButton key={item.to} {...item} />
       ))}
 
-      {/* Fill remaining space with a decorative block */}
+      {/* Fill remaining space with a decorative block — slowly cycles LCARS colors */}
       <div
+        className="lcars-idle-block-1"
         style={{
           flex: 1,
           marginTop: '4px',
-          background: 'var(--lcars-gray)',
           borderRadius: '0 30px 30px 0',
           minHeight: '40px',
           opacity: 0.4,
         }}
       />
 
-      {/* Bottom decorative blocks */}
+      {/* Bottom decorative blocks — each cycles independently */}
       <div
+        className="lcars-idle-block-2"
         style={{
           height: '24px',
-          background: 'var(--lcars-almond-creme)',
           borderRadius: '0 30px 30px 0',
           opacity: 0.6,
         }}
       />
       <div
+        className="lcars-idle-block-3"
         style={{
           height: '16px',
-          background: 'var(--lcars-moonlit-violet)',
           borderRadius: '0 30px 30px 0',
           opacity: 0.5,
         }}

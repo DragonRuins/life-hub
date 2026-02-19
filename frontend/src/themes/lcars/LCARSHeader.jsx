@@ -70,7 +70,7 @@ export default function LCARSHeader() {
       >
         {/* Pulsing status indicator */}
         <div
-          className="lcars-pulse"
+          className="lcars-status-dot"
           style={{
             width: '8px',
             height: '8px',
@@ -143,6 +143,7 @@ function LCARSNotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const [items, setItems] = useState([])
   const dropdownRef = useRef(null)
+  const bellRef = useRef(null)
   const navigate = useNavigate()
 
   // Poll for unread count every 30 seconds
@@ -151,6 +152,24 @@ function LCARSNotificationBell() {
     const timer = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(timer)
   }, [])
+
+  // Comm flash: amber flash every 10s when unreads exist
+  useEffect(() => {
+    if (unreadCount <= 0) return
+
+    function triggerFlash() {
+      if (!bellRef.current) return
+      bellRef.current.classList.add('lcars-comm-flash')
+      setTimeout(() => {
+        bellRef.current?.classList.remove('lcars-comm-flash')
+      }, 600)
+    }
+
+    // Flash once immediately, then every 10 seconds
+    triggerFlash()
+    const flashTimer = setInterval(triggerFlash, 10000)
+    return () => clearInterval(flashTimer)
+  }, [unreadCount])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -207,8 +226,9 @@ function LCARSNotificationBell() {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
-      {/* Bell button - black on colored background */}
+      {/* Bell button - black on colored background, flashes amber on unreads */}
       <button
+        ref={bellRef}
         onClick={toggleDropdown}
         style={{
           display: 'flex',
