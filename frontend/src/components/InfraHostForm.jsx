@@ -32,7 +32,6 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
     os_name: initial.os_name || '',
     os_version: initial.os_version || '',
     location: initial.location || '',
-    status: initial.status || 'unknown',
     notes: initial.notes || '',
     // Hardware specs stored as JSON
     cpu: initial.hardware?.cpu || '',
@@ -70,7 +69,6 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
       os_name: form.os_name || null,
       os_version: form.os_version || null,
       location: form.location || null,
-      status: form.status,
       hardware,
       notes: form.notes || null,
     }
@@ -128,15 +126,6 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
           <label style={labelStyle}>MAC Address</label>
           <input name="mac_address" value={form.mac_address} onChange={handleChange}
                  placeholder="e.g., AA:BB:CC:DD:EE:FF" style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Status</label>
-          <select name="status" value={form.status} onChange={handleChange} style={inputStyle}>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-            <option value="degraded">Degraded</option>
-            <option value="unknown">Unknown</option>
-          </select>
         </div>
         <div>
           <label style={labelStyle}>OS Name</label>
