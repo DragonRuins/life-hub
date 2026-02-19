@@ -12,10 +12,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Edit3, Trash2, X, Cpu, HardDrive, MemoryStick,
   Server, Box, Globe, MapPin, Activity, Play, Square, RotateCw, RefreshCw,
-  AlertTriangle, CheckCircle, XCircle,
+  AlertTriangle, CheckCircle, XCircle, Plus,
 } from 'lucide-react'
 import { infrastructure } from '../../api/client'
 import InfraHostForm from '../../components/InfraHostForm'
+import InfraServiceForm from '../../components/InfraServiceForm'
 import LCARSPanel, { LCARSDataRow, LCARSStat } from './LCARSPanel'
 import useIsMobile from '../../hooks/useIsMobile'
 import {
@@ -92,6 +93,7 @@ export default function LCARSInfraHostDetail() {
   const [activeTab, setActiveTab] = useState('overview')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [showAddService, setShowAddService] = useState(false)
 
   // Hardware auto-detect state
   const [detectingHw, setDetectingHw] = useState(false)
@@ -213,6 +215,16 @@ export default function LCARSInfraHostDetail() {
       setTimeout(() => setSyncMsg(''), 5000)
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function handleAddService(data) {
+    try {
+      await infrastructure.services.create({ ...data, host_id: Number(id) })
+      await loadHost()
+      setShowAddService(false)
+    } catch (err) {
+      alert('Failed to add service: ' + err.message)
     }
   }
 
@@ -908,6 +920,43 @@ export default function LCARSInfraHostDetail() {
       {/* ── Services Tab ───────────────────────────────────────────── */}
       {activeTab === 'services' && (
         <>
+          {/* Add Service button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <button
+              onClick={() => setShowAddService(!showAddService)}
+              style={{
+                padding: '0.375rem 1.25rem',
+                border: 'none',
+                borderRadius: '999px',
+                background: showAddService ? 'rgba(102, 102, 136, 0.25)' : 'var(--lcars-tanoi)',
+                color: showAddService ? 'var(--lcars-gray)' : '#000',
+                fontFamily: "'Antonio', sans-serif",
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                transition: 'background 0.15s ease',
+              }}
+            >
+              {showAddService ? <X size={13} /> : <Plus size={13} />}
+              {showAddService ? 'Cancel' : 'Add Service'}
+            </button>
+          </div>
+
+          {/* Inline add service form */}
+          {showAddService && (
+            <LCARSPanel title="Register New Service" color="var(--lcars-tanoi)" style={{ marginBottom: '1rem' }}>
+              <InfraServiceForm
+                onSubmit={handleAddService}
+                onCancel={() => setShowAddService(false)}
+              />
+            </LCARSPanel>
+          )}
+
           {services.length === 0 ? (
             <LCARSPanel title="No Services" color="var(--lcars-gray)">
               <div style={{

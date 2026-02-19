@@ -11,7 +11,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   Server, Box, Globe, ArrowLeft, Edit3, Trash2, X, Cpu,
-  HardDrive, MemoryStick, MapPin, RefreshCw, Activity,
+  HardDrive, MemoryStick, MapPin, RefreshCw, Activity, Plus,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { infrastructure } from '../api/client'
 import InfraHostForm from '../components/InfraHostForm'
+import InfraServiceForm from '../components/InfraServiceForm'
 import InfraContainerCard from '../components/InfraContainerCard'
 import InfraServiceCard from '../components/InfraServiceCard'
 import useIsMobile from '../hooks/useIsMobile'
@@ -33,6 +34,7 @@ export default function InfraHostDetail() {
   const [activeTab, setActiveTab] = useState('overview')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [showAddService, setShowAddService] = useState(false)
 
   // Hardware auto-detect state
   const [detectingHw, setDetectingHw] = useState(false)
@@ -152,6 +154,16 @@ export default function InfraHostDetail() {
       setTimeout(() => setSyncMsg(''), 5000)
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function handleAddService(data) {
+    try {
+      await infrastructure.services.create({ ...data, host_id: Number(id) })
+      await loadHost()
+      setShowAddService(false)
+    } catch (err) {
+      alert('Failed to add service: ' + err.message)
     }
   }
 
@@ -480,6 +492,24 @@ export default function InfraHostDetail() {
 
       {activeTab === 'services' && (
         <div>
+          {/* Add Service button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <button className="btn" onClick={() => setShowAddService(!showAddService)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+              {showAddService ? <X size={14} /> : <Plus size={14} />}
+              {showAddService ? 'Cancel' : 'Add Service'}
+            </button>
+          </div>
+
+          {/* Inline add service form */}
+          {showAddService && (
+            <div className="card" style={{ marginBottom: '1rem' }}>
+              <InfraServiceForm
+                onSubmit={handleAddService}
+                onCancel={() => setShowAddService(false)}
+              />
+            </div>
+          )}
+
           {(host.services || []).length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
               <Globe size={32} style={{ color: 'var(--color-overlay-0)', marginBottom: '0.5rem' }} />
