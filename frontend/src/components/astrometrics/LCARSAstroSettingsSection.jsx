@@ -28,6 +28,7 @@ export default function LCARSAstroSettingsSection() {
       setForm({
         nasa_api_key: s.nasa_api_key || 'DEMO_KEY',
         launch_reminder_hours: s.launch_reminder_hours || 24,
+        launch_reminder_minutes_2: s.launch_reminder_minutes_2 || '',
         neo_close_approach_threshold_ld: s.neo_close_approach_threshold_ld || 5.0,
       })
     } catch (e) {}
@@ -74,10 +75,24 @@ export default function LCARSAstroSettingsSection() {
         </div>
 
         <div>
-          <label style={labelStyle}>Launch Reminder (hours)</label>
+          <label style={labelStyle}>Launch Reminder — Gate 1 (hours)</label>
           <input type="number" value={form.launch_reminder_hours || ''} min={1} max={168}
             onChange={e => setForm({ ...form, launch_reminder_hours: parseInt(e.target.value) || 24 })}
             style={inputStyle} />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Launch Reminder — Gate 2 (minutes)</label>
+          <input type="number" value={form.launch_reminder_minutes_2 || ''} min={1} max={1440}
+            placeholder="Disabled"
+            onChange={e => {
+              const val = parseInt(e.target.value)
+              setForm({ ...form, launch_reminder_minutes_2: isNaN(val) ? null : val })
+            }}
+            style={inputStyle} />
+          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem', color: 'var(--lcars-gray)', marginTop: '0.25rem' }}>
+            Optional — leave empty to disable
+          </div>
         </div>
 
         <div>

@@ -1,20 +1,20 @@
 /**
  * Notifications Page
  *
- * Main page for the notification system with five tabs:
+ * Main page for the notification system with four tabs:
  *   - Channels: manage delivery channels (Pushover, Discord, Email, etc.)
- *   - Intervals: per-interval notification delivery config (vehicle → interval → channels)
+ *   - Intervals: per-interval notification delivery config (vehicle -> interval -> channels)
  *   - Rules: create/edit notification rules (event, scheduled, condition triggers)
  *   - History: paginated log of all sent notifications with stats
- *   - Settings: global notification settings (quiet hours, kill switch, etc.)
+ *
+ * Settings (global toggle, quiet hours, etc.) have moved to /settings/notifications.
  */
 import { useState } from 'react'
-import { Radio, Wrench, ListChecks, History, Settings } from 'lucide-react'
+import { Radio, Wrench, ListChecks, History } from 'lucide-react'
 import ChannelsTab from './notifications/ChannelsTab'
 import IntervalsTab from './notifications/IntervalsTab'
 import RulesTab from './notifications/RulesTab'
 import HistoryTab from './notifications/HistoryTab'
-import GeneralTab from './notifications/GeneralTab'
 
 // Tab definitions: key is used for state, label is displayed, icon is the Lucide icon
 const TABS = [
@@ -22,7 +22,6 @@ const TABS = [
   { key: 'intervals', label: 'Intervals', icon: Wrench },
   { key: 'rules', label: 'Rules', icon: ListChecks },
   { key: 'history', label: 'History', icon: History },
-  { key: 'settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Notifications() {
@@ -76,7 +75,6 @@ export default function Notifications() {
       {activeTab === 'intervals' && <IntervalsTab />}
       {activeTab === 'rules' && <RulesTab />}
       {activeTab === 'history' && <HistoryTab />}
-      {activeTab === 'settings' && <GeneralTab />}
     </div>
   )
 }

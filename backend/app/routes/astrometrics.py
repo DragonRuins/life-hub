@@ -498,7 +498,8 @@ def update_settings():
         'nasa_api_key', 'home_latitude', 'home_longitude',
         'refresh_apod', 'refresh_neo', 'refresh_iss_position',
         'refresh_people_in_space', 'refresh_launches',
-        'launch_reminder_hours', 'neo_close_approach_threshold_ld',
+        'launch_reminder_hours', 'launch_reminder_minutes_2',
+        'neo_close_approach_threshold_ld',
     )
 
     for field in updatable_fields:

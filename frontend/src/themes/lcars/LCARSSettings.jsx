@@ -1,15 +1,16 @@
 /**
- * LCARSSettings.jsx - LCARS-themed Settings Page
+ * LCARSSettings.jsx - LCARS-themed Settings Hub
  *
- * Same functionality as Settings.jsx but styled with LCARS visual language:
- * LCARSPanel wrappers, pill-shaped buttons, Antonio font, LCARS color palette.
+ * Central settings hub with:
+ *   - Module cards linking to sub-pages (Vehicles, Astrometrics, Notifications)
+ *   - Inline Color Scheme picker
  *
- * Color scheme selection is informational here — LCARS has its own fixed
- * palette, so scheme cards are disabled with a note when LCARS is active.
+ * Theme engine toggle has moved to a dedicated header button.
  */
+import { Link } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
+import { Car, Telescope, Bell } from 'lucide-react'
 import LCARSPanel from './LCARSPanel'
-import LCARSAstroSettingsSection from '../../components/astrometrics/LCARSAstroSettingsSection'
 
 /**
  * Color scheme definitions — same data as Settings.jsx, kept local to avoid
@@ -44,41 +45,48 @@ const COLOR_SCHEME_GROUPS = [
   },
 ]
 
+/** Module card definitions */
+const MODULE_CARDS = [
+  {
+    to: '/settings/vehicles',
+    icon: Car,
+    title: 'Vehicles',
+    description: 'Default dashboard vehicle',
+    color: 'var(--lcars-ice)',
+  },
+  {
+    to: '/settings/astrometrics',
+    icon: Telescope,
+    title: 'Astrometrics',
+    description: 'API key, reminders, thresholds',
+    color: 'var(--lcars-african-violet)',
+  },
+  {
+    to: '/settings/notifications',
+    icon: Bell,
+    title: 'Notifications',
+    description: 'Toggle, quiet hours, priority',
+    color: 'var(--lcars-butterscotch)',
+  },
+]
+
 export default function LCARSSettings() {
-  const { theme, setTheme, isLCARS, colorScheme, setColorScheme } = useTheme()
+  const { isLCARS, colorScheme, setColorScheme } = useTheme()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* ── Theme Engine Panel ───────────────────────────────── */}
-      <LCARSPanel title="Theme Engine" color="var(--lcars-ice)">
-        <p style={{
-          fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-          fontSize: '0.85rem',
-          color: 'var(--lcars-gray)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          marginBottom: '1rem',
+      {/* ── Module Cards ──────────────────────────────────────── */}
+      <LCARSPanel title="System Configuration" color="var(--lcars-sunflower)">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: '0.5rem',
         }}>
-          Select Visual Framework
-        </p>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <LCARSPillButton
-            label="Catppuccin"
-            color="var(--lcars-sunflower)"
-            active={!isLCARS}
-            onClick={() => setTheme('catppuccin')}
-          />
-          <LCARSPillButton
-            label="LCARS"
-            color="var(--lcars-butterscotch)"
-            active={isLCARS}
-            onClick={() => setTheme('lcars')}
-          />
+          {MODULE_CARDS.map(card => (
+            <LCARSModuleCard key={card.to} {...card} />
+          ))}
         </div>
       </LCARSPanel>
-
-      {/* ── Astrometrics Panel ──────────────────────────────── */}
-      <LCARSAstroSettingsSection />
 
       {/* ── Color Scheme Panel ───────────────────────────────── */}
       <LCARSPanel title="Color Scheme" color="var(--lcars-african-violet)">
@@ -146,31 +154,56 @@ export default function LCARSSettings() {
 
 
 /**
- * LCARS pill-shaped toggle button.
+ * LCARS-styled module settings card — links to a settings sub-page.
  */
-function LCARSPillButton({ label, color, active, onClick }) {
+function LCARSModuleCard({ to, icon: Icon, title, description, color }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={to}
       style={{
-        padding: '0.5rem 1.5rem',
-        background: active ? color : 'rgba(102, 102, 136, 0.3)',
-        color: active ? '#000000' : 'var(--lcars-gray)',
-        border: 'none',
-        borderRadius: '20px',
-        fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-        fontSize: '0.9rem',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        cursor: 'pointer',
-        transition: 'filter 0.15s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '0.75rem 1rem',
+        background: 'rgba(102, 102, 136, 0.08)',
+        border: '2px solid rgba(102, 102, 136, 0.2)',
+        borderRadius: '4px',
+        textDecoration: 'none',
+        transition: 'all 0.15s ease',
       }}
-      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.2)' }}
-      onMouseLeave={e => { e.currentTarget.style.filter = 'brightness(1)' }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = color
+        e.currentTarget.style.background = 'rgba(102, 102, 136, 0.15)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'rgba(102, 102, 136, 0.2)'
+        e.currentTarget.style.background = 'rgba(102, 102, 136, 0.08)'
+      }}
     >
-      {label}
-    </button>
+      <Icon size={20} style={{ color, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          color: 'var(--lcars-space-white)',
+        }}>
+          {title}
+        </div>
+        <div style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.7rem',
+          color: 'var(--lcars-gray)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginTop: '2px',
+        }}>
+          {description}
+        </div>
+      </div>
+    </Link>
   )
 }
 

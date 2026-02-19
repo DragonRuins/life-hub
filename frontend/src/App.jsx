@@ -5,12 +5,11 @@
  * Each "page" is a module that renders in the main content area.
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
-import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star, Server, Telescope } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Palette } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
-import { vehicles as vehiclesApi } from './api/client'
 
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
@@ -49,6 +48,14 @@ import Astrometrics from './pages/Astrometrics'
 import LCARSAstrometrics from './themes/lcars/LCARSAstrometrics'
 import SettingsPage from './pages/Settings'
 import LCARSSettings from './themes/lcars/LCARSSettings'
+
+// Settings sub-pages
+import VehicleSettings from './pages/settings/VehicleSettings'
+import AstroSettings from './pages/settings/AstroSettings'
+import NotificationSettings from './pages/settings/NotificationSettings'
+import LCARSVehicleSettings from './themes/lcars/settings/LCARSVehicleSettings'
+import LCARSAstroSettings from './themes/lcars/settings/LCARSAstroSettings'
+import LCARSNotificationSettings from './themes/lcars/settings/LCARSNotificationSettings'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
@@ -105,6 +112,9 @@ function LCARSAppShell() {
         <Route path="/astrometrics" element={<LCARSAstrometrics />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<LCARSSettings />} />
+        <Route path="/settings/vehicles" element={<LCARSVehicleSettings />} />
+        <Route path="/settings/astrometrics" element={<LCARSAstroSettings />} />
+        <Route path="/settings/notifications" element={<LCARSNotificationSettings />} />
       </Routes>
     </LCARSLayout>
   )
@@ -178,8 +188,6 @@ function AppShell() {
             <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={sidebarCollapsed} />
             <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={sidebarCollapsed} />
             <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={sidebarCollapsed} />
-            <div style={{ flex: 1 }} />
-            <SidebarLink to="/settings" icon={<Settings size={20} />} label="Settings" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -275,8 +283,6 @@ function AppShell() {
               <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={false} onClick={() => setDrawerOpen(false)} />
-              <div style={{ flex: 1 }} />
-              <SidebarLink to="/settings" icon={<Settings size={20} />} label="Settings" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -317,6 +323,9 @@ function AppShell() {
             <Route path="/astrometrics" element={<Astrometrics />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings/vehicles" element={<VehicleSettings />} />
+            <Route path="/settings/astrometrics" element={<AstroSettings />} />
+            <Route path="/settings/notifications" element={<NotificationSettings />} />
           </Routes>
         </div>
       </main>
@@ -326,42 +335,11 @@ function AppShell() {
 
 
 /**
- * Header bar with notification bell and settings gear dropdown.
+ * Header bar with notification bell, theme toggle, and settings link.
  * Sits at the top of the main content area.
  */
 function HeaderBar({ isMobile, onMenuClick }) {
-  const [gearOpen, setGearOpen] = useState(false)
-  const [vehicleList, setVehicleList] = useState([])
-  const [selectedVehicleId, setSelectedVehicleId] = useState(
-    localStorage.getItem('dashboard_vehicle_id') || 'all'
-  )
-  const gearRef = useRef(null)
-  const navigate = useNavigate()
-  const { theme, setTheme, isLCARS } = useTheme()
-
-  // Fetch vehicle list when gear dropdown opens
-  useEffect(() => {
-    if (gearOpen && vehicleList.length === 0) {
-      vehiclesApi.list().then(setVehicleList).catch(() => {})
-    }
-  }, [gearOpen])
-
-  // Close gear dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (gearRef.current && !gearRef.current.contains(e.target)) {
-        setGearOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  function handleVehicleSelect(id) {
-    setSelectedVehicleId(id)
-    localStorage.setItem('dashboard_vehicle_id', id)
-    window.dispatchEvent(new Event('vehicle-selection-changed'))
-  }
+  const { setTheme, isLCARS } = useTheme()
 
   return (
     <div style={{
@@ -400,13 +378,13 @@ function HeaderBar({ isMobile, onMenuClick }) {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-      {/* Notification Bell */}
-      <NotificationBell />
+        {/* Notification Bell */}
+        <NotificationBell />
 
-      {/* Settings Gear */}
-      <div ref={gearRef} style={{ position: 'relative' }}>
+        {/* Theme Toggle Button */}
         <button
-          onClick={() => setGearOpen(!gearOpen)}
+          onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
+          title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -414,175 +392,38 @@ function HeaderBar({ isMobile, onMenuClick }) {
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            background: gearOpen ? 'rgba(137, 180, 250, 0.08)' : 'transparent',
+            background: 'transparent',
             border: 'none',
-            color: gearOpen ? 'var(--color-blue)' : 'var(--color-subtext-0)',
+            color: 'var(--color-subtext-0)',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
-          onMouseEnter={e => { if (!gearOpen) e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)' }}
-          onMouseLeave={e => { if (!gearOpen) e.currentTarget.style.background = 'transparent' }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <Settings size={20} />
+          <Palette size={18} />
         </button>
 
-        {/* Gear Dropdown */}
-        {gearOpen && (
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '4px',
-            width: '200px',
-            background: 'var(--color-base)',
-            border: '1px solid var(--color-surface-0)',
+        {/* Settings Link (direct navigation, no dropdown) */}
+        <Link
+          to="/settings"
+          title="Settings"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
             borderRadius: '8px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-            zIndex: 1000,
-            overflow: 'hidden',
-          }}>
-            <button
-              onClick={() => { setGearOpen(false); navigate('/settings') }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                width: '100%',
-                padding: '0.75rem 1rem',
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-text)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              Settings
-            </button>
-            <button
-              onClick={() => { setGearOpen(false); navigate('/notifications') }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                width: '100%',
-                padding: '0.75rem 1rem',
-                background: 'none',
-                border: 'none',
-                color: 'var(--color-text)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              Notifications
-            </button>
-
-            {/* Vehicle Selector */}
-            {vehicleList.length > 0 && (
-              <div style={{ borderTop: '1px solid var(--color-surface-0)' }}>
-                <div style={{
-                  padding: '0.5rem 1rem 0.25rem',
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  color: 'var(--color-subtext-0)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}>
-                  Dashboard Vehicle
-                </div>
-                <button
-                  onClick={() => handleVehicleSelect('all')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    width: '100%',
-                    padding: '0.4rem 1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: selectedVehicleId === 'all' ? 'var(--color-blue)' : 'var(--color-text)',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontFamily: 'inherit',
-                    textAlign: 'left',
-                    fontWeight: selectedVehicleId === 'all' ? 600 : 400,
-                    transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  All Fleet
-                </button>
-                {vehicleList.map(v => (
-                  <button
-                    key={v.id}
-                    onClick={() => handleVehicleSelect(String(v.id))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      width: '100%',
-                      padding: '0.4rem 1rem',
-                      background: 'none',
-                      border: 'none',
-                      color: selectedVehicleId === String(v.id) ? 'var(--color-blue)' : 'var(--color-text)',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      fontFamily: 'inherit',
-                      textAlign: 'left',
-                      fontWeight: selectedVehicleId === String(v.id) ? 600 : 400,
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    {v.is_primary && <Star size={12} fill="var(--color-yellow)" style={{ color: 'var(--color-yellow)', flexShrink: 0 }} />}
-                    {v.year} {v.make} {v.model}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Theme Toggle */}
-            <button
-              onClick={() => {
-                setTheme(isLCARS ? 'catppuccin' : 'lcars')
-                setGearOpen(false)
-              }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                width: '100%',
-                padding: '0.75rem 1rem',
-                background: 'none',
-                border: 'none',
-                borderTop: '1px solid var(--color-surface-0)',
-                color: 'var(--color-text)',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontFamily: 'inherit',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <Monitor size={16} />
-              Theme: {isLCARS ? 'LCARS' : 'Catppuccin'}
-            </button>
-          </div>
-        )}
-      </div>
+            background: 'transparent',
+            color: 'var(--color-subtext-0)',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <Settings size={20} />
+        </Link>
       </div>
     </div>
   )

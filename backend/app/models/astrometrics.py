@@ -123,7 +123,8 @@ class AstroSettings(db.Model):
     refresh_launches = db.Column(db.Integer, default=3600)     # 1 hour
 
     # Notification thresholds
-    launch_reminder_hours = db.Column(db.Integer, default=24)  # Alert X hours before launch
+    launch_reminder_hours = db.Column(db.Integer, default=24)      # Gate 1: alert X hours before launch
+    launch_reminder_minutes_2 = db.Column(db.Integer, nullable=True)  # Gate 2 (optional): alert X minutes before launch (null = disabled)
     neo_close_approach_threshold_ld = db.Column(db.Float, default=5.0)  # Alert if NEO within X lunar distances
 
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
@@ -157,6 +158,7 @@ class AstroSettings(db.Model):
             'refresh_people_in_space': self.refresh_people_in_space,
             'refresh_launches': self.refresh_launches,
             'launch_reminder_hours': self.launch_reminder_hours,
+            'launch_reminder_minutes_2': self.launch_reminder_minutes_2,
             'neo_close_approach_threshold_ld': self.neo_close_approach_threshold_ld,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }

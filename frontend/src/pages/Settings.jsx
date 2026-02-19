@@ -1,17 +1,15 @@
 /**
- * Settings.jsx - Application Settings Page (Catppuccin Theme)
+ * Settings.jsx - Settings Hub Page (Catppuccin Theme)
  *
- * Provides:
- *   - Theme Engine toggle (Catppuccin / LCARS)
- *   - Color Scheme selector with preview swatches
+ * Central settings hub with:
+ *   - Module cards linking to sub-pages (Vehicles, Astrometrics, Notifications)
+ *   - Inline Color Scheme picker (global preference, stays on hub)
  *
- * Color scheme changes apply immediately (no save button needed).
- * Scheme selection only affects the standard/Catppuccin mode — LCARS
- * has its own fixed color palette.
+ * Theme engine toggle has moved to a dedicated header button.
  */
+import { Link } from 'react-router-dom'
 import { useTheme } from '../themes/lcars/ThemeProvider'
-import { Monitor, Palette } from 'lucide-react'
-import AstroSettingsSection from '../components/astrometrics/AstroSettingsSection'
+import { Car, Telescope, Bell, Palette, ChevronRight } from 'lucide-react'
 
 /**
  * All available color schemes, grouped by family.
@@ -105,8 +103,33 @@ const COLOR_SCHEME_GROUPS = [
   },
 ]
 
+/** Module card definitions for the settings hub */
+const MODULE_CARDS = [
+  {
+    to: '/settings/vehicles',
+    icon: Car,
+    title: 'Vehicles',
+    description: 'Default dashboard vehicle selector',
+    color: 'var(--color-blue)',
+  },
+  {
+    to: '/settings/astrometrics',
+    icon: Telescope,
+    title: 'Astrometrics',
+    description: 'NASA API key, launch reminders, NEO threshold',
+    color: 'var(--color-teal)',
+  },
+  {
+    to: '/settings/notifications',
+    icon: Bell,
+    title: 'Notifications',
+    description: 'Global toggle, quiet hours, priority, retention',
+    color: 'var(--color-peach)',
+  },
+]
+
 export default function Settings() {
-  const { theme, setTheme, isLCARS, colorScheme, setColorScheme } = useTheme()
+  const { isLCARS, colorScheme, setColorScheme } = useTheme()
 
   return (
     <div style={{ maxWidth: '900px' }}>
@@ -114,33 +137,12 @@ export default function Settings() {
         Settings
       </h1>
 
-      {/* ── Theme Engine Section ─────────────────────────────── */}
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-          <Monitor size={18} style={{ color: 'var(--color-blue)' }} />
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Theme Engine</h2>
-        </div>
-        <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-          Choose the visual framework for the entire application.
-        </p>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className={isLCARS ? 'btn' : 'btn btn-primary'}
-            onClick={() => setTheme('catppuccin')}
-          >
-            Catppuccin
-          </button>
-          <button
-            className={isLCARS ? 'btn btn-primary' : 'btn'}
-            onClick={() => setTheme('lcars')}
-          >
-            LCARS
-          </button>
-        </div>
+      {/* ── Module Cards ──────────────────────────────────────── */}
+      <div className="card-grid" style={{ marginBottom: '1.5rem', '--min-card-width': '250px' }}>
+        {MODULE_CARDS.map(card => (
+          <ModuleCard key={card.to} {...card} />
+        ))}
       </div>
-
-      {/* ── Astrometrics Section ──────────────────────────────── */}
-      <AstroSettingsSection />
 
       {/* ── Color Scheme Section ─────────────────────────────── */}
       <div className="card">
@@ -184,6 +186,59 @@ export default function Settings() {
         ))}
       </div>
     </div>
+  )
+}
+
+
+/**
+ * Module settings card — links to a settings sub-page.
+ */
+function ModuleCard({ to, icon: Icon, title, description, color }) {
+  return (
+    <Link
+      to={to}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        padding: '1.25rem',
+        background: 'var(--color-base)',
+        border: '1px solid var(--color-surface-0)',
+        borderRadius: '10px',
+        textDecoration: 'none',
+        transition: 'all 0.15s ease',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = 'var(--color-surface-2)'
+        e.currentTarget.style.background = 'var(--color-surface-0)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'var(--color-surface-0)'
+        e.currentTarget.style.background = 'var(--color-base)'
+      }}
+    >
+      <div style={{
+        width: '42px',
+        height: '42px',
+        borderRadius: '10px',
+        background: `color-mix(in srgb, ${color} 12%, transparent)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <Icon size={20} style={{ color }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--color-text)' }}>
+          {title}
+        </div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', marginTop: '2px' }}>
+          {description}
+        </div>
+      </div>
+      <ChevronRight size={18} style={{ color: 'var(--color-overlay-0)', flexShrink: 0 }} />
+    </Link>
   )
 }
 

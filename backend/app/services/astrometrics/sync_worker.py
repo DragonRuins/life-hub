@@ -226,15 +226,22 @@ def _check_neo_alerts(neo_data, settings):
 
 def _check_launch_reminders(launches_data, settings):
     """
-    Check if any upcoming launch is within the reminder window.
+    Two-gate launch reminder system.
 
-    Emits astro.launch_reminder for launches happening within
-    launch_reminder_hours from now.  Each launch is only notified
-    once per process lifetime (tracked via _notified_launches set).
+    Gate 1 (required): fires when a launch is within launch_reminder_hours.
+    Gate 2 (optional): fires when a launch is within launch_reminder_minutes_2
+                       (disabled when null/0).
+
+    Each (launch, gate) pair is only notified once per process lifetime.
     """
-    reminder_hours = settings.launch_reminder_hours
     now = datetime.now(timezone.utc)
-    reminder_cutoff = now + timedelta(hours=reminder_hours)
+
+    # Build list of active gates: (gate_name, cutoff_timedelta)
+    gates = []
+    if settings.launch_reminder_hours:
+        gates.append(('gate1', timedelta(hours=settings.launch_reminder_hours)))
+    if settings.launch_reminder_minutes_2:
+        gates.append(('gate2', timedelta(minutes=settings.launch_reminder_minutes_2)))
 
     for launch in launches_data.get('results', []):
         launch_id = launch.get('id', launch.get('name', ''))
@@ -247,19 +254,29 @@ def _check_launch_reminders(launches_data, settings):
         except (ValueError, TypeError):
             continue
 
-        if now < launch_time <= reminder_cutoff:
-            # Skip if we already notified about this launch
-            if launch_id in _notified_launches:
-                continue
-            _notified_launches.add(launch_id)
+        if launch_time <= now:
+            continue  # Already launched
 
-            hours_until = round((launch_time - now).total_seconds() / 3600, 1)
-            _emit_event('astro.launch_reminder',
-                        launch_name=launch.get('name', 'Unknown Launch'),
-                        provider=launch.get('launch_service_provider', {}).get('name', 'Unknown'),
-                        net=net,
-                        hours_until=hours_until,
-                        pad_name=launch.get('pad', {}).get('name', 'Unknown'))
+        for gate_name, gate_delta in gates:
+            dedup_key = f"{launch_id}_{gate_name}"
+            if dedup_key in _notified_launches:
+                continue
+
+            if launch_time <= now + gate_delta:
+                _notified_launches.add(dedup_key)
+
+                hours_until = (launch_time - now).total_seconds() / 3600
+                if hours_until < 1:
+                    time_label = f"{round(hours_until * 60)} minutes"
+                else:
+                    time_label = f"{round(hours_until, 1)} hours"
+
+                _emit_event('astro.launch_reminder',
+                            launch_name=launch.get('name', 'Unknown Launch'),
+                            provider=launch.get('launch_service_provider', {}).get('name', 'Unknown'),
+                            net=net,
+                            hours_until=time_label,
+                            pad_name=launch.get('pad', {}).get('name', 'Unknown'))
 
 
 def _emit_event(event_name, **payload):

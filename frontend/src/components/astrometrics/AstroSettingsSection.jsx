@@ -33,6 +33,7 @@ export default function AstroSettingsSection() {
       setForm({
         nasa_api_key: s.nasa_api_key || 'DEMO_KEY',
         launch_reminder_hours: s.launch_reminder_hours || 24,
+        launch_reminder_minutes_2: s.launch_reminder_minutes_2 || '',
         neo_close_approach_threshold_ld: s.neo_close_approach_threshold_ld || 5.0,
       })
     } catch (e) {
@@ -87,10 +88,10 @@ export default function AstroSettingsSection() {
           </p>
         </div>
 
-        {/* Launch Reminder */}
+        {/* Launch Reminder Gate 1 */}
         <div>
           <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.25rem', color: 'var(--color-subtext-0)' }}>
-            Launch Reminder (hours before)
+            Launch Reminder — Gate 1 (hours before)
           </label>
           <input
             type="number"
@@ -104,6 +105,32 @@ export default function AstroSettingsSection() {
               borderRadius: '6px', color: 'var(--color-text)', fontSize: '0.85rem',
             }}
           />
+        </div>
+
+        {/* Launch Reminder Gate 2 (optional) */}
+        <div>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0.25rem', color: 'var(--color-subtext-0)' }}>
+            Launch Reminder — Gate 2 (minutes before, optional)
+          </label>
+          <input
+            type="number"
+            value={form.launch_reminder_minutes_2 || ''}
+            onChange={e => {
+              const val = parseInt(e.target.value)
+              setForm({ ...form, launch_reminder_minutes_2: isNaN(val) ? null : val })
+            }}
+            min={1}
+            max={1440}
+            placeholder="Disabled"
+            style={{
+              width: '100%', padding: '0.5rem 0.75rem',
+              background: 'var(--color-surface-0)', border: '1px solid var(--color-surface-1)',
+              borderRadius: '6px', color: 'var(--color-text)', fontSize: '0.85rem',
+            }}
+          />
+          <p style={{ fontSize: '0.7rem', color: 'var(--color-subtext-0)', margin: '0.25rem 0 0' }}>
+            Leave empty to disable. e.g. 30 for a second alert 30 minutes before launch.
+          </p>
         </div>
 
         {/* NEO Threshold */}
