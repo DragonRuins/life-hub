@@ -22,6 +22,11 @@ logger = logging.getLogger(__name__)
 # Track the last APOD date we saw, so we only emit once per new APOD
 _last_apod_date = None
 
+# Track which launches/NEOs we've already notified about this process lifetime.
+# Resets on restart, which is acceptable (at most one duplicate).
+_notified_launches = set()
+_notified_neos = set()
+
 
 def run_astro_sync(app):
     """
@@ -171,16 +176,23 @@ def _check_neo_alerts(neo_data, settings):
     Emits notification events if:
       - Any NEO is closer than neo_close_approach_threshold_ld lunar distances
       - Any NEO is classified as potentially hazardous
+
+    Each NEO is only notified once per process lifetime.
     """
     threshold_ld = settings.neo_close_approach_threshold_ld
     near_earth_objects = neo_data.get('near_earth_objects', {})
 
     for date_str, neos in near_earth_objects.items():
         for neo in neos:
-            name = neo.get('name', 'Unknown')
+            neo_id = neo.get('id', neo.get('name', ''))
+            neo_name = neo.get('name', 'Unknown')
             is_hazardous = neo.get('is_potentially_hazardous_asteroid', False)
 
-            # Check close approach data
+            # Extract estimated diameter for templates
+            diameter_data = neo.get('estimated_diameter', {}).get('meters', {})
+            diameter_m = round((diameter_data.get('estimated_diameter_min', 0) +
+                                diameter_data.get('estimated_diameter_max', 0)) / 2)
+
             for approach in neo.get('close_approach_data', []):
                 miss_distance = approach.get('miss_distance', {})
                 ld_str = miss_distance.get('lunar', '999')
@@ -189,19 +201,26 @@ def _check_neo_alerts(neo_data, settings):
                 except (ValueError, TypeError):
                     continue
 
-                if ld < threshold_ld:
+                approach_date = approach.get('close_approach_date', date_str)
+                dedup_key = f"{neo_id}_{approach_date}"
+
+                if ld < threshold_ld and dedup_key not in _notified_neos:
+                    _notified_neos.add(dedup_key)
                     _emit_event('astro.neo_close_approach',
-                                name=name,
-                                date=approach.get('close_approach_date', date_str),
+                                neo_name=neo_name,
+                                close_approach_date=approach_date,
                                 miss_distance_ld=round(ld, 2),
                                 miss_distance_km=miss_distance.get('kilometers', 'unknown'),
+                                diameter_m=diameter_m,
                                 is_hazardous=is_hazardous)
 
-                if is_hazardous:
+                if is_hazardous and f"haz_{dedup_key}" not in _notified_neos:
+                    _notified_neos.add(f"haz_{dedup_key}")
                     _emit_event('astro.neo_hazardous',
-                                name=name,
-                                date=approach.get('close_approach_date', date_str),
+                                neo_name=neo_name,
+                                close_approach_date=approach_date,
                                 miss_distance_ld=round(ld, 2),
+                                diameter_m=diameter_m,
                                 velocity_kps=approach.get('relative_velocity', {}).get('kilometers_per_second', 'unknown'))
 
 
@@ -210,31 +229,37 @@ def _check_launch_reminders(launches_data, settings):
     Check if any upcoming launch is within the reminder window.
 
     Emits astro.launch_reminder for launches happening within
-    launch_reminder_hours from now.
+    launch_reminder_hours from now.  Each launch is only notified
+    once per process lifetime (tracked via _notified_launches set).
     """
     reminder_hours = settings.launch_reminder_hours
     now = datetime.now(timezone.utc)
     reminder_cutoff = now + timedelta(hours=reminder_hours)
 
     for launch in launches_data.get('results', []):
+        launch_id = launch.get('id', launch.get('name', ''))
         net = launch.get('net')  # NET = No Earlier Than
         if not net:
             continue
 
         try:
-            # Launch Library 2 returns ISO format timestamps
             launch_time = datetime.fromisoformat(net.replace('Z', '+00:00'))
         except (ValueError, TypeError):
             continue
 
         if now < launch_time <= reminder_cutoff:
+            # Skip if we already notified about this launch
+            if launch_id in _notified_launches:
+                continue
+            _notified_launches.add(launch_id)
+
             hours_until = round((launch_time - now).total_seconds() / 3600, 1)
             _emit_event('astro.launch_reminder',
-                        name=launch.get('name', 'Unknown Launch'),
+                        launch_name=launch.get('name', 'Unknown Launch'),
                         provider=launch.get('launch_service_provider', {}).get('name', 'Unknown'),
                         net=net,
                         hours_until=hours_until,
-                        pad=launch.get('pad', {}).get('name', 'Unknown'))
+                        pad_name=launch.get('pad', {}).get('name', 'Unknown'))
 
 
 def _emit_event(event_name, **payload):
