@@ -48,6 +48,10 @@ def _record_host_metrics(app):
 
     now = datetime.now(timezone.utc)
 
+    # Mark host as online since we successfully read /proc
+    host.status = 'online'
+    host.last_seen_at = now
+
     # Compute CPU % from delta with previous cycle's sample
     cpu_percent = None
     cur_total = metrics.get('_cpu_total')
