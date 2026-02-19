@@ -3,6 +3,10 @@
  *
  * Passes data to parent via onSubmit(data) callback.
  * Parent handles the API call (prevents double-submit).
+ *
+ * When creating a new host (no initial.id), shows an optional
+ * "Docker Monitoring" section that includes setup_docker in the
+ * submitted data so the backend can auto-create the integration.
  */
 import { useState } from 'react'
 
@@ -17,6 +21,8 @@ const HOST_TYPES = [
 ]
 
 export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
+  const isEditing = !!initial.id
+
   const [form, setForm] = useState({
     name: initial.name || '',
     hostname: initial.hostname || '',
@@ -35,6 +41,13 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
     gpu: initial.hardware?.gpu || '',
   })
 
+  // Docker monitoring state (only shown for new hosts)
+  const [dockerEnabled, setDockerEnabled] = useState(!isEditing)
+  const [dockerConnectionType, setDockerConnectionType] = useState('socket')
+  const [dockerSocketPath, setDockerSocketPath] = useState('/var/run/docker.sock')
+  const [dockerTcpUrl, setDockerTcpUrl] = useState('')
+  const [dockerCollectStats, setDockerCollectStats] = useState(true)
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
@@ -48,7 +61,7 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
     if (form.disk_gb) hardware.disk_gb = Number(form.disk_gb)
     if (form.gpu) hardware.gpu = form.gpu
 
-    onSubmit({
+    const data = {
       name: form.name,
       hostname: form.hostname || null,
       host_type: form.host_type,
@@ -60,13 +73,25 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
       status: form.status,
       hardware,
       notes: form.notes || null,
-    })
+    }
+
+    // Include Docker setup data when creating a new host with Docker enabled
+    if (!isEditing && dockerEnabled) {
+      data.setup_docker = {
+        connection_type: dockerConnectionType,
+        socket_path: dockerConnectionType === 'socket' ? dockerSocketPath : undefined,
+        tcp_url: dockerConnectionType === 'tcp' ? dockerTcpUrl : undefined,
+        collect_stats: dockerCollectStats,
+      }
+    }
+
+    onSubmit(data)
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>
-        {initial.id ? 'Edit Host' : 'Add Host'}
+        {isEditing ? 'Edit Host' : 'Add Host'}
       </h3>
 
       <div className="form-grid-2col">
@@ -157,6 +182,107 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
         </div>
       </div>
 
+      {/* Docker Monitoring — only shown when creating a new host */}
+      {!isEditing && (
+        <>
+          <h4 style={{ marginTop: '1.25rem', marginBottom: '0.75rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-subtext-0)' }}>
+            Docker Monitoring
+          </h4>
+
+          {/* Enable toggle */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.75rem' }}>
+            <input
+              type="checkbox"
+              checked={dockerEnabled}
+              onChange={(e) => setDockerEnabled(e.target.checked)}
+              style={{ width: '16px', height: '16px', accentColor: 'var(--color-blue)' }}
+            />
+            <span style={{ fontSize: '0.875rem', color: 'var(--color-text)' }}>
+              Enable Docker monitoring
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)' }}>
+              (auto-discovers containers on creation)
+            </span>
+          </label>
+
+          {dockerEnabled && (
+            <div style={{
+              padding: '0.75rem',
+              background: 'var(--color-crust)',
+              border: '1px solid var(--color-surface-0)',
+              borderRadius: '8px',
+            }}>
+              {/* Connection type */}
+              <div style={{ marginBottom: '0.75rem' }}>
+                <label style={labelStyle}>Connection Type</label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                    <input
+                      type="radio"
+                      name="docker_conn_type"
+                      value="socket"
+                      checked={dockerConnectionType === 'socket'}
+                      onChange={() => setDockerConnectionType('socket')}
+                      style={{ accentColor: 'var(--color-blue)' }}
+                    />
+                    Local Socket (recommended)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                    <input
+                      type="radio"
+                      name="docker_conn_type"
+                      value="tcp"
+                      checked={dockerConnectionType === 'tcp'}
+                      onChange={() => setDockerConnectionType('tcp')}
+                      style={{ accentColor: 'var(--color-blue)' }}
+                    />
+                    Remote TCP
+                  </label>
+                </div>
+              </div>
+
+              {/* Socket path or TCP URL */}
+              <div className="form-grid-2col">
+                {dockerConnectionType === 'socket' ? (
+                  <div>
+                    <label style={labelStyle}>Socket Path</label>
+                    <input
+                      value={dockerSocketPath}
+                      onChange={(e) => setDockerSocketPath(e.target.value)}
+                      placeholder="/var/run/docker.sock"
+                      style={inputStyle}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label style={labelStyle}>TCP URL</label>
+                    <input
+                      value={dockerTcpUrl}
+                      onChange={(e) => setDockerTcpUrl(e.target.value)}
+                      placeholder="tcp://192.168.1.50:2375"
+                      style={inputStyle}
+                    />
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', paddingBottom: '0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={dockerCollectStats}
+                      onChange={(e) => setDockerCollectStats(e.target.checked)}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--color-blue)' }}
+                    />
+                    <span style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
+                      Collect resource stats
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Notes */}
       <div style={{ marginTop: '1rem' }}>
         <label style={labelStyle}>Notes</label>
@@ -173,7 +299,7 @@ export default function InfraHostForm({ initial = {}, onSubmit, onCancel }) {
       {/* Actions */}
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
         <button type="submit" className="btn btn-primary">
-          {initial.id ? 'Save Changes' : 'Add Host'}
+          {isEditing ? 'Save Changes' : 'Add Host'}
         </button>
         {onCancel && (
           <button type="button" className="btn btn-ghost" onClick={onCancel}>Cancel</button>

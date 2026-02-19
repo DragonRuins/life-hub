@@ -624,6 +624,10 @@ export const infrastructure = {
       body: JSON.stringify(data),
     }),
     delete: (id) => apiFetch(`/infrastructure/hosts/${id}`, { method: 'DELETE' }),
+    setupDocker: (id, data) => apiFetch(`/infrastructure/hosts/${id}/setup-docker`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
   },
 
   // Network devices

@@ -90,11 +90,29 @@ export default function LCARSInfrastructure() {
     }
   }, [autoRefresh])
 
+  // Feedback message shown after host creation (Docker setup result)
+  const [hostFeedback, setHostFeedback] = useState(null)
+
   async function handleAddHost(data) {
     try {
-      await infrastructure.hosts.create(data)
+      const result = await infrastructure.hosts.create(data)
       await loadData()
       setShowAddHost(false)
+
+      // Show Docker setup feedback if applicable
+      if (result.docker_setup) {
+        const ds = result.docker_setup
+        if (ds.connection_ok && ds.sync_result) {
+          const count = ds.sync_result.total_containers || ds.sync_result.created || 0
+          setHostFeedback({ type: 'success', message: `HOST CREATED. DOCKER CONNECTED — ${count} CONTAINER${count !== 1 ? 'S' : ''} FOUND.` })
+        } else if (ds.connection_ok) {
+          setHostFeedback({ type: 'success', message: 'HOST CREATED. DOCKER CONNECTION ESTABLISHED.' })
+        } else {
+          setHostFeedback({ type: 'warning', message: `HOST CREATED. DOCKER CONNECTION FAILED: ${(ds.error || 'Unknown error').toUpperCase()}` })
+        }
+        // Auto-clear feedback after 8 seconds
+        setTimeout(() => setHostFeedback(null), 8000)
+      }
     } catch (err) {
       alert('Failed to add host: ' + err.message)
     }
@@ -228,6 +246,37 @@ export default function LCARSInfrastructure() {
         <LCARSPanel title="New Host Registration" color="var(--lcars-butterscotch)" style={{ marginBottom: '1.5rem' }}>
           <InfraHostForm onSubmit={handleAddHost} onCancel={() => setShowAddHost(false)} />
         </LCARSPanel>
+      )}
+
+      {/* Docker Setup Feedback */}
+      {hostFeedback && (
+        <div style={{
+          marginBottom: '1rem',
+          padding: '0.625rem 0.75rem',
+          borderLeft: `3px solid ${hostFeedback.type === 'success' ? 'var(--lcars-green)' : 'var(--lcars-sunflower)'}`,
+          background: 'rgba(0, 0, 0, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+        }}>
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.8rem',
+            color: hostFeedback.type === 'success' ? 'var(--lcars-green)' : 'var(--lcars-sunflower)',
+          }}>
+            {hostFeedback.message}
+          </span>
+          <button
+            onClick={() => setHostFeedback(null)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--lcars-gray)', padding: '2px',
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
       )}
 
       {/* Summary Stats Row */}

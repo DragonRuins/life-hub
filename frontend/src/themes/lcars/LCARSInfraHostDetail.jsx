@@ -93,6 +93,15 @@ export default function LCARSInfraHostDetail() {
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
 
+  // Docker setup state (for hosts without Docker integration)
+  const [showDockerSetup, setShowDockerSetup] = useState(false)
+  const [dockerSetupLoading, setDockerSetupLoading] = useState(false)
+  const [dockerSetupMsg, setDockerSetupMsg] = useState('')
+  const [dockerConnectionType, setDockerConnectionType] = useState('socket')
+  const [dockerSocketPath, setDockerSocketPath] = useState('/var/run/docker.sock')
+  const [dockerTcpUrl, setDockerTcpUrl] = useState('')
+  const [dockerCollectStats, setDockerCollectStats] = useState(true)
+
   // Metrics tab state
   const [timeRange, setTimeRange] = useState('24h')
   const [selectedMetric, setSelectedMetric] = useState('cpu_percent')
@@ -200,6 +209,35 @@ export default function LCARSInfraHostDetail() {
       setTimeout(() => setSyncMsg(''), 5000)
     } finally {
       setSyncing(false)
+    }
+  }
+
+  async function handleDockerSetup() {
+    setDockerSetupLoading(true)
+    setDockerSetupMsg('')
+    try {
+      const setupData = {
+        connection_type: dockerConnectionType,
+        socket_path: dockerConnectionType === 'socket' ? dockerSocketPath : undefined,
+        tcp_url: dockerConnectionType === 'tcp' ? dockerTcpUrl : undefined,
+        collect_stats: dockerCollectStats,
+      }
+      const result = await infrastructure.hosts.setupDocker(id, setupData)
+      if (result.connection_ok && result.sync_result) {
+        const count = result.sync_result.total_containers || result.sync_result.created || 0
+        setDockerSetupMsg(`DOCKER CONNECTED — ${count} CONTAINER${count !== 1 ? 'S' : ''} FOUND`)
+      } else if (result.connection_ok) {
+        setDockerSetupMsg('DOCKER CONNECTION ESTABLISHED')
+      } else {
+        setDockerSetupMsg(`DOCKER CONNECTION FAILED: ${(result.error || 'Unknown error').toUpperCase()}`)
+      }
+      await loadHost()
+      setShowDockerSetup(false)
+    } catch (err) {
+      setDockerSetupMsg('SETUP FAILED: ' + err.message.toUpperCase())
+    } finally {
+      setDockerSetupLoading(false)
+      setTimeout(() => setDockerSetupMsg(''), 6000)
     }
   }
 
@@ -379,6 +417,198 @@ export default function LCARSInfraHostDetail() {
       {/* ── Overview Tab ───────────────────────────────────────────── */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Docker Setup Prompt — shown when host has no Docker integration */}
+          {!host.has_docker_integration && !showDockerSetup && (
+            <div style={{
+              padding: '0.75rem 1rem',
+              borderLeft: '3px solid var(--lcars-ice)',
+              background: 'rgba(0, 0, 0, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}>
+              <div>
+                <div style={{
+                  fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: 'var(--lcars-ice)',
+                }}>
+                  No Docker Integration Configured
+                </div>
+                <div style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '0.75rem',
+                  color: 'var(--lcars-gray)',
+                  marginTop: '0.25rem',
+                }}>
+                  Set up Docker monitoring to auto-discover containers
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDockerSetup(true)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                  padding: '0.4rem 0.75rem', borderRadius: '999px',
+                  border: 'none', cursor: 'pointer',
+                  background: 'var(--lcars-ice)',
+                  color: '#000',
+                  fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
+                  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                  opacity: 0.9, transition: 'opacity 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
+              >
+                Set Up Docker
+              </button>
+            </div>
+          )}
+
+          {/* Docker Setup Inline Form */}
+          {showDockerSetup && (
+            <LCARSPanel title="Docker Integration Setup" color="var(--lcars-ice)">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {/* Connection type */}
+                <div>
+                  <label style={{
+                    fontFamily: "'Antonio', sans-serif",
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    color: 'var(--lcars-gray)',
+                    display: 'block',
+                    marginBottom: '0.375rem',
+                  }}>Connection Type</label>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {['socket', 'tcp'].map(type => (
+                      <button
+                        key={type}
+                        onClick={() => setDockerConnectionType(type)}
+                        style={{
+                          padding: '0.3rem 0.75rem',
+                          borderRadius: '999px',
+                          border: 'none',
+                          background: dockerConnectionType === type ? 'var(--lcars-ice)' : 'rgba(102, 102, 136, 0.25)',
+                          color: dockerConnectionType === type ? '#000' : 'var(--lcars-gray)',
+                          fontFamily: "'Antonio', sans-serif",
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {type === 'socket' ? 'Local Socket' : 'Remote TCP'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Path/URL input */}
+                <div>
+                  <label style={{
+                    fontFamily: "'Antonio', sans-serif",
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    color: 'var(--lcars-gray)',
+                    display: 'block',
+                    marginBottom: '0.375rem',
+                  }}>{dockerConnectionType === 'socket' ? 'Socket Path' : 'TCP URL'}</label>
+                  <input
+                    value={dockerConnectionType === 'socket' ? dockerSocketPath : dockerTcpUrl}
+                    onChange={(e) => dockerConnectionType === 'socket'
+                      ? setDockerSocketPath(e.target.value)
+                      : setDockerTcpUrl(e.target.value)
+                    }
+                    placeholder={dockerConnectionType === 'socket' ? '/var/run/docker.sock' : 'tcp://192.168.1.50:2375'}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      background: '#000',
+                      border: '1px solid rgba(102, 102, 136, 0.3)',
+                      color: 'var(--lcars-space-white)',
+                      fontSize: '0.85rem',
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  />
+                </div>
+
+                {/* Collect stats toggle */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={dockerCollectStats}
+                    onChange={(e) => setDockerCollectStats(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--lcars-ice)' }}
+                  />
+                  <span style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: '0.8rem',
+                    color: 'var(--lcars-space-white)',
+                  }}>
+                    Collect resource stats
+                  </span>
+                </label>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    onClick={handleDockerSetup}
+                    disabled={dockerSetupLoading}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                      padding: '0.4rem 0.75rem', borderRadius: '999px',
+                      border: 'none', cursor: dockerSetupLoading ? 'not-allowed' : 'pointer',
+                      background: dockerSetupLoading ? 'rgba(153, 204, 255, 0.4)' : 'var(--lcars-ice)',
+                      color: '#000',
+                      fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
+                      fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    }}
+                  >
+                    {dockerSetupLoading ? 'Connecting...' : 'Connect & Sync'}
+                  </button>
+                  <button
+                    onClick={() => setShowDockerSetup(false)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                      padding: '0.4rem 0.75rem', borderRadius: '999px',
+                      border: 'none', cursor: 'pointer',
+                      background: 'rgba(102, 102, 136, 0.25)',
+                      color: 'var(--lcars-gray)',
+                      fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
+                      fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </LCARSPanel>
+          )}
+
+          {/* Docker Setup Feedback Message */}
+          {dockerSetupMsg && (
+            <div style={{
+              padding: '0.5rem 0.75rem',
+              borderLeft: `3px solid ${dockerSetupMsg.includes('FAILED') ? 'var(--lcars-sunflower)' : 'var(--lcars-green)'}`,
+              background: 'rgba(0, 0, 0, 0.3)',
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.8rem',
+              color: dockerSetupMsg.includes('FAILED') ? 'var(--lcars-sunflower)' : 'var(--lcars-green)',
+            }}>
+              {dockerSetupMsg}
+            </div>
+          )}
+
           {/* Hardware Specs */}
           <LCARSPanel title="Hardware Configuration" color="var(--lcars-ice)">
             {Object.keys(hw).length > 0 ? (

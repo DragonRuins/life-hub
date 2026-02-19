@@ -68,11 +68,29 @@ export default function Infrastructure() {
     }
   }, [autoRefresh])
 
+  // Feedback message shown after host creation (Docker setup result)
+  const [hostFeedback, setHostFeedback] = useState(null)
+
   async function handleAddHost(data) {
     try {
-      await infrastructure.hosts.create(data)
+      const result = await infrastructure.hosts.create(data)
       await loadData()
       setShowAddHost(false)
+
+      // Show Docker setup feedback if applicable
+      if (result.docker_setup) {
+        const ds = result.docker_setup
+        if (ds.connection_ok && ds.sync_result) {
+          const count = ds.sync_result.total_containers || ds.sync_result.created || 0
+          setHostFeedback({ type: 'success', message: `Host created. Docker connected — found ${count} container${count !== 1 ? 's' : ''}.` })
+        } else if (ds.connection_ok) {
+          setHostFeedback({ type: 'success', message: 'Host created. Docker connected successfully.' })
+        } else {
+          setHostFeedback({ type: 'warning', message: `Host created. Docker connection failed: ${ds.error || 'Unknown error'}` })
+        }
+        // Auto-clear feedback after 8 seconds
+        setTimeout(() => setHostFeedback(null), 8000)
+      }
     } catch (err) {
       alert('Failed to add host: ' + err.message)
     }
@@ -152,6 +170,35 @@ export default function Infrastructure() {
       {showAddHost && (
         <div className="card" style={{ marginBottom: '1.5rem' }}>
           <InfraHostForm onSubmit={handleAddHost} onCancel={() => setShowAddHost(false)} />
+        </div>
+      )}
+
+      {/* Docker Setup Feedback */}
+      {hostFeedback && (
+        <div className="card" style={{
+          marginBottom: '1rem',
+          padding: '0.75rem 1rem',
+          borderLeft: `3px solid ${hostFeedback.type === 'success' ? 'var(--color-green)' : 'var(--color-yellow)'}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.75rem',
+        }}>
+          <span style={{
+            fontSize: '0.875rem',
+            color: hostFeedback.type === 'success' ? 'var(--color-green)' : 'var(--color-yellow)',
+          }}>
+            {hostFeedback.message}
+          </span>
+          <button
+            onClick={() => setHostFeedback(null)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--color-subtext-0)', padding: '2px',
+            }}
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
 

@@ -34,6 +34,15 @@ export default function InfraHostDetail() {
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
 
+  // Docker setup state (for hosts without Docker integration)
+  const [showDockerSetup, setShowDockerSetup] = useState(false)
+  const [dockerSetupLoading, setDockerSetupLoading] = useState(false)
+  const [dockerSetupMsg, setDockerSetupMsg] = useState('')
+  const [dockerConnectionType, setDockerConnectionType] = useState('socket')
+  const [dockerSocketPath, setDockerSocketPath] = useState('/var/run/docker.sock')
+  const [dockerTcpUrl, setDockerTcpUrl] = useState('')
+  const [dockerCollectStats, setDockerCollectStats] = useState(true)
+
   // Metrics tab state
   const [timeRange, setTimeRange] = useState('24h')
   const [selectedMetric, setSelectedMetric] = useState('cpu_percent')
@@ -142,6 +151,35 @@ export default function InfraHostDetail() {
     }
   }
 
+  async function handleDockerSetup() {
+    setDockerSetupLoading(true)
+    setDockerSetupMsg('')
+    try {
+      const setupData = {
+        connection_type: dockerConnectionType,
+        socket_path: dockerConnectionType === 'socket' ? dockerSocketPath : undefined,
+        tcp_url: dockerConnectionType === 'tcp' ? dockerTcpUrl : undefined,
+        collect_stats: dockerCollectStats,
+      }
+      const result = await infrastructure.hosts.setupDocker(id, setupData)
+      if (result.connection_ok && result.sync_result) {
+        const count = result.sync_result.total_containers || result.sync_result.created || 0
+        setDockerSetupMsg(`Docker connected — found ${count} container${count !== 1 ? 's' : ''}.`)
+      } else if (result.connection_ok) {
+        setDockerSetupMsg('Docker connected successfully.')
+      } else {
+        setDockerSetupMsg(`Docker connection failed: ${result.error || 'Unknown error'}`)
+      }
+      await loadHost()
+      setShowDockerSetup(false)
+    } catch (err) {
+      setDockerSetupMsg('Setup failed: ' + err.message)
+    } finally {
+      setDockerSetupLoading(false)
+      setTimeout(() => setDockerSetupMsg(''), 6000)
+    }
+  }
+
   if (loading) return <p style={{ color: 'var(--color-subtext-0)' }}>Loading host...</p>
   if (!host) return <p style={{ color: 'var(--color-red)' }}>Host not found.</p>
 
@@ -220,6 +258,114 @@ export default function InfraHostDetail() {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div>
+          {/* Docker Setup Prompt — shown when host has no Docker integration */}
+          {!host.has_docker_integration && !showDockerSetup && (
+            <div className="card" style={{
+              marginBottom: '1rem',
+              padding: '1rem 1.25rem',
+              borderLeft: '3px solid var(--color-blue)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Box size={18} style={{ color: 'var(--color-blue)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>No Docker integration configured</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                    Set up Docker monitoring to auto-discover containers on this host.
+                  </div>
+                </div>
+              </div>
+              <button className="btn btn-primary" onClick={() => setShowDockerSetup(true)} style={{ flexShrink: 0 }}>
+                Set Up Docker
+              </button>
+            </div>
+          )}
+
+          {/* Docker Setup Inline Form */}
+          {showDockerSetup && (
+            <div className="card" style={{ marginBottom: '1rem', padding: '1rem 1.25rem' }}>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Set Up Docker Integration</h4>
+              <div className="form-grid-2col" style={{ marginBottom: '0.75rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-subtext-0)', marginBottom: '0.375rem' }}>Connection Type</label>
+                  <select
+                    value={dockerConnectionType}
+                    onChange={(e) => setDockerConnectionType(e.target.value)}
+                    style={{
+                      width: '100%', padding: '0.5rem 0.75rem',
+                      background: 'var(--color-crust)', border: '1px solid var(--color-surface-0)',
+                      borderRadius: '6px', color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'inherit',
+                    }}
+                  >
+                    <option value="socket">Local Socket</option>
+                    <option value="tcp">Remote TCP</option>
+                  </select>
+                </div>
+                {dockerConnectionType === 'socket' ? (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-subtext-0)', marginBottom: '0.375rem' }}>Socket Path</label>
+                    <input
+                      value={dockerSocketPath}
+                      onChange={(e) => setDockerSocketPath(e.target.value)}
+                      placeholder="/var/run/docker.sock"
+                      style={{
+                        width: '100%', padding: '0.5rem 0.75rem',
+                        background: 'var(--color-crust)', border: '1px solid var(--color-surface-0)',
+                        borderRadius: '6px', color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 500, color: 'var(--color-subtext-0)', marginBottom: '0.375rem' }}>TCP URL</label>
+                    <input
+                      value={dockerTcpUrl}
+                      onChange={(e) => setDockerTcpUrl(e.target.value)}
+                      placeholder="tcp://192.168.1.50:2375"
+                      style={{
+                        width: '100%', padding: '0.5rem 0.75rem',
+                        background: 'var(--color-crust)', border: '1px solid var(--color-surface-0)',
+                        borderRadius: '6px', color: 'var(--color-text)', fontSize: '0.875rem', fontFamily: 'inherit',
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.75rem' }}>
+                <input
+                  type="checkbox"
+                  checked={dockerCollectStats}
+                  onChange={(e) => setDockerCollectStats(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: 'var(--color-blue)' }}
+                />
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>Collect resource stats</span>
+              </label>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button className="btn btn-primary" onClick={handleDockerSetup} disabled={dockerSetupLoading}>
+                  {dockerSetupLoading ? 'Setting up...' : 'Connect & Sync'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => setShowDockerSetup(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Docker Setup Feedback Message */}
+          {dockerSetupMsg && (
+            <div className="card" style={{
+              marginBottom: '1rem',
+              padding: '0.625rem 1rem',
+              borderLeft: `3px solid ${dockerSetupMsg.includes('failed') || dockerSetupMsg.includes('Failed') ? 'var(--color-yellow)' : 'var(--color-green)'}`,
+              fontSize: '0.85rem',
+              color: dockerSetupMsg.includes('failed') || dockerSetupMsg.includes('Failed') ? 'var(--color-yellow)' : 'var(--color-green)',
+            }}>
+              {dockerSetupMsg}
+            </div>
+          )}
+
           {/* Hardware Specs */}
           <div className="card" style={{ marginBottom: '1rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Hardware</h3>

@@ -7,11 +7,12 @@ an aggregated dashboard endpoint.
 
 Endpoints:
   Hosts:
-    GET    /api/infrastructure/hosts          -> List all hosts
-    POST   /api/infrastructure/hosts          -> Add a host
-    GET    /api/infrastructure/hosts/<id>     -> Get host with containers/services
-    PUT    /api/infrastructure/hosts/<id>     -> Update a host
-    DELETE /api/infrastructure/hosts/<id>     -> Delete a host and its containers
+    GET    /api/infrastructure/hosts                    -> List all hosts
+    POST   /api/infrastructure/hosts                    -> Add a host (with optional Docker setup)
+    GET    /api/infrastructure/hosts/<id>               -> Get host with containers/services
+    PUT    /api/infrastructure/hosts/<id>               -> Update a host
+    DELETE /api/infrastructure/hosts/<id>               -> Delete a host and its containers
+    POST   /api/infrastructure/hosts/<id>/setup-docker  -> Set up Docker for existing host
 
   Network Devices:
     GET    /api/infrastructure/network        -> List all network devices
@@ -96,7 +97,23 @@ def list_hosts():
 
 @infrastructure_bp.route('/hosts', methods=['POST'])
 def create_host():
-    """Add a new infrastructure host."""
+    """
+    Add a new infrastructure host.
+
+    Optionally accepts a 'setup_docker' object to auto-create a Docker
+    integration, test the connection, and run an immediate container sync.
+
+    Example request body with Docker setup:
+    {
+      "name": "HexOS Server",
+      "host_type": "nas",
+      "setup_docker": {
+        "connection_type": "socket",
+        "socket_path": "/var/run/docker.sock",
+        "collect_stats": true
+      }
+    }
+    """
     data = request.get_json()
     if not data or not data.get('name') or not data.get('host_type'):
         return jsonify({'error': 'name and host_type are required'}), 400
@@ -117,7 +134,120 @@ def create_host():
     )
     db.session.add(host)
     db.session.commit()
-    return jsonify(host.to_dict()), 201
+
+    result = host.to_dict()
+
+    # If setup_docker is provided, auto-create Docker integration and sync
+    setup_docker = data.get('setup_docker')
+    if setup_docker:
+        result['docker_setup'] = _setup_docker_for_host(host, setup_docker)
+
+    return jsonify(result), 201
+
+
+def _setup_docker_for_host(host, setup_docker):
+    """
+    Create a Docker integration for a host, test it, and run an initial sync.
+
+    Args:
+        host: The InfraHost instance (already committed).
+        setup_docker: Dict with connection_type, socket_path/tcp_url, collect_stats.
+
+    Returns:
+        dict: Docker setup result with integration_id, connection_ok, and sync_result or error.
+    """
+    connection_type = setup_docker.get('connection_type', 'socket')
+    socket_path = setup_docker.get('socket_path', '/var/run/docker.sock')
+    tcp_url = setup_docker.get('tcp_url', '')
+    collect_stats = setup_docker.get('collect_stats', True)
+
+    # Build integration config based on connection type
+    config = {
+        'connection_type': connection_type,
+        'sync_stats': collect_stats,
+    }
+    if connection_type == 'socket':
+        config['socket_path'] = socket_path
+    else:
+        config['tcp_url'] = tcp_url
+
+    integration = InfraIntegrationConfig(
+        name=f"{host.name} - Docker",
+        integration_type='docker',
+        host_id=host.id,
+        is_enabled=True,
+        config=config,
+        sync_interval_seconds=60,
+    )
+    db.session.add(integration)
+    db.session.commit()
+
+    docker_result = {
+        'integration_id': integration.id,
+        'connection_ok': False,
+    }
+
+    # Test connection
+    try:
+        from app.services.infrastructure.sync_worker import test_single_integration
+        test_result = test_single_integration(integration.id)
+        docker_result['connection_ok'] = test_result.get('success', False)
+
+        if not docker_result['connection_ok']:
+            docker_result['error'] = test_result.get('message', 'Connection test failed')
+            return docker_result
+    except Exception as e:
+        docker_result['error'] = str(e)
+        return docker_result
+
+    # Connection succeeded — run immediate sync
+    try:
+        from app.services.infrastructure.sync_worker import sync_single_integration
+        sync_result = sync_single_integration(integration.id)
+        docker_result['sync_result'] = {
+            'total_containers': sync_result.get('total', 0),
+            'created': sync_result.get('created', 0),
+            'updated': sync_result.get('updated', 0),
+            'metrics_recorded': sync_result.get('metrics_recorded', 0),
+        }
+    except Exception as e:
+        # Sync failed but connection was OK — still useful info
+        docker_result['sync_result'] = {'error': str(e)}
+
+    return docker_result
+
+
+@infrastructure_bp.route('/hosts/<int:host_id>/setup-docker', methods=['POST'])
+def setup_docker_for_existing_host(host_id):
+    """
+    Set up Docker integration for an existing host.
+
+    Creates a Docker integration config, tests the connection, and runs
+    an immediate sync. Returns 409 if the host already has a Docker integration.
+
+    Request body:
+    {
+      "connection_type": "socket",
+      "socket_path": "/var/run/docker.sock",
+      "collect_stats": true
+    }
+    """
+    host = InfraHost.query.get_or_404(host_id)
+
+    # Check if host already has a Docker integration
+    existing = InfraIntegrationConfig.query.filter_by(
+        host_id=host_id,
+        integration_type='docker',
+    ).first()
+    if existing:
+        return jsonify({
+            'error': 'This host already has a Docker integration configured',
+            'integration_id': existing.id,
+        }), 409
+
+    data = request.get_json() or {}
+    result = _setup_docker_for_host(host, data)
+    return jsonify(result), 200
 
 
 @infrastructure_bp.route('/hosts/<int:host_id>', methods=['GET'])
@@ -138,6 +268,13 @@ def get_host(host_id):
 
     # Include network devices under this host
     result['network_devices'] = [d.to_dict() for d in host.network_devices]
+
+    # Check if host has a Docker integration configured
+    docker_integration = InfraIntegrationConfig.query.filter_by(
+        host_id=host_id,
+        integration_type='docker',
+    ).first()
+    result['has_docker_integration'] = docker_integration is not None
 
     return jsonify(result)
 
