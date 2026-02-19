@@ -276,7 +276,79 @@ def get_host(host_id):
     ).first()
     result['has_docker_integration'] = docker_integration is not None
 
+    # Check if host /proc stats are available (mounted into container)
+    from app.services.infrastructure.host_stats import is_available
+    result['host_stats_available'] = is_available()
+
     return jsonify(result)
+
+
+@infrastructure_bp.route('/hosts/<int:host_id>/hardware-detect', methods=['POST'])
+def detect_host_hardware(host_id):
+    """
+    Auto-detect hardware specs by reading /host/proc and /host/sys.
+
+    Merges detected values into the host's hardware JSON field (preserving
+    any manually-set values that detection didn't find).
+
+    Returns 503 if /host/proc is not mounted.
+    """
+    host = InfraHost.query.get_or_404(host_id)
+
+    from app.services.infrastructure.host_stats import is_available, detect_hardware
+
+    if not is_available():
+        return jsonify({
+            'error': 'Host /proc not mounted. Add /proc:/host/proc:ro and '
+                     '/sys:/host/sys:ro to your Docker Compose volumes and restart.'
+        }), 503
+
+    try:
+        detected = detect_hardware()
+    except Exception as e:
+        return jsonify({'error': f'Detection failed: {str(e)}'}), 500
+
+    # Merge detected values into existing hardware (don't overwrite with None)
+    current_hw = dict(host.hardware or {})
+    for key, value in detected.items():
+        if value is not None:
+            current_hw[key] = value
+
+    host.hardware = current_hw
+    db.session.commit()
+
+    return jsonify({
+        'hardware': host.hardware,
+        'detected': detected,
+    })
+
+
+@infrastructure_bp.route('/hosts/<int:host_id>/live-stats', methods=['GET'])
+def get_host_live_stats(host_id):
+    """
+    Get a live snapshot of system metrics (CPU, RAM, disk, load, uptime).
+
+    Takes ~1 second due to CPU sampling (two /proc/stat reads 1s apart).
+    Returns the snapshot directly — not recorded to the database.
+
+    Returns 503 if /host/proc is not mounted.
+    """
+    InfraHost.query.get_or_404(host_id)
+
+    from app.services.infrastructure.host_stats import is_available, get_live_metrics
+
+    if not is_available():
+        return jsonify({
+            'error': 'Host /proc not mounted. Add /proc:/host/proc:ro and '
+                     '/sys:/host/sys:ro to your Docker Compose volumes and restart.'
+        }), 503
+
+    try:
+        metrics = get_live_metrics()
+    except Exception as e:
+        return jsonify({'error': f'Failed to read metrics: {str(e)}'}), 500
+
+    return jsonify(metrics)
 
 
 @infrastructure_bp.route('/hosts/<int:host_id>', methods=['PUT'])

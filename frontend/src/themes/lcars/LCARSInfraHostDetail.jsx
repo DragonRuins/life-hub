@@ -59,9 +59,9 @@ const SERVICE_ICONS = {
 // ── Metric display config (color + friendly label) ──────────
 const METRIC_CONFIG = {
   cpu_percent:      { color: 'var(--lcars-ice)',   label: 'Processor Load',  unit: '%' },
-  memory_percent:   { color: 'var(--lcars-tanoi)', label: 'Memory Usage',    unit: '%' },
+  ram_percent:      { color: 'var(--lcars-tanoi)', label: 'Memory Usage',    unit: '%' },
   disk_percent:     { color: 'var(--lcars-green)', label: 'Storage Usage',   unit: '%' },
-  memory_used_gb:   { color: 'var(--lcars-tanoi)', label: 'Memory Used',     unit: 'GB' },
+  ram_used_gb:      { color: 'var(--lcars-tanoi)', label: 'Memory Used',     unit: 'GB' },
   disk_used_gb:     { color: 'var(--lcars-green)', label: 'Storage Used',    unit: 'GB' },
   network_in_mbps:  { color: 'var(--lcars-lilac)', label: 'Network In',      unit: 'Mbps' },
   network_out_mbps: { color: 'var(--lcars-lilac)', label: 'Network Out',     unit: 'Mbps' },
@@ -92,6 +92,10 @@ export default function LCARSInfraHostDetail() {
   const [activeTab, setActiveTab] = useState('overview')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+
+  // Hardware auto-detect state
+  const [detectingHw, setDetectingHw] = useState(false)
+  const [detectMsg, setDetectMsg] = useState('')
 
   // Docker setup state (for hosts without Docker integration)
   const [showDockerSetup, setShowDockerSetup] = useState(false)
@@ -238,6 +242,24 @@ export default function LCARSInfraHostDetail() {
     } finally {
       setDockerSetupLoading(false)
       setTimeout(() => setDockerSetupMsg(''), 6000)
+    }
+  }
+
+  async function handleDetectHardware() {
+    setDetectingHw(true)
+    setDetectMsg('')
+    try {
+      const result = await infrastructure.hosts.detectHardware(id)
+      const detected = result.detected || {}
+      const fields = [detected.cpu, detected.ram_gb && `${detected.ram_gb} GB RAM`, detected.cpu_cores && `${detected.cpu_cores} CORES`].filter(Boolean)
+      setDetectMsg(`DETECTED: ${fields.join(', ') || 'NO NEW HARDWARE DATA'}`)
+      await loadHost()
+      setTimeout(() => setDetectMsg(''), 5000)
+    } catch (err) {
+      setDetectMsg('DETECTION FAILED: ' + err.message.toUpperCase())
+      setTimeout(() => setDetectMsg(''), 6000)
+    } finally {
+      setDetectingHw(false)
     }
   }
 
@@ -610,7 +632,43 @@ export default function LCARSInfraHostDetail() {
           )}
 
           {/* Hardware Specs */}
-          <LCARSPanel title="Hardware Configuration" color="var(--lcars-ice)">
+          <LCARSPanel
+            title="Hardware Configuration"
+            color="var(--lcars-ice)"
+            headerRight={host.host_stats_available ? (
+              <button
+                onClick={handleDetectHardware}
+                disabled={detectingHw}
+                style={{
+                  padding: '0.2rem 0.625rem',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: detectingHw ? 'rgba(153, 204, 255, 0.4)' : 'var(--lcars-ice)',
+                  color: '#000',
+                  fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  cursor: detectingHw ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {detectingHw ? 'Scanning...' : 'Auto-Detect'}
+              </button>
+            ) : null}
+          >
+            {detectMsg && (
+              <div style={{
+                padding: '0.375rem 0.5rem',
+                marginBottom: '0.5rem',
+                borderLeft: `3px solid ${detectMsg.includes('FAILED') ? 'var(--lcars-sunflower)' : 'var(--lcars-green)'}`,
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '0.75rem',
+                color: detectMsg.includes('FAILED') ? 'var(--lcars-sunflower)' : 'var(--lcars-green)',
+              }}>
+                {detectMsg}
+              </div>
+            )}
             {Object.keys(hw).length > 0 ? (
               <>
                 {hw.cpu && (
@@ -619,6 +677,20 @@ export default function LCARSInfraHostDetail() {
                     value={hw.cpu}
                     color="var(--lcars-ice)"
                     icon={<Cpu size={14} />}
+                  />
+                )}
+                {hw.cpu_cores && (
+                  <LCARSDataRow
+                    label="Cores"
+                    value={`${hw.cpu_cores} Physical`}
+                    color="var(--lcars-ice)"
+                  />
+                )}
+                {hw.cpu_threads && (
+                  <LCARSDataRow
+                    label="Threads"
+                    value={hw.cpu_threads}
+                    color="var(--lcars-ice)"
                   />
                 )}
                 {hw.ram_gb && (
@@ -653,7 +725,9 @@ export default function LCARSInfraHostDetail() {
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: '0.85rem',
               }}>
-                No hardware specifications on file
+                {host.host_stats_available
+                  ? 'No hardware specifications on file — use Auto-Detect to scan'
+                  : 'No hardware specifications on file. Mount /proc and /sys to enable auto-detection.'}
               </div>
             )}
           </LCARSPanel>

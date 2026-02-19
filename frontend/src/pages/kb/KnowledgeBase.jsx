@@ -298,6 +298,8 @@ export default function KnowledgeBase() {
         totalPages={totalPages}
         totalArticles={totalArticles}
         onPageChange={setCurrentPage}
+        categories={categories}
+        onSelectCategory={handleSelectCategory}
       />
     )
   }
@@ -342,22 +344,7 @@ export default function KnowledgeBase() {
         {/* Content */}
         {renderContent()}
 
-        {/* On mobile home, also show browsable article list below the dashboard */}
-        {isHome && !loading && articles.length > 0 && (
-          <div style={{ marginTop: '1rem' }}>
-            <KBArticleList
-              articles={articles}
-              stats={null}
-              isHome={false}
-              onNewArticle={handleNewArticle}
-              loading={false}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalArticles={totalArticles}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        )}
+        {/* On mobile home, the KBHomeDashboard now includes All Articles, so no duplicate needed */}
 
         {/* Template picker modal */}
         {showTemplatePicker && (

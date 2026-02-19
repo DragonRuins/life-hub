@@ -162,12 +162,13 @@ export default function Dashboard() {
       >
         {/* Vehicles Card */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '8px',
                 background: 'rgba(137, 180, 250, 0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <Car size={18} style={{ color: 'var(--color-blue)' }} />
               </div>
@@ -180,13 +181,13 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <Link to="/vehicles" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
-              <button className="btn btn-primary" style={{ fontSize: '0.8rem' }} onClick={() => setShowQuickAdd(true)} title="Add maintenance record">
-                <Wrench size={14} />
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/vehicles" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+              <button className="btn btn-primary" style={smallBtnStyle} onClick={() => setShowQuickAdd(true)} title="Add maintenance record">
+                <Wrench size={12} />
               </button>
-              <button className="btn btn-primary" style={{ fontSize: '0.8rem' }} onClick={() => setShowQuickAddFuel(true)} title="Add fuel log">
-                <Fuel size={14} />
+              <button className="btn btn-primary" style={smallBtnStyle} onClick={() => setShowQuickAddFuel(true)} title="Add fuel log">
+                <Fuel size={12} />
               </button>
             </div>
           </div>
@@ -246,12 +247,13 @@ export default function Dashboard() {
 
         {/* Notes Card */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '8px',
                 background: 'rgba(203, 166, 247, 0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <StickyNote size={18} style={{ color: 'var(--color-mauve)' }} />
               </div>
@@ -262,7 +264,9 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <Link to="/notes" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/notes" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+            </div>
           </div>
 
           {summary?.notes?.recent?.length > 0 ? (
@@ -307,12 +311,13 @@ export default function Dashboard() {
 
         {/* Projects Card */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '8px',
                 background: 'rgba(249, 226, 175, 0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <FolderKanban size={18} style={{ color: 'var(--color-yellow)' }} />
               </div>
@@ -323,7 +328,9 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <Link to="/projects" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/projects" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+            </div>
           </div>
 
           {projectStats && projectStats.active_projects > 0 ? (
@@ -388,12 +395,13 @@ export default function Dashboard() {
 
         {/* Knowledge Base Card */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '8px',
                 background: 'rgba(166, 227, 161, 0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <BookOpen size={18} style={{ color: 'var(--color-green)' }} />
               </div>
@@ -404,7 +412,9 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <Link to="/kb" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/kb" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+            </div>
           </div>
 
           {kbStats && kbStats.total > 0 ? (
@@ -472,16 +482,16 @@ export default function Dashboard() {
             />
           )}
         </div>
-      </div>
 
         {/* Infrastructure Card */}
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
               <div style={{
                 width: '36px', height: '36px', borderRadius: '8px',
                 background: 'rgba(148, 226, 213, 0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
               }}>
                 <Server size={18} style={{ color: 'var(--color-teal)' }} />
               </div>
@@ -492,7 +502,9 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <Link to="/infrastructure" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/infrastructure" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+            </div>
           </div>
 
           {infraDash && (infraDash.hosts?.total > 0 || infraDash.containers?.total > 0) ? (
@@ -520,6 +532,7 @@ export default function Dashboard() {
             />
           )}
         </div>
+      </div>
 
       {/* Quick Add Maintenance Modal */}
       {showQuickAdd && (
@@ -681,6 +694,13 @@ function WeatherWidget({ weather }) {
   )
 }
 
+
+// Compact button style for dashboard card actions
+const smallBtnStyle = {
+  fontSize: '0.7rem',
+  padding: '0.25rem 0.5rem',
+  lineHeight: 1.2,
+}
 
 function EmptyState({ message, linkTo, linkLabel }) {
   return (

@@ -628,6 +628,8 @@ export const infrastructure = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+    detectHardware: (id) => apiFetch(`/infrastructure/hosts/${id}/hardware-detect`, { method: 'POST' }),
+    liveStats: (id) => apiFetch(`/infrastructure/hosts/${id}/live-stats`),
   },
 
   // Network devices

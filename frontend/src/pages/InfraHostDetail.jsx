@@ -34,6 +34,10 @@ export default function InfraHostDetail() {
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
 
+  // Hardware auto-detect state
+  const [detectingHw, setDetectingHw] = useState(false)
+  const [detectMsg, setDetectMsg] = useState('')
+
   // Docker setup state (for hosts without Docker integration)
   const [showDockerSetup, setShowDockerSetup] = useState(false)
   const [dockerSetupLoading, setDockerSetupLoading] = useState(false)
@@ -177,6 +181,24 @@ export default function InfraHostDetail() {
     } finally {
       setDockerSetupLoading(false)
       setTimeout(() => setDockerSetupMsg(''), 6000)
+    }
+  }
+
+  async function handleDetectHardware() {
+    setDetectingHw(true)
+    setDetectMsg('')
+    try {
+      const result = await infrastructure.hosts.detectHardware(id)
+      const detected = result.detected || {}
+      const fields = [detected.cpu, detected.ram_gb && `${detected.ram_gb} GB RAM`, detected.cpu_cores && `${detected.cpu_cores} cores`].filter(Boolean)
+      setDetectMsg(`Detected: ${fields.join(', ') || 'no new hardware info'}`)
+      await loadHost()
+      setTimeout(() => setDetectMsg(''), 5000)
+    } catch (err) {
+      setDetectMsg('Detection failed: ' + err.message)
+      setTimeout(() => setDetectMsg(''), 6000)
+    } finally {
+      setDetectingHw(false)
     }
   }
 
@@ -368,15 +390,43 @@ export default function InfraHostDetail() {
 
           {/* Hardware Specs */}
           <div className="card" style={{ marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Hardware</h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Hardware</h3>
+              {host.host_stats_available && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={handleDetectHardware}
+                  disabled={detectingHw}
+                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.625rem' }}
+                >
+                  <Cpu size={14} />
+                  {detectingHw ? 'Detecting...' : 'Auto-Detect'}
+                </button>
+              )}
+            </div>
+            {detectMsg && (
+              <p style={{
+                fontSize: '0.8rem',
+                marginBottom: '0.5rem',
+                color: detectMsg.startsWith('Detection failed') ? 'var(--color-red)' : 'var(--color-green)',
+              }}>
+                {detectMsg}
+              </p>
+            )}
             <div className="form-grid-2col">
               {hw.cpu && <InfoRow icon={<Cpu size={14} />} label="CPU" value={hw.cpu} />}
+              {hw.cpu_cores && <InfoRow label="Cores" value={`${hw.cpu_cores} physical`} />}
+              {hw.cpu_threads && <InfoRow label="Threads" value={hw.cpu_threads} />}
               {hw.ram_gb && <InfoRow icon={<MemoryStick size={14} />} label="RAM" value={`${hw.ram_gb} GB`} />}
               {hw.disk_gb && <InfoRow icon={<HardDrive size={14} />} label="Disk" value={`${hw.disk_gb} GB`} />}
               {hw.gpu && <InfoRow label="GPU" value={hw.gpu} />}
             </div>
             {Object.keys(hw).length === 0 && (
-              <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem' }}>No hardware specs entered yet.</p>
+              <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem' }}>
+                {host.host_stats_available
+                  ? 'No hardware specs yet. Click "Auto-Detect" to scan this host.'
+                  : 'No hardware specs entered. Mount /proc and /sys in Docker to enable auto-detection.'}
+              </p>
             )}
           </div>
 

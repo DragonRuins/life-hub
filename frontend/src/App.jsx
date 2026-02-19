@@ -119,7 +119,7 @@ function AppShell() {
   }, [isMobile])
 
   return (
-    <div style={{ display: 'flex', minHeight: '100dvh' }}>
+    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
       {/* ── Sidebar Navigation (desktop only) ──────────────── */}
       {!isMobile && (
         <nav
@@ -360,6 +360,9 @@ function HeaderBar({ isMobile, onMenuClick }) {
       background: 'var(--color-mantle)',
       gap: '0.5rem',
       minHeight: '48px',
+      position: 'sticky',
+      top: 0,
+      zIndex: 10,
     }}>
       {/* Hamburger menu (mobile only) */}
       {isMobile && (

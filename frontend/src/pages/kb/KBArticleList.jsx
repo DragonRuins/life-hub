@@ -7,7 +7,7 @@
  */
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FileText, Clock, Tag, Plus, Bookmark, Eye, Upload, ChevronLeft, ChevronRight } from 'lucide-react'
+import { FileText, Clock, Tag, Plus, Bookmark, Eye, Upload, ChevronLeft, ChevronRight, Folder } from 'lucide-react'
 import { kb } from '../../api/client'
 
 // Status label and color mapping
@@ -30,6 +30,8 @@ export default function KBArticleList({
   totalPages = 1,
   totalArticles = 0,
   onPageChange,
+  categories = [],
+  onSelectCategory,
 }) {
   if (loading) {
     return (
@@ -41,7 +43,19 @@ export default function KBArticleList({
 
   // KB Home Dashboard view
   if (isHome && stats) {
-    return <KBHomeDashboard stats={stats} onNewArticle={onNewArticle} />
+    return (
+      <KBHomeDashboard
+        stats={stats}
+        onNewArticle={onNewArticle}
+        categories={categories}
+        onSelectCategory={onSelectCategory}
+        articles={articles}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalArticles={totalArticles}
+        onPageChange={onPageChange}
+      />
+    )
   }
 
   // Article list view
@@ -248,9 +262,13 @@ function ArticleCard({ article }) {
 
 /**
  * KBHomeDashboard - The landing view when no category/article is selected.
- * Shows stats, recently updated, recently viewed, and bookmarked articles.
+ * Shows stats, category folders, recently updated, bookmarks, recently viewed,
+ * and a full "All Articles" browsable list with pagination.
  */
-function KBHomeDashboard({ stats, onNewArticle }) {
+function KBHomeDashboard({
+  stats, onNewArticle, categories = [], onSelectCategory,
+  articles = [], currentPage = 1, totalPages = 1, totalArticles = 0, onPageChange,
+}) {
   const navigate = useNavigate()
   const [recentViews, setRecentViews] = useState([])
   const [bookmarks, setBookmarks] = useState([])
@@ -283,91 +301,183 @@ function KBHomeDashboard({ stats, onNewArticle }) {
         <StatCard label="Categories" value={stats.categories_count} color="var(--color-mauve)" />
       </div>
 
-      {/* Two-column: recently updated + bookmarks */}
-      <div style={{ display: 'grid', gridTemplateColumns: bookmarks.length > 0 ? '1fr 1fr' : '1fr', gap: '1rem', marginBottom: '1rem' }}>
-        {/* Recently updated */}
-        <div className="card" style={{ padding: '1.25rem' }}>
+      {/* Category Folders Grid */}
+      {categories.length > 0 && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 0.75rem', fontSize: '0.95rem', fontWeight: 600 }}>Categories</h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: '0.625rem',
+          }}>
+            {categories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory?.(cat.id)}
+                className="card"
+                style={{
+                  padding: '0.875rem 1rem',
+                  cursor: 'pointer',
+                  border: '1px solid var(--color-surface-0)',
+                  background: 'var(--color-base)',
+                  textAlign: 'left',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-surface-1)'; e.currentTarget.style.background = 'var(--color-mantle)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-surface-0)'; e.currentTarget.style.background = 'var(--color-base)' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <Folder size={16} style={{ color: cat.color || 'var(--color-mauve)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                    {cat.name}
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)' }}>
+                  {cat.article_count || 0} article{(cat.article_count || 0) !== 1 ? 's' : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Articles — full browsable list with pagination */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '0.75rem',
+        }}>
+          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>All Articles</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-overlay-0)' }}>
+              {totalArticles} total
+            </span>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".md,.markdown,.txt"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => importRef.current?.click()}
+              className="btn btn-ghost"
+              style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}
+              title="Import Markdown"
+            >
+              <Upload size={12} /> Import
+            </button>
+            <button onClick={onNewArticle} className="btn btn-primary" style={{ fontSize: '0.7rem', padding: '0.25rem 0.5rem' }}>
+              <Plus size={12} /> New
+            </button>
+          </div>
+        </div>
+
+        {articles.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {articles.map(article => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: 'var(--color-overlay-0)', fontSize: '0.85rem' }}>
+            No articles yet. Create your first one to get started.
+          </p>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && onPageChange && (
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1rem',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            marginTop: '1rem',
+            fontSize: '0.8rem',
           }}>
-            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>Recently Updated</h3>
-            <div style={{ display: 'flex', gap: '0.375rem' }}>
-              <input
-                ref={importRef}
-                type="file"
-                accept=".md,.markdown,.txt"
-                onChange={handleImport}
-                style={{ display: 'none' }}
-              />
-              <button
-                onClick={() => importRef.current?.click()}
-                className="btn btn-ghost"
-                style={{ fontSize: '0.8rem', padding: '0.375rem 0.75rem' }}
-                title="Import Markdown"
-              >
-                <Upload size={14} /> Import
-              </button>
-              <button onClick={onNewArticle} className="btn btn-primary" style={{ fontSize: '0.8rem', padding: '0.375rem 0.75rem' }}>
-                <Plus size={14} /> New Article
-              </button>
-            </div>
-          </div>
-
-          {stats.recent && stats.recent.length > 0 ? (
-            <DashboardArticleList articles={stats.recent} />
-          ) : (
-            <p style={{ color: 'var(--color-overlay-0)', fontSize: '0.85rem', margin: 0 }}>
-              No articles yet. Create your first one to get started.
-            </p>
-          )}
-        </div>
-
-        {/* Bookmarks */}
-        {bookmarks.length > 0 && (
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <h3 style={{
-              margin: '0 0 1rem',
-              fontSize: '0.95rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.375rem',
-            }}>
-              <Bookmark size={15} /> Bookmarks
-            </h3>
-            <DashboardArticleList articles={bookmarks} />
+            <button
+              onClick={() => onPageChange(currentPage - 1)}
+              disabled={currentPage <= 1}
+              className="btn btn-ghost"
+              style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span style={{ color: 'var(--color-overlay-0)' }}>
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => onPageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              className="btn btn-ghost"
+              style={{ padding: '0.3rem 0.5rem', fontSize: '0.8rem' }}
+            >
+              <ChevronRight size={14} />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Recently viewed */}
-      {recentViews.length > 0 && (
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h3 style={{
-            margin: '0 0 1rem',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-          }}>
-            <Eye size={15} /> Recently Viewed
-          </h3>
-          <DashboardArticleList articles={recentViews} />
+      {/* Recent activity: recently updated + bookmarks/recently viewed */}
+      {(stats.recent?.length > 0 || bookmarks.length > 0 || recentViews.length > 0) && (
+        <div style={{ display: 'grid', gridTemplateColumns: (bookmarks.length > 0 || recentViews.length > 0) ? '1fr 1fr' : '1fr', gap: '1rem' }}>
+          {/* Recently updated */}
+          {stats.recent && stats.recent.length > 0 && (
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <h3 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', fontWeight: 600 }}>Recently Updated</h3>
+              <DashboardArticleList articles={stats.recent} />
+            </div>
+          )}
+
+          {/* Right column: bookmarks and/or recently viewed */}
+          {(bookmarks.length > 0 || recentViews.length > 0) && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {bookmarks.length > 0 && (
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h3 style={{
+                    margin: '0 0 0.75rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                  }}>
+                    <Bookmark size={14} /> Bookmarks
+                  </h3>
+                  <DashboardArticleList articles={bookmarks} />
+                </div>
+              )}
+
+              {recentViews.length > 0 && (
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h3 style={{
+                    margin: '0 0 0.75rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                  }}>
+                    <Eye size={14} /> Recently Viewed
+                  </h3>
+                  <DashboardArticleList articles={recentViews} />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-/** Shared article link list used by dashboard sections. */
+/** Shared article link list used by dashboard sections with alternating row backgrounds. */
 function DashboardArticleList({ articles }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-      {articles.map(article => (
+    <div style={{ display: 'flex', flexDirection: 'column', borderRadius: '6px', overflow: 'hidden' }}>
+      {articles.map((article, i) => (
         <Link
           key={article.id}
           to={`/kb/${article.slug}`}
@@ -378,14 +488,14 @@ function DashboardArticleList({ articles }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.5rem 0.625rem',
-            borderRadius: '6px',
+            background: i % 2 === 0 ? 'rgba(137, 180, 250, 0.03)' : 'transparent',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.08)'}
+          onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'rgba(137, 180, 250, 0.03)' : 'transparent'}
         >
           <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{article.title}</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)', flexShrink: 0, marginLeft: '0.5rem' }}>
             {article.updated_at ? new Date(article.updated_at).toLocaleDateString() : ''}
           </span>
         </Link>
