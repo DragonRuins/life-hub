@@ -173,7 +173,7 @@ def _seed_astro_notification_rules(db):
             'module': 'astrometrics',
             'description': 'Get notified before upcoming launches',
             'title_template': 'Upcoming Launch: {{launch_name}}',
-            'body_template': '{{launch_name}} is launching in {{hours_until}} hours from {{pad_name}}.',
+            'body_template': '{{launch_name}} is launching in {{hours_until}} from {{pad_name}}.',
         },
         {
             'name': 'NEO Close Approach',

@@ -1,15 +1,34 @@
 /**
- * LCARSNotificationSettings.jsx - Notification Settings Sub-Page (LCARS Theme)
+ * LCARSNotificationSettings.jsx - Full Notification Configuration (LCARS Theme)
  *
- * LCARS-styled notification settings (global toggle, quiet hours,
- * priority, retention). Replicates the GeneralTab functionality
- * with LCARS visual language.
+ * Consolidates all notification configuration into one settings sub-page:
+ *   - Settings: global toggle, quiet hours, priority, retention
+ *   - Channels: manage delivery channels (Pushover, Discord, Email, etc.)
+ *   - Intervals: per-interval notification delivery config
+ *   - Rules: create/edit notification rules
+ *   - History: paginated log of all sent notifications
+ *
+ * The Settings tab is LCARS-native. The other tabs reuse the shared Catppuccin
+ * tab components (same behavior as the old /notifications page under LCARS).
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { notifications } from '../../../api/client'
 import LCARSPanel from '../LCARSPanel'
+import ChannelsTab from '../../../pages/notifications/ChannelsTab'
+import IntervalsTab from '../../../pages/notifications/IntervalsTab'
+import RulesTab from '../../../pages/notifications/RulesTab'
+import HistoryTab from '../../../pages/notifications/HistoryTab'
+
+// Tab definitions for the pill-button row
+const TABS = [
+  { key: 'settings', label: 'Settings' },
+  { key: 'channels', label: 'Channels' },
+  { key: 'intervals', label: 'Intervals' },
+  { key: 'rules', label: 'Rules' },
+  { key: 'history', label: 'History' },
+]
 
 // Common US timezones
 const TIMEZONES = [
@@ -30,6 +49,72 @@ const PRIORITIES = [
 ]
 
 export default function LCARSNotificationSettings() {
+  const [activeTab, setActiveTab] = useState('settings')
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Back link */}
+      <Link
+        to="/settings"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.375rem',
+          color: 'var(--lcars-ice)',
+          textDecoration: 'none',
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.85rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+        }}
+      >
+        <ArrowLeft size={16} />
+        Settings
+      </Link>
+
+      {/* Tab pill buttons */}
+      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            style={{
+              padding: '0.375rem 1rem',
+              background: activeTab === tab.key ? 'var(--lcars-butterscotch)' : 'var(--lcars-gray)',
+              color: '#000',
+              border: 'none',
+              borderRadius: '999px',
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              cursor: 'pointer',
+              opacity: activeTab === tab.key ? 1 : 0.6,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'settings' && <LCARSGeneralSettings />}
+      {activeTab === 'channels' && <ChannelsTab />}
+      {activeTab === 'intervals' && <IntervalsTab />}
+      {activeTab === 'rules' && <RulesTab />}
+      {activeTab === 'history' && <HistoryTab />}
+    </div>
+  )
+}
+
+
+/**
+ * LCARS-native general settings panel.
+ * Global toggle, quiet hours, priority, retention — styled with LCARSPanel.
+ */
+function LCARSGeneralSettings() {
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -100,65 +185,26 @@ export default function LCARSNotificationSettings() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <Link to="/settings" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-          color: 'var(--lcars-ice)', textDecoration: 'none',
-          fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-          textTransform: 'uppercase', letterSpacing: '0.05em',
-        }}>
-          <ArrowLeft size={16} /> Settings
-        </Link>
-        <LCARSPanel title="Notification Configuration" color="var(--lcars-butterscotch)">
-          <p style={{ fontFamily: "'Antonio', sans-serif", color: 'var(--lcars-gray)', textTransform: 'uppercase' }}>
-            Loading configuration...
-          </p>
-        </LCARSPanel>
-      </div>
+      <LCARSPanel title="Notification Configuration" color="var(--lcars-butterscotch)">
+        <p style={{ fontFamily: "'Antonio', sans-serif", color: 'var(--lcars-gray)', textTransform: 'uppercase' }}>
+          Loading configuration...
+        </p>
+      </LCARSPanel>
     )
   }
 
   if (!settings) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <Link to="/settings" style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-          color: 'var(--lcars-ice)', textDecoration: 'none',
-          fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-          textTransform: 'uppercase', letterSpacing: '0.05em',
-        }}>
-          <ArrowLeft size={16} /> Settings
-        </Link>
-        <LCARSPanel title="Notification Configuration" color="var(--lcars-tomato)">
-          <p style={{ fontFamily: "'Antonio', sans-serif", color: 'var(--lcars-tomato)', textTransform: 'uppercase' }}>
-            Failed to load notification settings
-          </p>
-        </LCARSPanel>
-      </div>
+      <LCARSPanel title="Notification Configuration" color="var(--lcars-tomato)">
+        <p style={{ fontFamily: "'Antonio', sans-serif", color: 'var(--lcars-tomato)', textTransform: 'uppercase' }}>
+          Failed to load notification settings
+        </p>
+      </LCARSPanel>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Back link */}
-      <Link
-        to="/settings"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.375rem',
-          color: 'var(--lcars-ice)',
-          textDecoration: 'none',
-          fontFamily: "'Antonio', sans-serif",
-          fontSize: '0.85rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}
-      >
-        <ArrowLeft size={16} />
-        Settings
-      </Link>
-
+    <>
       {/* Global toggle panel */}
       <LCARSPanel
         title="Global Notifications"
@@ -330,6 +376,6 @@ export default function LCARSNotificationSettings() {
           {saving ? 'Saving...' : 'Save Configuration'}
         </button>
       </LCARSPanel>
-    </div>
+    </>
   )
 }

@@ -233,6 +233,10 @@ def _check_launch_reminders(launches_data, settings):
                        (disabled when null/0).
 
     Each (launch, gate) pair is only notified once per process lifetime.
+    To prevent duplicate notifications when both gates qualify on the same
+    sync cycle (e.g., after a restart), only ONE notification is emitted per
+    launch per sync. All qualifying gates are still marked as notified so
+    they won't fire again in future cycles.
     """
     now = datetime.now(timezone.utc)
 
@@ -257,26 +261,36 @@ def _check_launch_reminders(launches_data, settings):
         if launch_time <= now:
             continue  # Already launched
 
+        # Track whether we've already emitted for this launch in this sync cycle.
+        # This prevents duplicate notifications when multiple gates qualify at once
+        # (e.g., after app restart or when gate windows overlap).
+        emitted_this_launch = False
+
         for gate_name, gate_delta in gates:
             dedup_key = f"{launch_id}_{gate_name}"
             if dedup_key in _notified_launches:
                 continue
 
             if launch_time <= now + gate_delta:
+                # Mark this gate as handled regardless of whether we emit,
+                # so it won't fire again on the next sync cycle.
                 _notified_launches.add(dedup_key)
 
-                hours_until = (launch_time - now).total_seconds() / 3600
-                if hours_until < 1:
-                    time_label = f"{round(hours_until * 60)} minutes"
-                else:
-                    time_label = f"{round(hours_until, 1)} hours"
+                if not emitted_this_launch:
+                    emitted_this_launch = True
 
-                _emit_event('astro.launch_reminder',
-                            launch_name=launch.get('name', 'Unknown Launch'),
-                            provider=launch.get('launch_service_provider', {}).get('name', 'Unknown'),
-                            net=net,
-                            hours_until=time_label,
-                            pad_name=launch.get('pad', {}).get('name', 'Unknown'))
+                    hours_until = (launch_time - now).total_seconds() / 3600
+                    if hours_until < 1:
+                        time_label = f"{round(hours_until * 60)} minutes"
+                    else:
+                        time_label = f"{round(hours_until, 1)} hours"
+
+                    _emit_event('astro.launch_reminder',
+                                launch_name=launch.get('name', 'Unknown Launch'),
+                                provider=launch.get('launch_service_provider', {}).get('name', 'Unknown'),
+                                net=net,
+                                hours_until=time_label,
+                                pad_name=launch.get('pad', {}).get('name', 'Unknown'))
 
 
 def _emit_event(event_name, **payload):
