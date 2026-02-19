@@ -347,7 +347,7 @@ export default function Infrastructure() {
 
 function SummaryCard({ icon, label, value, color, sub, to }) {
   const content = (
-    <div className="card" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <div className="card" style={{ padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', height: '100%' }}>
       <div style={{
         width: '42px', height: '42px', borderRadius: '10px',
         background: `${color}15`,
@@ -364,7 +364,7 @@ function SummaryCard({ icon, label, value, color, sub, to }) {
     </div>
   )
 
-  if (to) return <Link to={to} style={{ textDecoration: 'none', color: 'inherit' }}>{content}</Link>
+  if (to) return <Link to={to} style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}>{content}</Link>
   return content
 }
 

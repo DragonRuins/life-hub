@@ -28,10 +28,12 @@
     "@tiptap/react": "^3.19.0",
     "@tiptap/starter-kit": "^3.19.0",
     "lowlight": "^3.3.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "mermaid": "^11.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.1.0",
     "recharts": "^3.7.0"
   },

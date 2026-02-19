@@ -126,6 +126,31 @@ AVAILABLE_EVENTS = [
                    'miles_remaining', 'days_remaining', 'miles_overdue', 'days_overdue',
                    'next_due_mileage', 'next_due_date'],
     },
+    # ── Astrometrics Events ───────────────────────────────────
+    {
+        'name': 'astro.launch_reminder',
+        'module': 'astrometrics',
+        'description': 'When a rocket launch is approaching within the configured reminder window',
+        'fields': ['name', 'provider', 'net', 'hours_until', 'pad'],
+    },
+    {
+        'name': 'astro.neo_close_approach',
+        'module': 'astrometrics',
+        'description': 'When a Near Earth Object passes closer than the configured threshold',
+        'fields': ['name', 'date', 'miss_distance_ld', 'miss_distance_km', 'is_hazardous'],
+    },
+    {
+        'name': 'astro.neo_hazardous',
+        'module': 'astrometrics',
+        'description': 'When a potentially hazardous asteroid is detected this week',
+        'fields': ['name', 'date', 'miss_distance_ld', 'velocity_kps'],
+    },
+    {
+        'name': 'astro.apod_new',
+        'module': 'astrometrics',
+        'description': 'When a new Astronomy Picture of the Day is available',
+        'fields': ['title', 'date', 'media_type'],
+    },
 ]
 
 

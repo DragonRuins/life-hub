@@ -17,3 +17,4 @@ from .kb import (
     KBCategory, KBTag, kb_article_tags, KBArticle,
     KBArticleLink, KBArticleRevision, KBBookmark, KBRecentView
 )
+from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings

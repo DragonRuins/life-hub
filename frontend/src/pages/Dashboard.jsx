@@ -9,8 +9,8 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban, BookOpen, Server } from 'lucide-react'
-import { dashboard, vehicles, projects, kb, infrastructure as infraApi } from '../api/client'
+import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban, BookOpen, Server, Telescope } from 'lucide-react'
+import { dashboard, vehicles, projects, kb, infrastructure as infraApi, astrometrics as astroApi } from '../api/client'
 import { getWeatherInfo, getDayName } from '../components/weatherCodes'
 import MaintenanceForm from '../components/MaintenanceForm'
 import FuelForm from '../components/FuelForm'
@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [projectStats, setProjectStats] = useState(null)
   const [kbStats, setKbStats] = useState(null)
   const [infraDash, setInfraDash] = useState(null)
+  const [astroData, setAstroData] = useState(null)
   const [selectedVehicleName, setSelectedVehicleName] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
@@ -55,7 +56,7 @@ export default function Dashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, s, v, items, pStats, kStats, iDash] = await Promise.all([
+      const [w, s, v, items, pStats, kStats, iDash, astroNext, astroCrew] = await Promise.all([
         dashboard.getWeather(),
         dashboard.getSummary(params),
         vehicles.list(),
@@ -63,6 +64,8 @@ export default function Dashboard() {
         projects.stats().catch(() => null),
         kb.stats().catch(() => null),
         infraApi.dashboard().catch(() => null),
+        astroApi.launches.next().catch(() => null),
+        astroApi.iss.crew().catch(() => null),
       ])
       setWeather(w)
       setSummary(s)
@@ -71,6 +74,10 @@ export default function Dashboard() {
       setProjectStats(pStats)
       setKbStats(kStats)
       setInfraDash(iDash)
+      setAstroData({
+        nextLaunch: astroNext?.data || null,
+        crewCount: astroCrew?.data?.number || 0,
+      })
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -529,6 +536,68 @@ export default function Dashboard() {
               message="No infrastructure configured"
               linkTo="/infrastructure"
               linkLabel="Add your first host"
+            />
+          )}
+        </div>
+
+        {/* Astrometrics Card */}
+        <div className="card">
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '8px',
+                background: 'rgba(137, 180, 250, 0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}>
+                <Telescope size={18} style={{ color: 'var(--color-blue)' }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Astrometrics</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                  space & astronomy
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+              <Link to="/astrometrics" className="btn btn-ghost" style={smallBtnStyle}>View All</Link>
+            </div>
+          </div>
+
+          {astroData ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Next Launch */}
+              {astroData.nextLaunch && (
+                <div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-subtext-0)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                    Next Launch
+                  </div>
+                  <div style={{ padding: '0.5rem 0.625rem', background: 'var(--color-mantle)', borderRadius: '8px', fontSize: '0.85rem' }}>
+                    <div style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {astroData.nextLaunch.name}
+                    </div>
+                    {astroData.nextLaunch.net && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', marginTop: '0.125rem' }}>
+                        {new Date(astroData.nextLaunch.net).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Crew Count */}
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{astroData.crewCount}</span>
+                  humans in space
+                </div>
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              message="No astrometrics data"
+              linkTo="/astrometrics"
+              linkLabel="Explore Astrometrics"
             />
           )}
         </div>

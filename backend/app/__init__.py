@@ -68,6 +68,9 @@ def create_app():
     from app.routes.infrastructure import infrastructure_bp
     app.register_blueprint(infrastructure_bp, url_prefix='/api/infrastructure')
 
+    from app.routes.astrometrics import astrometrics_bp
+    app.register_blueprint(astrometrics_bp, url_prefix='/api/astrometrics')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -76,7 +79,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics  # noqa: F401
         db.create_all()
 
         # Auto-seed preset maintenance items if the table is empty.
@@ -86,6 +89,12 @@ def create_app():
             from app.models.maintenance_interval import MaintenanceItem
             if MaintenanceItem.query.count() == 0:
                 _seed_maintenance_items(db)
+        except Exception:
+            pass  # Don't break startup if seeding fails
+
+        # Auto-seed astrometrics notification rules (all disabled by default).
+        try:
+            _seed_astro_notification_rules(db)
         except Exception:
             pass  # Don't break startup if seeding fails
 
@@ -146,4 +155,67 @@ def _seed_maintenance_items(db):
             default_months_interval=months,
             is_preset=True, sort_order=sort_order,
         ))
+    db.session.commit()
+
+
+def _seed_astro_notification_rules(db):
+    """Seed default astrometrics notification rules on first startup.
+
+    Creates 4 event-based rules (all disabled by default) so the user
+    can enable them from the Notifications settings page.
+    """
+    from app.models.notification import NotificationRule
+
+    astro_rules = [
+        {
+            'name': 'Launch Reminder',
+            'event_name': 'astro.launch_reminder',
+            'module': 'astrometrics',
+            'description': 'Get notified before upcoming launches',
+            'title_template': 'Upcoming Launch: {{launch_name}}',
+            'body_template': '{{launch_name}} is launching in {{hours_until}} hours from {{pad_name}}.',
+        },
+        {
+            'name': 'NEO Close Approach',
+            'event_name': 'astro.neo_close_approach',
+            'module': 'astrometrics',
+            'description': 'Alert when an asteroid passes within threshold distance',
+            'title_template': 'Close Approach: {{neo_name}}',
+            'body_template': '{{neo_name}} will pass within {{miss_distance_ld}} lunar distances on {{close_approach_date}}.',
+        },
+        {
+            'name': 'Hazardous NEO Alert',
+            'event_name': 'astro.neo_hazardous',
+            'module': 'astrometrics',
+            'description': 'Alert when a potentially hazardous asteroid is detected nearby',
+            'title_template': 'Hazardous Asteroid: {{neo_name}}',
+            'body_template': 'Potentially hazardous asteroid {{neo_name}} (diameter ~{{diameter_m}}m) approaching within {{miss_distance_ld}} LD.',
+        },
+        {
+            'name': 'New APOD',
+            'event_name': 'astro.apod_new',
+            'module': 'astrometrics',
+            'description': 'Daily notification when a new Astronomy Picture of the Day is available',
+            'title_template': 'APOD: {{title}}',
+            'body_template': "Today's Astronomy Picture of the Day: {{title}}.",
+        },
+    ]
+
+    for rule_data in astro_rules:
+        # Only insert if the rule doesn't already exist (idempotent)
+        existing = NotificationRule.query.filter_by(
+            event_name=rule_data['event_name']
+        ).first()
+        if not existing:
+            db.session.add(NotificationRule(
+                name=rule_data['name'],
+                description=rule_data['description'],
+                module=rule_data['module'],
+                rule_type='event',
+                event_name=rule_data['event_name'],
+                title_template=rule_data['title_template'],
+                body_template=rule_data['body_template'],
+                priority='normal',
+                is_enabled=False,
+            ))
     db.session.commit()

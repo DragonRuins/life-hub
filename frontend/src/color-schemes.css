@@ -1,0 +1,275 @@
+/* ── Color Scheme Overrides ─────────────────────────────────────
+   Each scheme overrides the --color-* CSS variables defined in @theme.
+   Applied via data-color-scheme attribute on <html>.
+   Mocha (default) uses the base @theme values — no override needed.
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Catppuccin Macchiato ──────────────────────────────────────── */
+html[data-color-scheme="macchiato"] {
+  color-scheme: dark;
+  --color-crust: #181926;
+  --color-mantle: #1e2030;
+  --color-base: #24273a;
+  --color-surface-0: #363a4f;
+  --color-surface-1: #494d64;
+  --color-surface-2: #5b6078;
+  --color-overlay-0: #6e738d;
+  --color-overlay-1: #8087a2;
+  --color-text: #cad3f5;
+  --color-subtext-0: #a5adcb;
+  --color-subtext-1: #b8c0e0;
+  --color-blue: #8aadf4;
+  --color-green: #a6da95;
+  --color-peach: #f5a97f;
+  --color-red: #ed8796;
+  --color-mauve: #c6a0f6;
+  --color-yellow: #eed49f;
+  --color-teal: #8bd5ca;
+  --color-sky: #91d7e3;
+  --color-lavender: #b7bdf8;
+  --color-flamingo: #f0c6c6;
+  --color-rosewater: #f4dbd6;
+}
+
+/* ── Catppuccin Frappe ─────────────────────────────────────────── */
+html[data-color-scheme="frappe"] {
+  color-scheme: dark;
+  --color-crust: #232634;
+  --color-mantle: #292c3c;
+  --color-base: #303446;
+  --color-surface-0: #414559;
+  --color-surface-1: #51576d;
+  --color-surface-2: #626880;
+  --color-overlay-0: #737994;
+  --color-overlay-1: #838ba7;
+  --color-text: #c6d0f5;
+  --color-subtext-0: #a5adce;
+  --color-subtext-1: #b5bfe2;
+  --color-blue: #8caaee;
+  --color-green: #a6d189;
+  --color-peach: #ef9f76;
+  --color-red: #e78284;
+  --color-mauve: #ca9ee6;
+  --color-yellow: #e5c890;
+  --color-teal: #81c8be;
+  --color-sky: #99d1db;
+  --color-lavender: #babbf1;
+  --color-flamingo: #eebebe;
+  --color-rosewater: #f2d5cf;
+}
+
+/* ── Catppuccin Latte (light) ──────────────────────────────────── */
+html[data-color-scheme="latte"] {
+  color-scheme: light;
+  --color-crust: #dce0e8;
+  --color-mantle: #e6e9ef;
+  --color-base: #eff1f5;
+  --color-surface-0: #ccd0da;
+  --color-surface-1: #bcc0cc;
+  --color-surface-2: #acb0be;
+  --color-overlay-0: #9ca0b0;
+  --color-overlay-1: #8c8fa1;
+  --color-text: #4c4f69;
+  --color-subtext-0: #6c6f85;
+  --color-subtext-1: #5c5f77;
+  --color-blue: #1e66f5;
+  --color-green: #40a02b;
+  --color-peach: #fe640b;
+  --color-red: #d20f39;
+  --color-mauve: #8839ef;
+  --color-yellow: #df8e1d;
+  --color-teal: #179299;
+  --color-sky: #04a5e5;
+  --color-lavender: #7287fd;
+  --color-flamingo: #dd7878;
+  --color-rosewater: #dc8a78;
+}
+
+/* ── Rose Pine ─────────────────────────────────────────────────── */
+html[data-color-scheme="rose-pine"] {
+  color-scheme: dark;
+  --color-crust: #171520;
+  --color-mantle: #1f1d2e;
+  --color-base: #232136;
+  --color-surface-0: #2a273f;
+  --color-surface-1: #393552;
+  --color-surface-2: #44415a;
+  --color-overlay-0: #56526e;
+  --color-overlay-1: #6e6a86;
+  --color-text: #e0def4;
+  --color-subtext-0: #908caa;
+  --color-subtext-1: #c4a7e7;
+  --color-blue: #9ccfd8;
+  --color-green: #31748f;
+  --color-peach: #ebbcba;
+  --color-red: #eb6f92;
+  --color-mauve: #c4a7e7;
+  --color-yellow: #f6c177;
+  --color-teal: #9ccfd8;
+  --color-sky: #9ccfd8;
+  --color-lavender: #c4a7e7;
+  --color-flamingo: #ebbcba;
+  --color-rosewater: #ebbcba;
+}
+
+/* ── Rose Pine Dawn (light) ────────────────────────────────────── */
+html[data-color-scheme="rose-pine-dawn"] {
+  color-scheme: light;
+  --color-crust: #f2e9e1;
+  --color-mantle: #faf4ed;
+  --color-base: #fffaf3;
+  --color-surface-0: #f2e9e1;
+  --color-surface-1: #dfdad9;
+  --color-surface-2: #cecacd;
+  --color-overlay-0: #9893a5;
+  --color-overlay-1: #797593;
+  --color-text: #575279;
+  --color-subtext-0: #797593;
+  --color-subtext-1: #907aa9;
+  --color-blue: #56949f;
+  --color-green: #286983;
+  --color-peach: #d7827e;
+  --color-red: #b4637a;
+  --color-mauve: #907aa9;
+  --color-yellow: #ea9d34;
+  --color-teal: #56949f;
+  --color-sky: #56949f;
+  --color-lavender: #907aa9;
+  --color-flamingo: #d7827e;
+  --color-rosewater: #d7827e;
+}
+
+/* ── Dracula ───────────────────────────────────────────────────── */
+html[data-color-scheme="dracula"] {
+  color-scheme: dark;
+  --color-crust: #1d1f2b;
+  --color-mantle: #21222c;
+  --color-base: #282a36;
+  --color-surface-0: #343746;
+  --color-surface-1: #3e4154;
+  --color-surface-2: #4d5066;
+  --color-overlay-0: #6272a4;
+  --color-overlay-1: #7284b8;
+  --color-text: #f8f8f2;
+  --color-subtext-0: #bfbfb2;
+  --color-subtext-1: #d8d8d2;
+  --color-blue: #8be9fd;
+  --color-green: #50fa7b;
+  --color-peach: #ffb86c;
+  --color-red: #ff5555;
+  --color-mauve: #bd93f9;
+  --color-yellow: #f1fa8c;
+  --color-teal: #8be9fd;
+  --color-sky: #8be9fd;
+  --color-lavender: #bd93f9;
+  --color-flamingo: #ff79c6;
+  --color-rosewater: #ff79c6;
+}
+
+/* ── Gruvbox Dark ──────────────────────────────────────────────── */
+html[data-color-scheme="gruvbox-dark"] {
+  color-scheme: dark;
+  --color-crust: #1d2021;
+  --color-mantle: #282828;
+  --color-base: #32302f;
+  --color-surface-0: #3c3836;
+  --color-surface-1: #504945;
+  --color-surface-2: #665c54;
+  --color-overlay-0: #7c6f64;
+  --color-overlay-1: #928374;
+  --color-text: #ebdbb2;
+  --color-subtext-0: #bdae93;
+  --color-subtext-1: #d5c4a1;
+  --color-blue: #83a598;
+  --color-green: #b8bb26;
+  --color-peach: #fe8019;
+  --color-red: #fb4934;
+  --color-mauve: #d3869b;
+  --color-yellow: #fabd2f;
+  --color-teal: #8ec07c;
+  --color-sky: #83a598;
+  --color-lavender: #d3869b;
+  --color-flamingo: #fb4934;
+  --color-rosewater: #fe8019;
+}
+
+/* ── Tokyo Night ───────────────────────────────────────────────── */
+html[data-color-scheme="tokyo-night"] {
+  color-scheme: dark;
+  --color-crust: #16161e;
+  --color-mantle: #1a1b26;
+  --color-base: #1f2335;
+  --color-surface-0: #292e42;
+  --color-surface-1: #3b4261;
+  --color-surface-2: #545c7e;
+  --color-overlay-0: #565f89;
+  --color-overlay-1: #737aa2;
+  --color-text: #c0caf5;
+  --color-subtext-0: #a9b1d6;
+  --color-subtext-1: #9aa5ce;
+  --color-blue: #7aa2f7;
+  --color-green: #9ece6a;
+  --color-peach: #ff9e64;
+  --color-red: #f7768e;
+  --color-mauve: #bb9af7;
+  --color-yellow: #e0af68;
+  --color-teal: #73daca;
+  --color-sky: #7dcfff;
+  --color-lavender: #bb9af7;
+  --color-flamingo: #f7768e;
+  --color-rosewater: #ff9e64;
+}
+
+/* ── Solarized Dark ────────────────────────────────────────────── */
+html[data-color-scheme="solarized-dark"] {
+  color-scheme: dark;
+  --color-crust: #00212b;
+  --color-mantle: #002b36;
+  --color-base: #073642;
+  --color-surface-0: #0a4050;
+  --color-surface-1: #1a5060;
+  --color-surface-2: #2a6070;
+  --color-overlay-0: #586e75;
+  --color-overlay-1: #657b83;
+  --color-text: #fdf6e3;
+  --color-subtext-0: #93a1a1;
+  --color-subtext-1: #eee8d5;
+  --color-blue: #268bd2;
+  --color-green: #859900;
+  --color-peach: #cb4b16;
+  --color-red: #dc322f;
+  --color-mauve: #6c71c4;
+  --color-yellow: #b58900;
+  --color-teal: #2aa198;
+  --color-sky: #268bd2;
+  --color-lavender: #6c71c4;
+  --color-flamingo: #d33682;
+  --color-rosewater: #cb4b16;
+}
+
+/* ── Solarized Light ───────────────────────────────────────────── */
+html[data-color-scheme="solarized-light"] {
+  color-scheme: light;
+  --color-crust: #eee8d5;
+  --color-mantle: #fdf6e3;
+  --color-base: #fdf6e3;
+  --color-surface-0: #eee8d5;
+  --color-surface-1: #ddd6c1;
+  --color-surface-2: #ccc5af;
+  --color-overlay-0: #93a1a1;
+  --color-overlay-1: #839496;
+  --color-text: #073642;
+  --color-subtext-0: #586e75;
+  --color-subtext-1: #657b83;
+  --color-blue: #268bd2;
+  --color-green: #859900;
+  --color-peach: #cb4b16;
+  --color-red: #dc322f;
+  --color-mauve: #6c71c4;
+  --color-yellow: #b58900;
+  --color-teal: #2aa198;
+  --color-sky: #268bd2;
+  --color-lavender: #6c71c4;
+  --color-flamingo: #d33682;
+  --color-rosewater: #cb4b16;
+}

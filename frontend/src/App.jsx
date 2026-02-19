@@ -6,7 +6,7 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star, Server } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star, Server, Telescope } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
@@ -45,6 +45,10 @@ import LCARSInfraNetwork from './themes/lcars/LCARSInfraNetwork'
 import LCARSInfraServices from './themes/lcars/LCARSInfraServices'
 import LCARSInfraIncidents from './themes/lcars/LCARSInfraIncidents'
 import LCARSInfraIntegrations from './themes/lcars/LCARSInfraIntegrations'
+import Astrometrics from './pages/Astrometrics'
+import LCARSAstrometrics from './themes/lcars/LCARSAstrometrics'
+import SettingsPage from './pages/Settings'
+import LCARSSettings from './themes/lcars/LCARSSettings'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
@@ -98,7 +102,9 @@ function LCARSAppShell() {
         <Route path="/infrastructure/services" element={<LCARSInfraServices />} />
         <Route path="/infrastructure/incidents" element={<LCARSInfraIncidents />} />
         <Route path="/infrastructure/integrations" element={<LCARSInfraIntegrations />} />
+        <Route path="/astrometrics" element={<LCARSAstrometrics />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/settings" element={<LCARSSettings />} />
       </Routes>
     </LCARSLayout>
   )
@@ -171,6 +177,9 @@ function AppShell() {
             <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={sidebarCollapsed} />
             <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={sidebarCollapsed} />
             <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={sidebarCollapsed} />
+            <div style={{ flex: 1 }} />
+            <SidebarLink to="/settings" icon={<Settings size={20} />} label="Settings" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -265,6 +274,9 @@ function AppShell() {
               <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <div style={{ flex: 1 }} />
+              <SidebarLink to="/settings" icon={<Settings size={20} />} label="Settings" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -302,7 +314,9 @@ function AppShell() {
             <Route path="/infrastructure/services" element={<InfraServices />} />
             <Route path="/infrastructure/incidents" element={<InfraIncidents />} />
             <Route path="/infrastructure/integrations" element={<InfraIntegrations />} />
+            <Route path="/astrometrics" element={<Astrometrics />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </div>
       </main>
@@ -427,6 +441,28 @@ function HeaderBar({ isMobile, onMenuClick }) {
             zIndex: 1000,
             overflow: 'hidden',
           }}>
+            <button
+              onClick={() => { setGearOpen(false); navigate('/settings') }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                width: '100%',
+                padding: '0.75rem 1rem',
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-text)',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              Settings
+            </button>
             <button
               onClick={() => { setGearOpen(false); navigate('/notifications') }}
               style={{

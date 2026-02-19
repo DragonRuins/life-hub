@@ -17,10 +17,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, Star, X,
   Fuel, Thermometer, AlertTriangle, DollarSign, Gauge,
-  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen, Server
+  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen, Server, Telescope
 } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-import { dashboard, vehicles, notifications, projects, kb, infrastructure as infraApi } from '../../api/client'
+import { dashboard, vehicles, notifications, projects, kb, infrastructure as infraApi, astrometrics as astroApi } from '../../api/client'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import { getComponentType } from '../../constants/componentTypes'
 import MaintenanceForm from '../../components/MaintenanceForm'
@@ -60,6 +60,7 @@ export default function LCARSDashboard() {
   const [projectStats, setProjectStats] = useState(null)
   const [kbStats, setKbStats] = useState(null)
   const [infraDash, setInfraDash] = useState(null)
+  const [astroData, setAstroData] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
   function getDashboardParams() {
@@ -71,7 +72,7 @@ export default function LCARSDashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats, iDash] = await Promise.all([
+      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats, iDash, astroNext, astroCrew] = await Promise.all([
         dashboard.getWeather().catch(() => null),
         dashboard.getFleetStatus(params).catch(() => null),
         dashboard.getSummary(params),
@@ -82,6 +83,8 @@ export default function LCARSDashboard() {
         projects.stats().catch(() => null),
         kb.stats().catch(() => null),
         infraApi.dashboard().catch(() => null),
+        astroApi.launches.next().catch(() => null),
+        astroApi.iss.crew().catch(() => null),
       ])
       setWeather(w)
       setFleetStatus(fs)
@@ -93,6 +96,10 @@ export default function LCARSDashboard() {
       setProjectStats(pStats)
       setKbStats(kStats)
       setInfraDash(iDash)
+      setAstroData({
+        nextLaunch: astroNext?.data || null,
+        crewCount: astroCrew?.data?.number || 0,
+      })
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -283,6 +290,11 @@ export default function LCARSDashboard() {
       {/* Row 9: Engineering Status */}
       <div style={{ marginBottom: '1rem' }}>
         <LCARSEngineeringPanel data={infraDash} />
+      </div>
+
+      {/* Row 10: Astrometrics */}
+      <div style={{ marginBottom: '1rem' }}>
+        <LCARSAstrometricsPanel data={astroData} />
       </div>
 
       {/* Quick Add Maintenance Modal */}
@@ -1720,6 +1732,124 @@ function LCARSEngineeringPanel({ data }) {
                 color="var(--lcars-tanoi)"
               />
             ))}
+          </div>
+        )}
+      </div>
+    </LCARSPanel>
+  )
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Astrometrics Panel
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Astrometrics summary panel for the LCARS dashboard.
+ * Shows next launch, crew in space count.
+ */
+function LCARSAstrometricsPanel({ data }) {
+  if (!data) {
+    return (
+      <LCARSPanel title="Astrometrics" color="var(--lcars-ice)">
+        <div style={{
+          padding: '1.5rem',
+          textAlign: 'center',
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.85rem',
+          color: 'var(--lcars-gray)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}>
+          No astrometrics data available
+        </div>
+      </LCARSPanel>
+    )
+  }
+
+  return (
+    <LCARSPanel
+      title="Astrometrics"
+      color="var(--lcars-ice)"
+      headerRight={
+        <Link to="/astrometrics" style={{
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.72rem',
+          textTransform: 'uppercase',
+          color: '#000000',
+          textDecoration: 'none',
+          letterSpacing: '0.05em',
+        }}>
+          Full Scan
+        </Link>
+      }
+    >
+      <div style={{ padding: '0.75rem' }}>
+        {/* System header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '0.75rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Telescope size={16} color="var(--lcars-ice)" />
+            <span style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--lcars-ice)',
+            }}>
+              Sensor Array: Online
+            </span>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '0.5rem',
+          marginBottom: '0.75rem',
+        }}>
+          <LCARSStat
+            label="Crew in Space"
+            value={data.crewCount}
+            color="var(--lcars-ice)"
+          />
+        </div>
+
+        {/* Next launch */}
+        {data.nextLaunch && (
+          <div style={{ borderTop: '1px solid rgba(102, 102, 136, 0.3)', paddingTop: '0.5rem' }}>
+            <div style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '0.65rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--lcars-gray)',
+              marginBottom: '0.375rem',
+            }}>
+              Next Mission
+            </div>
+            <LCARSDataRow
+              icon={<Telescope size={13} />}
+              label={data.nextLaunch.name}
+              value={data.nextLaunch.net
+                ? new Date(data.nextLaunch.net).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : 'TBD'}
+              color="var(--lcars-sunflower)"
+            />
+            {data.nextLaunch.launch_service_provider?.name && (
+              <LCARSDataRow
+                icon={<Server size={13} />}
+                label="Provider"
+                value={data.nextLaunch.launch_service_provider.name}
+                color="var(--lcars-gray)"
+              />
+            )}
           </div>
         )}
       </div>

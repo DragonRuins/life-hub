@@ -605,6 +605,79 @@ export const notifications = {
   }),
 }
 
+// ── Astrometrics ──────────────────────────────────────────────────
+
+export const astrometrics = {
+  // APOD (Astronomy Picture of the Day)
+  apod: {
+    get: (date) => {
+      const params = date ? `?date=${date}` : ''
+      return apiFetch(`/astrometrics/apod${params}`)
+    },
+    random: () => apiFetch('/astrometrics/apod/random'),
+    favorites: {
+      list: () => apiFetch('/astrometrics/apod/favorites'),
+      save: (data) => apiFetch('/astrometrics/apod/favorites', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => apiFetch(`/astrometrics/apod/favorites/${id}`, { method: 'DELETE' }),
+    },
+  },
+
+  // NEO (Near Earth Objects)
+  neo: {
+    feed: (start, end) => {
+      const params = new URLSearchParams()
+      if (start) params.set('start', start)
+      if (end) params.set('end', end)
+      const query = params.toString()
+      return apiFetch(`/astrometrics/neo${query ? '?' + query : ''}`)
+    },
+    closest: () => apiFetch('/astrometrics/neo/closest'),
+    hazardous: () => apiFetch('/astrometrics/neo/hazardous'),
+  },
+
+  // ISS (International Space Station)
+  iss: {
+    position: () => apiFetch('/astrometrics/iss/position'),
+    crew: () => apiFetch('/astrometrics/iss/crew'),
+    passes: (days) => {
+      const params = days ? `?days=${days}` : ''
+      return apiFetch(`/astrometrics/iss/passes${params}`)
+    },
+    groundtrack: (minutes) => {
+      const params = minutes ? `?minutes=${minutes}` : ''
+      return apiFetch(`/astrometrics/iss/groundtrack${params}`)
+    },
+  },
+
+  // Launches
+  launches: {
+    upcoming: (limit) => {
+      const params = limit ? `?limit=${limit}` : ''
+      return apiFetch(`/astrometrics/launches/upcoming${params}`)
+    },
+    past: (limit) => {
+      const params = limit ? `?limit=${limit}` : ''
+      return apiFetch(`/astrometrics/launches/past${params}`)
+    },
+    next: () => apiFetch('/astrometrics/launches/next'),
+  },
+
+  // Settings
+  settings: {
+    get: () => apiFetch('/astrometrics/settings'),
+    update: (data) => apiFetch('/astrometrics/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  },
+
+  // Cache status
+  status: () => apiFetch('/astrometrics/status'),
+}
+
 // ── Infrastructure ────────────────────────────────────────────────
 
 export const infrastructure = {

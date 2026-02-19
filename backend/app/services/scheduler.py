@@ -57,6 +57,7 @@ def init_scheduler(app):
             _add_infrastructure_sync_job()
             _add_uptime_check_job()
             _add_metrics_retention_job()
+            _add_astrometrics_sync_job()
 
         logger.info("Notification scheduler started")
 
@@ -443,3 +444,42 @@ def _run_metrics_retention():
         except Exception as e:
             db.session.rollback()
             logger.error(f"Metrics retention job failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Astrometrics Sync Job
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _add_astrometrics_sync_job():
+    """
+    Add a periodic job to sync astrometrics data from external APIs.
+
+    Runs every 15 minutes (900 seconds). Pre-fetches APOD, NEO feed,
+    upcoming launches, and people in space into the cache so frontend
+    requests get fast responses.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_astrometrics_sync,
+        trigger='interval',
+        id='astrometrics_sync',
+        seconds=900,
+        replace_existing=True,
+    )
+    logger.info("Astrometrics sync job scheduled (every 900s)")
+
+
+def _run_astrometrics_sync():
+    """Execute astrometrics sync inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.astrometrics.sync_worker import run_astro_sync
+        run_astro_sync(_app)
+    except Exception as e:
+        logger.error(f"Astrometrics sync failed: {e}")
