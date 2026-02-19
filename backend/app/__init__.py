@@ -101,8 +101,39 @@ def create_app():
     # ── Initialize notification scheduler ─────────────────────
     # APScheduler runs scheduled notification rules in the background.
     # Uses PostgreSQL as the job store so jobs survive app restarts.
-    from app.services.scheduler import init_scheduler
-    init_scheduler(app)
+    #
+    # IMPORTANT: Only start the scheduler in ONE process to prevent
+    # duplicate notifications. In dev mode, Flask's reloader spawns
+    # two processes — only the child (WERKZEUG_RUN_MAIN=true) should
+    # run the scheduler. In production with Gunicorn, we use a file
+    # lock so only the first worker starts it.
+    import os
+    should_start_scheduler = True
+
+    # Dev mode: Flask reloader spawns parent + child. Only run in child.
+    if os.environ.get('FLASK_ENV') != 'production':
+        if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+            should_start_scheduler = False
+    else:
+        # Production (Gunicorn with multiple workers): use a file lock
+        # so only the first worker to acquire the lock starts the scheduler.
+        import fcntl
+        lock_path = '/tmp/datacore_scheduler.lock'
+        try:
+            # Open (or create) the lock file and try a non-blocking exclusive lock
+            lock_fd = open(lock_path, 'w')
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Got the lock — this worker runs the scheduler.
+            # Keep lock_fd open for the lifetime of the process (GC won't close
+            # it because we store a reference on the app object).
+            app._scheduler_lock_fd = lock_fd
+        except (IOError, OSError):
+            # Another worker already holds the lock — skip scheduler.
+            should_start_scheduler = False
+
+    if should_start_scheduler:
+        from app.services.scheduler import init_scheduler
+        init_scheduler(app)
 
     # Simple health check endpoint
     @app.route('/api/health')
