@@ -635,7 +635,7 @@ export default function LCARSInfraHostDetail() {
           <LCARSPanel
             title="Hardware Configuration"
             color="var(--lcars-ice)"
-            headerRight={host.host_stats_available ? (
+            headerRight={
               <button
                 onClick={handleDetectHardware}
                 disabled={detectingHw}
@@ -655,7 +655,7 @@ export default function LCARSInfraHostDetail() {
               >
                 {detectingHw ? 'Scanning...' : 'Auto-Detect'}
               </button>
-            ) : null}
+            }
           >
             {detectMsg && (
               <div style={{
@@ -725,9 +725,7 @@ export default function LCARSInfraHostDetail() {
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: '0.85rem',
               }}>
-                {host.host_stats_available
-                  ? 'No hardware specifications on file — use Auto-Detect to scan'
-                  : 'No hardware specifications on file. Mount /proc and /sys to enable auto-detection.'}
+                No hardware specifications on file — use Auto-Detect to scan
               </div>
             )}
           </LCARSPanel>

@@ -392,17 +392,15 @@ export default function InfraHostDetail() {
           <div className="card" style={{ marginBottom: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>Hardware</h3>
-              {host.host_stats_available && (
-                <button
-                  className="btn btn-ghost"
-                  onClick={handleDetectHardware}
-                  disabled={detectingHw}
-                  style={{ fontSize: '0.8rem', padding: '0.3rem 0.625rem' }}
-                >
-                  <Cpu size={14} />
-                  {detectingHw ? 'Detecting...' : 'Auto-Detect'}
-                </button>
-              )}
+              <button
+                className="btn btn-ghost"
+                onClick={handleDetectHardware}
+                disabled={detectingHw}
+                style={{ fontSize: '0.8rem', padding: '0.3rem 0.625rem' }}
+              >
+                <Cpu size={14} />
+                {detectingHw ? 'Detecting...' : 'Auto-Detect'}
+              </button>
             </div>
             {detectMsg && (
               <p style={{
@@ -423,9 +421,7 @@ export default function InfraHostDetail() {
             </div>
             {Object.keys(hw).length === 0 && (
               <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem' }}>
-                {host.host_stats_available
-                  ? 'No hardware specs yet. Click "Auto-Detect" to scan this host.'
-                  : 'No hardware specs entered. Mount /proc and /sys in Docker to enable auto-detection.'}
+                No hardware specs yet. Click "Auto-Detect" to scan this host.
               </p>
             )}
           </div>
