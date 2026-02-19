@@ -37,6 +37,7 @@ services:
     volumes:
       - ./backend:/app  # Hot-reload: edit files, see changes instantly
       - uploads:/app/uploads  # Persistent file storage for note attachments
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker API access for infrastructure module
     command: python run.py  # Dev: Flask dev server with hot-reload
     ports:
       - "5001:5000"

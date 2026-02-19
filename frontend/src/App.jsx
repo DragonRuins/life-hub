@@ -6,7 +6,7 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Monitor, Menu, X, Star, Server } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
@@ -33,6 +33,18 @@ import LCARSProjects from './themes/lcars/LCARSProjects'
 import LCARSProjectDetail from './themes/lcars/LCARSProjectDetail'
 import KnowledgeBase from './pages/kb/KnowledgeBase'
 import LCARSKnowledgeBase from './themes/lcars/LCARSKnowledgeBase'
+import Infrastructure from './pages/Infrastructure'
+import InfraHostDetail from './pages/InfraHostDetail'
+import InfraNetwork from './pages/InfraNetwork'
+import InfraServices from './pages/InfraServices'
+import InfraIncidents from './pages/InfraIncidents'
+import InfraIntegrations from './pages/InfraIntegrations'
+import LCARSInfrastructure from './themes/lcars/LCARSInfrastructure'
+import LCARSInfraHostDetail from './themes/lcars/LCARSInfraHostDetail'
+import LCARSInfraNetwork from './themes/lcars/LCARSInfraNetwork'
+import LCARSInfraServices from './themes/lcars/LCARSInfraServices'
+import LCARSInfraIncidents from './themes/lcars/LCARSInfraIncidents'
+import LCARSInfraIntegrations from './themes/lcars/LCARSInfraIntegrations'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
@@ -80,6 +92,12 @@ function LCARSAppShell() {
         <Route path="/kb" element={<LCARSKnowledgeBase />} />
         <Route path="/kb/:slug" element={<LCARSKnowledgeBase />} />
         <Route path="/kb/:slug/edit" element={<LCARSKnowledgeBase />} />
+        <Route path="/infrastructure" element={<LCARSInfrastructure />} />
+        <Route path="/infrastructure/hosts/:id" element={<LCARSInfraHostDetail />} />
+        <Route path="/infrastructure/network" element={<LCARSInfraNetwork />} />
+        <Route path="/infrastructure/services" element={<LCARSInfraServices />} />
+        <Route path="/infrastructure/incidents" element={<LCARSInfraIncidents />} />
+        <Route path="/infrastructure/integrations" element={<LCARSInfraIntegrations />} />
         <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </LCARSLayout>
@@ -152,6 +170,7 @@ function AppShell() {
             <SidebarLink to="/notes" icon={<StickyNote size={20} />} label="Notes" collapsed={sidebarCollapsed} />
             <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={sidebarCollapsed} />
             <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -245,6 +264,7 @@ function AppShell() {
               <SidebarLink to="/notes" icon={<StickyNote size={20} />} label="Notes" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/projects" icon={<FolderKanban size={20} />} label="Projects" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -276,6 +296,12 @@ function AppShell() {
             <Route path="/kb" element={<KnowledgeBase />} />
             <Route path="/kb/:slug" element={<KnowledgeBase />} />
             <Route path="/kb/:slug/edit" element={<KnowledgeBase />} />
+            <Route path="/infrastructure" element={<Infrastructure />} />
+            <Route path="/infrastructure/hosts/:id" element={<InfraHostDetail />} />
+            <Route path="/infrastructure/network" element={<InfraNetwork />} />
+            <Route path="/infrastructure/services" element={<InfraServices />} />
+            <Route path="/infrastructure/incidents" element={<InfraIncidents />} />
+            <Route path="/infrastructure/integrations" element={<InfraIntegrations />} />
             <Route path="/notifications" element={<Notifications />} />
           </Routes>
         </div>

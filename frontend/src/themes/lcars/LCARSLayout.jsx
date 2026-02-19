@@ -34,7 +34,7 @@ export default function LCARSLayout({ children }) {
     <div className="lcars-layout">
       {/* Top-left elbow connecting sidebar to header */}
       <div className="lcars-elbow-tl">
-        <LCARSElbow position="top-left" color="var(--lcars-sunflower)" />
+        <LCARSElbow color="var(--lcars-sunflower)" />
       </div>
 
       {/* Top header bar */}
@@ -59,7 +59,7 @@ export default function LCARSLayout({ children }) {
 
       {/* Bottom-left elbow connecting sidebar to footer */}
       <div className="lcars-elbow-bl">
-        <LCARSElbow position="bottom-left" color="var(--lcars-african-violet)" />
+        <LCARSElbow color="var(--lcars-african-violet)" />
       </div>
 
       {/* Bottom: status bar on desktop, navigation on mobile */}

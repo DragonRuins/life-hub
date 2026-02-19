@@ -9,8 +9,8 @@
  */
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban, BookOpen } from 'lucide-react'
-import { dashboard, vehicles, projects, kb } from '../api/client'
+import { Car, StickyNote, Wrench, Plus, Cloud, Droplets, Wind, Pin, Star, X, Fuel, FolderKanban, BookOpen, Server } from 'lucide-react'
+import { dashboard, vehicles, projects, kb, infrastructure as infraApi } from '../api/client'
 import { getWeatherInfo, getDayName } from '../components/weatherCodes'
 import MaintenanceForm from '../components/MaintenanceForm'
 import FuelForm from '../components/FuelForm'
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
   const [kbStats, setKbStats] = useState(null)
+  const [infraDash, setInfraDash] = useState(null)
   const [selectedVehicleName, setSelectedVehicleName] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
@@ -54,13 +55,14 @@ export default function Dashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, s, v, items, pStats, kStats] = await Promise.all([
+      const [w, s, v, items, pStats, kStats, iDash] = await Promise.all([
         dashboard.getWeather(),
         dashboard.getSummary(params),
         vehicles.list(),
         vehicles.maintenanceItems.list().catch(() => []),
         projects.stats().catch(() => null),
         kb.stats().catch(() => null),
+        infraApi.dashboard().catch(() => null),
       ])
       setWeather(w)
       setSummary(s)
@@ -68,6 +70,7 @@ export default function Dashboard() {
       setMaintenanceItems(items)
       setProjectStats(pStats)
       setKbStats(kStats)
+      setInfraDash(iDash)
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -470,6 +473,53 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+        {/* Infrastructure Card */}
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '8px',
+                background: 'rgba(148, 226, 213, 0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Server size={18} style={{ color: 'var(--color-teal)' }} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Infrastructure</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)' }}>
+                  {infraDash?.hosts?.total || 0} hosts / {infraDash?.containers?.total || 0} containers
+                </span>
+              </div>
+            </div>
+            <Link to="/infrastructure" className="btn btn-ghost" style={{ fontSize: '0.8rem' }}>View All</Link>
+          </div>
+
+          {infraDash && (infraDash.hosts?.total > 0 || infraDash.containers?.total > 0) ? (
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ fontWeight: 600, color: 'var(--color-green)' }}>{infraDash.containers?.by_status?.running || 0}</span>
+                running
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ fontWeight: 600, color: 'var(--color-teal)' }}>{infraDash.services?.total || 0}</span>
+                services
+              </div>
+              {(infraDash.incidents?.active || 0) > 0 && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ fontWeight: 600, color: 'var(--color-red)' }}>{infraDash.incidents.active}</span>
+                  active incidents
+                </div>
+              )}
+            </div>
+          ) : (
+            <EmptyState
+              message="No infrastructure configured"
+              linkTo="/infrastructure"
+              linkLabel="Add your first host"
+            />
+          )}
+        </div>
 
       {/* Quick Add Maintenance Modal */}
       {showQuickAdd && (

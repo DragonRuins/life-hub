@@ -11,7 +11,7 @@
  *   - Decorative end cap
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { dashboard, notifications } from '../../api/client'
+import { dashboard, notifications, infrastructure } from '../../api/client'
 
 /**
  * Calculate a Star Trek-style stardate from a real date.
@@ -39,6 +39,7 @@ export default function LCARSFooter() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [notesCount, setNotesCount] = useState(0)
+  const [infraStatus, setInfraStatus] = useState({ hosts: 0, containers: 0 })
   const pollTimerRef = useRef(null)
 
   // Update time every second
@@ -54,15 +55,22 @@ export default function LCARSFooter() {
   // Fetch real data from API on mount and every 30 seconds
   const fetchData = useCallback(async () => {
     try {
-      const [summaryData, unreadData] = await Promise.all([
+      const [summaryData, unreadData, infraData] = await Promise.all([
         dashboard.getSummary().catch(() => null),
         notifications.unreadCount().catch(() => ({ count: 0 })),
+        infrastructure.dashboard().catch(() => null),
       ])
       if (summaryData) {
         setVehicleCount(summaryData.vehicles?.count || 0)
         setNotesCount(summaryData.notes?.count || 0)
       }
       setUnreadCount(unreadData?.count || 0)
+      if (infraData) {
+        setInfraStatus({
+          hosts: infraData.hosts?.total || 0,
+          containers: infraData.containers?.by_status?.running || 0,
+        })
+      }
     } catch {
       // Silently fail for background polling
     }
@@ -99,6 +107,14 @@ export default function LCARSFooter() {
         label={unreadCount > 0 ? `${unreadCount} ALERT${unreadCount !== 1 ? 'S' : ''}` : 'ALL CLEAR'}
         color={unreadCount > 0 ? 'var(--lcars-butterscotch)' : 'var(--lcars-green)'}
         width="130px"
+      />
+
+      {/* Infrastructure segment */}
+      <StatusSegment
+        label={`${infraStatus.hosts} HOST${infraStatus.hosts !== 1 ? 'S' : ''} // ${infraStatus.containers} RUNNING`}
+        color="var(--lcars-tanoi)"
+        width="180px"
+        mono
       />
 
       {/* Vehicle count segment */}

@@ -96,7 +96,7 @@ export default function LCARSHeader() {
           gap: '0.5rem',
           background: 'var(--lcars-sunflower)',
           padding: '0 0.75rem',
-          borderRadius: '0 0 30px 0',
+          borderRadius: '0 30px 30px 0',
         }}
       >
         {/* Pulsing status indicator */}

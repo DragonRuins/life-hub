@@ -33,6 +33,7 @@ services:
       - FUEL_API_KEY=${FUEL_API_KEY}
     volumes:
       - uploads:/app/uploads
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker API access for infrastructure module
     ports:
       - "5000:5000"
     depends_on:

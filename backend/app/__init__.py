@@ -65,6 +65,9 @@ def create_app():
     from app.routes.kb import kb_bp
     app.register_blueprint(kb_bp, url_prefix='/api/kb')
 
+    from app.routes.infrastructure import infrastructure_bp
+    app.register_blueprint(infrastructure_bp, url_prefix='/api/infrastructure')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -73,7 +76,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure  # noqa: F401
         db.create_all()
 
         # Auto-seed preset maintenance items if the table is empty.

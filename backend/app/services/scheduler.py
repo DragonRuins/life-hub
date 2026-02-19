@@ -14,7 +14,7 @@ Also runs a daily cleanup job to delete old notification_log entries
 based on the retention_days setting.
 """
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,9 @@ def init_scheduler(app):
             sync_scheduled_rules()
             _add_cleanup_job()
             _add_interval_check_job()
+            _add_infrastructure_sync_job()
+            _add_uptime_check_job()
+            _add_metrics_retention_job()
 
         logger.info("Notification scheduler started")
 
@@ -271,3 +274,172 @@ def _parse_interval_config(config):
         if field in config:
             kwargs[field] = int(config[field])
     return kwargs or {'hours': 24}  # Default: every 24 hours
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Infrastructure Sync Jobs
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _add_infrastructure_sync_job():
+    """
+    Add a periodic job to sync all enabled infrastructure integrations.
+
+    Runs every 60 seconds by default. Each integration has its own
+    sync_interval_seconds, but this job is the master loop that checks
+    all of them. The sync worker skips integrations whose interval
+    hasn't elapsed since their last sync.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_infrastructure_sync,
+        trigger='interval',
+        id='infrastructure_sync',
+        seconds=60,
+        replace_existing=True,
+    )
+    logger.info("Infrastructure sync job scheduled (every 60s)")
+
+
+def _run_infrastructure_sync():
+    """Execute infrastructure integration syncs inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.infrastructure.sync_worker import run_all_syncs
+        run_all_syncs(_app)
+    except Exception as e:
+        logger.error(f"Infrastructure sync failed: {e}")
+
+
+def _add_uptime_check_job():
+    """
+    Add a periodic job to check all monitored service endpoints.
+
+    Runs every 5 minutes (300 seconds). Individual services can have
+    different check_interval_seconds, but this is the minimum resolution.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_uptime_checks,
+        trigger='interval',
+        id='infrastructure_uptime_check',
+        seconds=300,
+        replace_existing=True,
+    )
+    logger.info("Infrastructure uptime check job scheduled (every 300s)")
+
+
+def _run_uptime_checks():
+    """Execute service uptime checks inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.infrastructure.uptime_checker import check_all_services
+        check_all_services(_app)
+    except Exception as e:
+        logger.error(f"Infrastructure uptime check failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Infrastructure Metrics Retention
+# ═══════════════════════════════════════════════════════════════════════════
+
+METRICS_RETENTION_DAYS = 30  # Keep raw metrics for this many days
+
+
+def _add_metrics_retention_job():
+    """Add a daily job at 4 AM to aggregate and clean old infrastructure metrics."""
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_metrics_retention,
+        trigger='cron',
+        id='infrastructure_metrics_retention',
+        hour=4,
+        minute=0,
+        replace_existing=True,
+    )
+    logger.info("Infrastructure metrics retention job scheduled (daily at 4 AM)")
+
+
+def _run_metrics_retention():
+    """
+    Aggregate old raw metrics into hourly/daily summaries, then delete raw data.
+
+    Steps:
+      1. For raw metrics older than METRICS_RETENTION_DAYS:
+         - Aggregate into hourly averages (one row per source/metric/hour)
+         - Aggregate into daily averages (one row per source/metric/day)
+      2. Delete the original raw rows
+      3. Also delete any aggregated data older than 365 days
+    """
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.infrastructure import InfraMetric
+        from sqlalchemy import text
+
+        cutoff = datetime.now(timezone.utc) - timedelta(days=METRICS_RETENTION_DAYS)
+
+        try:
+            # Step 1: Insert hourly aggregates for data older than cutoff
+            # Only aggregate rows that don't already have a resolution tag
+            db.session.execute(text("""
+                INSERT INTO infra_metrics (source_type, source_id, metric_name, value, unit, tags, recorded_at)
+                SELECT
+                    source_type,
+                    source_id,
+                    metric_name,
+                    AVG(value),
+                    MIN(unit),
+                    '{"resolution": "hourly"}'::jsonb,
+                    date_trunc('hour', recorded_at)
+                FROM infra_metrics
+                WHERE recorded_at < :cutoff
+                  AND (tags IS NULL OR tags ->> 'resolution' IS NULL)
+                GROUP BY source_type, source_id, metric_name, date_trunc('hour', recorded_at)
+            """), {'cutoff': cutoff})
+
+            # Step 2: Delete old raw rows (no resolution tag)
+            result = db.session.execute(text("""
+                DELETE FROM infra_metrics
+                WHERE recorded_at < :cutoff
+                  AND (tags IS NULL OR tags ->> 'resolution' IS NULL)
+            """), {'cutoff': cutoff})
+            deleted_raw = result.rowcount
+
+            # Step 3: Delete very old aggregated data (> 365 days)
+            old_cutoff = datetime.now(timezone.utc) - timedelta(days=365)
+            result = db.session.execute(text("""
+                DELETE FROM infra_metrics
+                WHERE recorded_at < :old_cutoff
+                  AND tags ->> 'resolution' IS NOT NULL
+            """), {'old_cutoff': old_cutoff})
+            deleted_old = result.rowcount
+
+            db.session.commit()
+
+            if deleted_raw or deleted_old:
+                logger.info(
+                    f"Metrics retention: aggregated & deleted {deleted_raw} raw rows, "
+                    f"deleted {deleted_old} old aggregate rows"
+                )
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Metrics retention job failed: {e}")

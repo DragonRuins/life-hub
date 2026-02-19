@@ -604,3 +604,121 @@ export const notifications = {
     body: JSON.stringify(data),
   }),
 }
+
+// ── Infrastructure ────────────────────────────────────────────────
+
+export const infrastructure = {
+  // Dashboard (aggregated summary)
+  dashboard: () => apiFetch('/infrastructure/dashboard'),
+
+  // Hosts
+  hosts: {
+    list: () => apiFetch('/infrastructure/hosts'),
+    get: (id) => apiFetch(`/infrastructure/hosts/${id}`),
+    create: (data) => apiFetch('/infrastructure/hosts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/hosts/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/hosts/${id}`, { method: 'DELETE' }),
+  },
+
+  // Network devices
+  network: {
+    list: () => apiFetch('/infrastructure/network'),
+    get: (id) => apiFetch(`/infrastructure/network/${id}`),
+    create: (data) => apiFetch('/infrastructure/network', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/network/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/network/${id}`, { method: 'DELETE' }),
+  },
+
+  // Containers
+  containers: {
+    list: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/containers${query ? '?' + query : ''}`)
+    },
+    get: (id) => apiFetch(`/infrastructure/containers/${id}`),
+    create: (data) => apiFetch('/infrastructure/containers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/containers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/containers/${id}`, { method: 'DELETE' }),
+    sync: (hostId) => apiFetch(`/infrastructure/containers/sync/${hostId}`, { method: 'POST' }),
+  },
+
+  // Services
+  services: {
+    list: () => apiFetch('/infrastructure/services'),
+    get: (id) => apiFetch(`/infrastructure/services/${id}`),
+    create: (data) => apiFetch('/infrastructure/services', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/services/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/services/${id}`, { method: 'DELETE' }),
+    check: (id) => apiFetch(`/infrastructure/services/${id}/check`, { method: 'POST' }),
+  },
+
+  // Incidents
+  incidents: {
+    list: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/incidents${query ? '?' + query : ''}`)
+    },
+    get: (id) => apiFetch(`/infrastructure/incidents/${id}`),
+    create: (data) => apiFetch('/infrastructure/incidents', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/incidents/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/incidents/${id}`, { method: 'DELETE' }),
+  },
+
+  // Integrations
+  integrations: {
+    list: () => apiFetch('/infrastructure/integrations'),
+    get: (id) => apiFetch(`/infrastructure/integrations/${id}`),
+    create: (data) => apiFetch('/infrastructure/integrations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    update: (id, data) => apiFetch(`/infrastructure/integrations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/infrastructure/integrations/${id}`, { method: 'DELETE' }),
+    test: (id) => apiFetch(`/infrastructure/integrations/${id}/test`, { method: 'POST' }),
+    sync: (id) => apiFetch(`/infrastructure/integrations/${id}/sync`, { method: 'POST' }),
+    schemas: () => apiFetch('/infrastructure/integrations/schemas'),
+  },
+
+  // Metrics
+  metrics: {
+    query: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/metrics${query ? '?' + query : ''}`)
+    },
+    latest: (sourceType, sourceId) =>
+      apiFetch(`/infrastructure/metrics/latest/${sourceType}/${sourceId}`),
+  },
+}

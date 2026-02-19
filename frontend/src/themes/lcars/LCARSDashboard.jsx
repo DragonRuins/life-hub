@@ -17,10 +17,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind, Pin, Star, X,
   Fuel, Thermometer, AlertTriangle, DollarSign, Gauge,
-  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen
+  Clock, Cpu, Bell, BellOff, CircleDot, FolderKanban, BookOpen, Server
 } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip, YAxis } from 'recharts'
-import { dashboard, vehicles, notifications, projects, kb } from '../../api/client'
+import { dashboard, vehicles, notifications, projects, kb, infrastructure as infraApi } from '../../api/client'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import { getComponentType } from '../../constants/componentTypes'
 import MaintenanceForm from '../../components/MaintenanceForm'
@@ -59,6 +59,7 @@ export default function LCARSDashboard() {
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [projectStats, setProjectStats] = useState(null)
   const [kbStats, setKbStats] = useState(null)
+  const [infraDash, setInfraDash] = useState(null)
 
   // Build dashboard API params from localStorage vehicle selection
   function getDashboardParams() {
@@ -70,7 +71,7 @@ export default function LCARSDashboard() {
   async function loadDashboard() {
     try {
       const params = getDashboardParams()
-      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats] = await Promise.all([
+      const [w, fs, s, v, items, nFeed, nCount, pStats, kStats, iDash] = await Promise.all([
         dashboard.getWeather().catch(() => null),
         dashboard.getFleetStatus(params).catch(() => null),
         dashboard.getSummary(params),
@@ -80,6 +81,7 @@ export default function LCARSDashboard() {
         notifications.unreadCount().catch(() => ({ count: 0 })),
         projects.stats().catch(() => null),
         kb.stats().catch(() => null),
+        infraApi.dashboard().catch(() => null),
       ])
       setWeather(w)
       setFleetStatus(fs)
@@ -90,6 +92,7 @@ export default function LCARSDashboard() {
       setUnreadCount(nCount?.count || 0)
       setProjectStats(pStats)
       setKbStats(kStats)
+      setInfraDash(iDash)
 
       // If no localStorage selection, default to primary vehicle
       const storedId = localStorage.getItem('dashboard_vehicle_id')
@@ -275,6 +278,11 @@ export default function LCARSDashboard() {
       {/* Row 8: Library Computer */}
       <div style={{ marginBottom: '1rem' }}>
         <LCARSLibraryComputerPanel stats={kbStats} />
+      </div>
+
+      {/* Row 9: Engineering Status */}
+      <div style={{ marginBottom: '1rem' }}>
+        <LCARSEngineeringPanel data={infraDash} />
       </div>
 
       {/* Quick Add Maintenance Modal */}
@@ -1568,6 +1576,153 @@ function LCARSLibraryComputerPanel({ stats }) {
           )}
         </div>
       )}
+    </LCARSPanel>
+  )
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Engineering Status Panel (Infrastructure)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Infrastructure summary panel for the LCARS dashboard.
+ * Shows host/container/service counts and active incidents.
+ */
+function LCARSEngineeringPanel({ data }) {
+  if (!data) {
+    return (
+      <LCARSPanel title="Engineering Status" color="var(--lcars-tanoi)">
+        <div style={{
+          padding: '1.5rem',
+          textAlign: 'center',
+          fontFamily: "'Antonio', sans-serif",
+          fontSize: '0.85rem',
+          color: 'var(--lcars-gray)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}>
+          No infrastructure data available
+        </div>
+      </LCARSPanel>
+    )
+  }
+
+  const hosts = data.hosts || {}
+  const containers = data.containers || {}
+  const services = data.services || {}
+  const incidents = data.incidents || {}
+
+  const totalHosts = hosts.total || 0
+  const totalContainers = containers.total || 0
+  const runningContainers = containers.by_status?.running || 0
+  const totalServices = services.total || 0
+  const servicesUp = services.by_status?.up || 0
+  const activeIncidents = incidents.active || 0
+
+  // Determine overall system status
+  let systemStatus = 'NOMINAL'
+  let statusColor = 'var(--lcars-mars)'
+  if (activeIncidents > 0) {
+    systemStatus = 'ALERT'
+    statusColor = 'var(--lcars-red-alert)'
+  } else if (totalServices > 0 && servicesUp < totalServices) {
+    systemStatus = 'ADVISORY'
+    statusColor = 'var(--lcars-gold)'
+  }
+
+  return (
+    <LCARSPanel title="Engineering Status" color="var(--lcars-tanoi)">
+      <div style={{ padding: '0.75rem' }}>
+        {/* System status header */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '0.75rem',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Server size={16} color="var(--lcars-tanoi)" />
+            <span style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: statusColor,
+            }}>
+              System: {systemStatus}
+            </span>
+          </div>
+          <Link
+            to="/infrastructure"
+            style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '0.7rem',
+              color: 'var(--lcars-tanoi)',
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              opacity: 0.8,
+            }}
+          >
+            Full Report &gt;
+          </Link>
+        </div>
+
+        {/* Stats grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '0.5rem',
+        }}>
+          <LCARSStat
+            label="Hosts"
+            value={totalHosts}
+            color="var(--lcars-tanoi)"
+          />
+          <LCARSStat
+            label="Containers"
+            value={`${runningContainers}/${totalContainers}`}
+            color={runningContainers === totalContainers ? 'var(--lcars-mars)' : 'var(--lcars-gold)'}
+          />
+          <LCARSStat
+            label="Services"
+            value={`${servicesUp}/${totalServices}`}
+            color={servicesUp === totalServices ? 'var(--lcars-mars)' : 'var(--lcars-gold)'}
+          />
+          <LCARSStat
+            label="Incidents"
+            value={activeIncidents}
+            color={activeIncidents > 0 ? 'var(--lcars-red-alert)' : 'var(--lcars-mars)'}
+          />
+        </div>
+
+        {/* Host breakdown if we have hosts */}
+        {totalHosts > 0 && hosts.by_type && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <div style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '0.65rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'var(--lcars-gray)',
+              marginBottom: '0.375rem',
+            }}>
+              Host Registry
+            </div>
+            {Object.entries(hosts.by_type).map(([type, count]) => (
+              <LCARSDataRow
+                key={type}
+                icon={<Server size={13} />}
+                label={type.replace(/_/g, ' ')}
+                value={count}
+                color="var(--lcars-tanoi)"
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </LCARSPanel>
   )
 }

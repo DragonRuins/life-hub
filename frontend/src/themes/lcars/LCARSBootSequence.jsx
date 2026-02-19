@@ -125,7 +125,7 @@ export default function LCARSBootSequence({ onComplete }) {
             <div style={{ flex: 1, background: BOOT_COLORS[0], opacity: phase >= 2 ? 0.8 : 0.3, transition: 'opacity 0.3s' }} />
             <div style={{ width: '60px', background: BOOT_COLORS[1], opacity: phase >= 2 ? 0.8 : 0.3, transition: 'opacity 0.3s' }} />
             <div style={{ width: '40px', background: BOOT_COLORS[2], opacity: phase >= 2 ? 0.8 : 0.3, transition: 'opacity 0.3s' }} />
-            <div style={{ width: '120px', background: BOOT_COLORS[0], borderRadius: '0 0 30px 0', opacity: phase >= 2 ? 0.8 : 0.3, transition: 'opacity 0.3s' }} />
+            <div style={{ width: '120px', background: BOOT_COLORS[0], borderRadius: '0 30px 30px 0', opacity: phase >= 2 ? 0.8 : 0.3, transition: 'opacity 0.3s' }} />
           </div>
 
           {/* Left elbow (top) */}
