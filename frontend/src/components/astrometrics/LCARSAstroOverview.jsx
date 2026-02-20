@@ -10,7 +10,8 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
-import LCARSPanel, { LCARSDataRow, LCARSStat } from '../../themes/lcars/LCARSPanel'
+import LCARSPanel, { LCARSStat } from '../../themes/lcars/LCARSPanel'
+import useIsMobile from '../../hooks/useIsMobile'
 
 /**
  * Format a countdown string: "014D 05H 11M 08S"
@@ -22,6 +23,7 @@ function formatCountdown(cd) {
 }
 
 export default function LCARSAstroOverview() {
+  const isMobile = useIsMobile()
   const [apod, setApod] = useState(null)
   const [nextLaunch, setNextLaunch] = useState(null)
   const [issPosition, setIssPosition] = useState(null)
@@ -141,17 +143,17 @@ export default function LCARSAstroOverview() {
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
       gap: '8px',
     }}>
-      {/* APOD Panel */}
-      <LCARSPanel title="Stellar Cartography" color="var(--lcars-african-violet)">
+      {/* APOD Panel — spans 2 columns on desktop for a larger image */}
+      <LCARSPanel title="Stellar Cartography" color="var(--lcars-african-violet)" style={{ gridColumn: isMobile ? 'span 1' : 'span 2' }}>
         {apodData.url && apodData.media_type === 'image' && (
           <img
             src={apodData.url}
             alt={apodData.title}
             style={{
-              width: '100%', height: '140px', objectFit: 'cover',
+              width: '100%', height: '200px', objectFit: 'cover',
               marginBottom: '0.5rem', opacity: 0.9,
             }}
           />
@@ -220,12 +222,17 @@ export default function LCARSAstroOverview() {
         )}
       </LCARSPanel>
 
-      {/* ISS Tracking Panel */}
+      {/* ISS Tracking Panel — compact 2x2 stat grid */}
       <LCARSPanel title="Station Tracking" color="var(--lcars-ice)">
-        <LCARSDataRow label="Latitude" value={parseFloat(issPos.latitude || 0).toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
-        <LCARSDataRow label="Longitude" value={parseFloat(issPos.longitude || 0).toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
-        <LCARSDataRow label="Altitude" value="~408 km" color="var(--lcars-ice)" />
-        <LCARSDataRow label="Velocity" value="~27,600 km/h" color="var(--lcars-ice)" />
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          gap: '0.5rem', textAlign: 'center',
+        }}>
+          <LCARSStat label="Latitude" value={parseFloat(issPos.latitude || 0).toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
+          <LCARSStat label="Longitude" value={parseFloat(issPos.longitude || 0).toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
+          <LCARSStat label="Altitude" value="~408 km" color="var(--lcars-ice)" />
+          <LCARSStat label="Velocity" value="~27,600 km/h" color="var(--lcars-ice)" />
+        </div>
       </LCARSPanel>
 
       {/* NEO Threat Assessment Panel */}
@@ -273,16 +280,18 @@ export default function LCARSAstroOverview() {
             <div style={{
               fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
               color: 'var(--lcars-ice)', textTransform: 'uppercase',
-              letterSpacing: '0.1em', marginBottom: '0.125rem',
+              letterSpacing: '0.1em', marginBottom: '0.25rem',
             }}>
               {craft}
             </div>
-            <div style={{
-              fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
-              color: 'var(--lcars-gray)',
-            }}>
-              {names.join(' \u2022 ')}
-            </div>
+            {names.map((name) => (
+              <div key={name} style={{
+                fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
+                color: 'var(--lcars-gray)', lineHeight: 1.5,
+              }}>
+                {name}
+              </div>
+            ))}
           </div>
         ))}
       </LCARSPanel>

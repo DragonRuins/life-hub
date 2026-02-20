@@ -125,7 +125,10 @@ export default function LCARSDashboard() {
   if (loading) return <LCARSLoadingSkeleton />
 
   const now = new Date()
-  const stardate = `${now.getFullYear()}.${String(Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000)).padStart(3, '0')}`
+  const utcYear = now.getUTCFullYear()
+  const utcDoy = Math.floor((now.getTime() - Date.UTC(utcYear, 0, 1)) / 86400000) + 1
+  const utcHour = now.getUTCHours()
+  const stardate = `${utcYear}.${String(utcDoy).padStart(3, '0')}.${String(utcHour).padStart(2, '0')}`
 
   // Find the selected vehicle
   const selectedId = localStorage.getItem('dashboard_vehicle_id')

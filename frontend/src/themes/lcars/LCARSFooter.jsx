@@ -14,16 +14,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { dashboard, notifications, infrastructure } from '../../api/client'
 
 /**
- * Calculate a Star Trek-style stardate from a real date.
- * Format: YYYY.DDD where DDD is the day of year (zero-padded to 3 digits).
+ * Calculate a Star Trek-style stardate from a UTC date.
+ * Format: YYYY.DDD.HH where DDD is the UTC day of year and HH is the UTC hour.
+ * Updates every hour so it visibly ticks throughout the day.
  */
 function calculateStardate(date = new Date()) {
-  const year = date.getFullYear()
-  const start = new Date(year, 0, 0)
-  const diff = date - start
-  const oneDay = 1000 * 60 * 60 * 24
-  const dayOfYear = Math.floor(diff / oneDay)
-  return `${year}.${String(dayOfYear).padStart(3, '0')}`
+  const year = date.getUTCFullYear()
+  const startOfYear = Date.UTC(year, 0, 1)
+  const dayOfYear = Math.floor((date.getTime() - startOfYear) / 86400000) + 1
+  const hour = date.getUTCHours()
+  return `${year}.${String(dayOfYear).padStart(3, '0')}.${String(hour).padStart(2, '0')}`
 }
 
 /**
