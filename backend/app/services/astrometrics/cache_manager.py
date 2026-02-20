@@ -46,6 +46,14 @@ DEFAULT_TTLS = {
     'launches_upcoming': 3600,  # 1 hour
     'launches_past': 86400,     # 24 hours
     'launches_next': 3600,      # 1 hour
+    # STAPI (Star Trek API) cache TTLs
+    'stapi_detail': 604800,      # 7 days (detail pages rarely change)
+    'stapi_search': 86400,       # 24 hours (search results)
+    'stapi_browse': 86400,       # 24 hours (browse pages)
+    'stapi_episodes_all': 604800, # 7 days (full episode list for On This Day)
+    'stapi_series': 604800,      # 7 days
+    'stapi_ships': 86400,        # 24 hours
+    'stapi_ship_classes': 86400, # 24 hours
 }
 
 

@@ -6,7 +6,7 @@
  * and LCARS styling as LCARSSidebar.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library } from 'lucide-react'
 
 const NAV_ITEMS = [
   {
@@ -56,6 +56,13 @@ const NAV_ITEMS = [
     label: 'Astro',
     icon: Telescope,
     color: 'var(--lcars-ice)',
+    activeColor: 'var(--lcars-butterscotch)',
+  },
+  {
+    to: '/trek',
+    label: 'DB',
+    icon: Library,
+    color: 'var(--lcars-almond-creme)',
     activeColor: 'var(--lcars-butterscotch)',
   },
 ]

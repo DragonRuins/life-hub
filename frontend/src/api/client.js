@@ -802,3 +802,53 @@ export const infrastructure = {
       apiFetch(`/infrastructure/metrics/latest/${sourceType}/${sourceId}`),
   },
 }
+
+// ── Star Trek Database ────────────────────────────────────────────
+
+export const trek = {
+  // Daily Entry
+  daily: () => apiFetch('/trek/daily'),
+  dailyHistory: (limit = 30) => apiFetch(`/trek/daily/history?limit=${limit}`),
+  dailyShuffle: () => apiFetch('/trek/daily/shuffle'),
+
+  // Search (live STAPI)
+  search: (q, type = 'all') => apiFetch(`/trek/search?q=${encodeURIComponent(q)}&type=${type}`),
+
+  // Browse
+  browse: (entityType, page = 0, pageSize = 25, name = '') =>
+    apiFetch(`/trek/browse/${entityType}?page=${page}&pageSize=${pageSize}${name ? `&name=${encodeURIComponent(name)}` : ''}`),
+  detail: (entityType, uid) => apiFetch(`/trek/browse/${entityType}/${uid}`),
+
+  // Episode Guide
+  episodes: {
+    series: () => apiFetch('/trek/episodes/series'),
+    seasons: (seriesUid) => apiFetch(`/trek/episodes/series/${seriesUid}/seasons`),
+    episodes: (seasonUid) => apiFetch(`/trek/episodes/season/${seasonUid}`),
+    onThisDay: () => apiFetch('/trek/episodes/on-this-day'),
+  },
+
+  // Starship Registry
+  ships: {
+    list: (page = 0, classUid) =>
+      apiFetch(`/trek/ships?page=${page}${classUid ? `&classUid=${classUid}` : ''}`),
+    classes: () => apiFetch('/trek/ships/classes'),
+    detail: (uid) => apiFetch(`/trek/ships/${uid}`),
+    classDetail: (uid) => apiFetch(`/trek/ships/classes/${uid}`),
+  },
+
+  // Favorites
+  favorites: {
+    list: (type = 'all') => apiFetch(`/trek/favorites?type=${type}`),
+    add: (data) => apiFetch('/trek/favorites', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id, data) => apiFetch(`/trek/favorites/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id) => apiFetch(`/trek/favorites/${id}`, { method: 'DELETE' }),
+  },
+
+  // Settings
+  settings: () => apiFetch('/trek/settings'),
+  updateSettings: (data) => apiFetch('/trek/settings', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Status + entity types
+  status: () => apiFetch('/trek/status'),
+  entityTypes: () => apiFetch('/trek/entity-types'),
+}

@@ -18,3 +18,4 @@ from .kb import (
     KBArticleLink, KBArticleRevision, KBBookmark, KBRecentView
 )
 from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings
+from .trek import TrekDailyEntry, TrekFavorite, TrekSettings

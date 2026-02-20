@@ -6,8 +6,8 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Palette } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Palette, Maximize, Minimize } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
 
@@ -46,6 +46,20 @@ import LCARSInfraIncidents from './themes/lcars/LCARSInfraIncidents'
 import LCARSInfraIntegrations from './themes/lcars/LCARSInfraIntegrations'
 import Astrometrics from './pages/Astrometrics'
 import LCARSAstrometrics from './themes/lcars/LCARSAstrometrics'
+import TrekDatabase from './pages/TrekDatabase'
+import TrekBrowse from './pages/trek/TrekBrowse'
+import TrekDetail from './pages/trek/TrekDetail'
+import TrekEpisodes from './pages/trek/TrekEpisodes'
+import TrekShips from './pages/trek/TrekShips'
+import TrekSearch from './pages/trek/TrekSearch'
+import TrekFavorites from './pages/trek/TrekFavorites'
+import LCARSTrekDatabase from './themes/lcars/LCARSTrekDatabase'
+import LCARSTrekBrowse from './themes/lcars/LCARSTrekBrowse'
+import LCARSTrekDetail from './themes/lcars/LCARSTrekDetail'
+import LCARSTrekEpisodes from './themes/lcars/LCARSTrekEpisodes'
+import LCARSTrekShips from './themes/lcars/LCARSTrekShips'
+import LCARSTrekSearch from './themes/lcars/LCARSTrekSearch'
+import LCARSTrekFavorites from './themes/lcars/LCARSTrekFavorites'
 import SettingsPage from './pages/Settings'
 import LCARSSettings from './themes/lcars/LCARSSettings'
 
@@ -110,6 +124,13 @@ function LCARSAppShell() {
         <Route path="/infrastructure/incidents" element={<LCARSInfraIncidents />} />
         <Route path="/infrastructure/integrations" element={<LCARSInfraIntegrations />} />
         <Route path="/astrometrics" element={<LCARSAstrometrics />} />
+        <Route path="/trek" element={<LCARSTrekDatabase />} />
+        <Route path="/trek/search" element={<LCARSTrekSearch />} />
+        <Route path="/trek/favorites" element={<LCARSTrekFavorites />} />
+        <Route path="/trek/episodes" element={<LCARSTrekEpisodes />} />
+        <Route path="/trek/ships" element={<LCARSTrekShips />} />
+        <Route path="/trek/:entityType/:uid" element={<LCARSTrekDetail />} />
+        <Route path="/trek/:entityType" element={<LCARSTrekBrowse />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<LCARSSettings />} />
         <Route path="/settings/vehicles" element={<LCARSVehicleSettings />} />
@@ -188,6 +209,7 @@ function AppShell() {
             <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={sidebarCollapsed} />
             <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={sidebarCollapsed} />
             <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -283,6 +305,7 @@ function AppShell() {
               <SidebarLink to="/kb" icon={<BookOpen size={20} />} label="Knowledge Base" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -321,6 +344,13 @@ function AppShell() {
             <Route path="/infrastructure/incidents" element={<InfraIncidents />} />
             <Route path="/infrastructure/integrations" element={<InfraIntegrations />} />
             <Route path="/astrometrics" element={<Astrometrics />} />
+            <Route path="/trek" element={<TrekDatabase />} />
+            <Route path="/trek/search" element={<TrekSearch />} />
+            <Route path="/trek/favorites" element={<TrekFavorites />} />
+            <Route path="/trek/episodes" element={<TrekEpisodes />} />
+            <Route path="/trek/ships" element={<TrekShips />} />
+            <Route path="/trek/:entityType/:uid" element={<TrekDetail />} />
+            <Route path="/trek/:entityType" element={<TrekBrowse />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/vehicles" element={<VehicleSettings />} />
@@ -340,6 +370,21 @@ function AppShell() {
  */
 function HeaderBar({ isMobile, onMenuClick }) {
   const { setTheme, isLCARS } = useTheme()
+  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen()
+    }
+  }, [])
 
   return (
     <div style={{
@@ -403,6 +448,31 @@ function HeaderBar({ isMobile, onMenuClick }) {
         >
           <Palette size={18} />
         </button>
+
+        {/* Fullscreen Toggle (desktop only) */}
+        {!isMobile && (
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--color-subtext-0)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+          </button>
+        )}
 
         {/* Settings Link (direct navigation, no dropdown) */}
         <Link

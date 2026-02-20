@@ -337,7 +337,8 @@ export function LCARSDataRow({ label, value, color = 'var(--lcars-sunflower)', i
         )}
         <span
           style={{
-            flex: 1,
+            width: '12rem',
+            flexShrink: 0,
             fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
             fontSize: '0.8rem',
             textTransform: 'uppercase',
@@ -353,7 +354,6 @@ export function LCARSDataRow({ label, value, color = 'var(--lcars-sunflower)', i
             fontSize: '0.85rem',
             fontWeight: 600,
             color: 'var(--lcars-space-white)',
-            whiteSpace: 'nowrap',
           }}
         >
           {value}

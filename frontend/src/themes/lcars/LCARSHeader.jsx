@@ -5,14 +5,31 @@
  * Contains: app title, decorative pills, pulsing status dot,
  * notification bell, theme toggle button, and settings link.
  */
-import { useState, useEffect, useRef } from 'react'
-import { Bell, Settings, Palette, Check, ExternalLink } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Bell, Settings, Palette, Check, ExternalLink, Maximize, Minimize } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
 import { notifications } from '../../api/client'
+import useIsMobile from '../../hooks/useIsMobile'
 
 export default function LCARSHeader() {
   const { setTheme, isLCARS } = useTheme()
+  const isMobile = useIsMobile()
+  const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      document.documentElement.requestFullscreen()
+    }
+  }, [])
 
   return (
     <div
@@ -105,6 +122,31 @@ export default function LCARSHeader() {
         >
           <Palette size={18} />
         </button>
+
+        {/* Fullscreen Toggle (desktop only) */}
+        {!isMobile && (
+          <button
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'transparent',
+              border: 'none',
+              color: '#000000',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+          </button>
+        )}
 
         {/* Settings Link (direct navigation, no dropdown) */}
         <Link

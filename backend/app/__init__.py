@@ -71,6 +71,9 @@ def create_app():
     from app.routes.astrometrics import astrometrics_bp
     app.register_blueprint(astrometrics_bp, url_prefix='/api/astrometrics')
 
+    from app.routes.trek import trek_bp
+    app.register_blueprint(trek_bp, url_prefix='/api/trek')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -79,7 +82,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek  # noqa: F401
         db.create_all()
 
         # Auto-seed preset maintenance items if the table is empty.

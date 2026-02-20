@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom'
 import {
   StickyNote, Wrench, Plus, Droplets, Wind, X,
   Fuel, Thermometer,
-  CircleDot, FolderKanban, BookOpen, Server, Telescope,
+  CircleDot, FolderKanban, BookOpen, Server, Telescope, Library,
   ChevronRight
 } from 'lucide-react'
 import { dashboard, vehicles } from '../../api/client'
@@ -896,6 +896,19 @@ const SYSTEM_TILES = [
     getSecondary: (s) => {
       const name = s?.astrometrics?.next_launch_name
       return name ? `Next: ${name.length > 30 ? name.slice(0, 30) + '...' : name}` : null
+    },
+  },
+  {
+    key: 'trek',
+    label: 'Federation Database',
+    icon: Library,
+    color: 'var(--lcars-gold)',
+    link: '/trek',
+    getValue: (s) => s?.trek?.cached_entities ?? 0,
+    getUnit: () => 'cached records',
+    getSecondary: (s) => {
+      const daily = s?.trek?.daily_entry
+      return daily ? `Today: ${daily.length > 25 ? daily.slice(0, 25) + '...' : daily}` : null
     },
   },
 ]

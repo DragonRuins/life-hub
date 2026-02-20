@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind,
-  X, Fuel, FolderKanban, BookOpen, Server, Telescope,
+  X, Fuel, FolderKanban, BookOpen, Server, Telescope, Library,
   CheckCircle2, AlertTriangle, CircleDot, ChevronRight
 } from 'lucide-react'
 import { dashboard, vehicles } from '../api/client'
@@ -575,6 +575,19 @@ const MODULE_TILES = [
     link: '/astrometrics',
     getValue: (s) => s?.astrometrics?.crew_in_space ?? 0,
     getSublabel: () => 'crew in space',
+  },
+  {
+    key: 'trek',
+    label: 'Database',
+    icon: Library,
+    color: 'var(--color-yellow)',
+    bgColor: 'rgba(249, 226, 175, 0.1)',
+    link: '/trek',
+    getValue: (s) => s?.trek?.cached_entities ?? 0,
+    getSublabel: (s) => {
+      const favs = s?.trek?.favorites ?? 0
+      return favs > 0 ? `cached, ${favs} favorites` : 'cached entries'
+    },
   },
 ]
 

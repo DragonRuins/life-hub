@@ -58,6 +58,8 @@ def init_scheduler(app):
             _add_uptime_check_job()
             _add_metrics_retention_job()
             _add_astrometrics_sync_job()
+            _add_trek_daily_entry_job()
+            _add_trek_prefetch_job()
 
         logger.info("Notification scheduler started")
 
@@ -483,3 +485,89 @@ def _run_astrometrics_sync():
         run_astro_sync(_app)
     except Exception as e:
         logger.error(f"Astrometrics sync failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Star Trek Database Jobs
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _add_trek_daily_entry_job():
+    """
+    Add a daily job at 6 AM to pick the Star Trek Entry of the Day.
+
+    Rotates through configured entity categories (characters, spacecraft,
+    species, etc.) to provide a different type of entry each day.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_trek_daily_entry,
+        trigger='cron',
+        id='trek_daily_entry',
+        hour=6,
+        minute=0,
+        replace_existing=True,
+    )
+    logger.info("Trek daily entry job scheduled (daily at 6 AM)")
+
+
+def _run_trek_daily_entry():
+    """Execute trek daily entry picker inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.trek.sync_worker import pick_daily_entry
+        pick_daily_entry(_app)
+    except Exception as e:
+        logger.error(f"Trek daily entry picker failed: {e}")
+
+
+def _add_trek_prefetch_job():
+    """
+    Add a weekly job to pre-fetch all Star Trek episodes and series.
+
+    Also runs once immediately on startup so the "On This Day" feature
+    works from the first page load. Subsequent runs are weekly (Sunday 3 AM).
+    """
+    global scheduler, _app
+    if not scheduler:
+        return
+
+    # Weekly refresh
+    scheduler.add_job(
+        _run_trek_prefetch,
+        trigger='cron',
+        id='trek_prefetch',
+        day_of_week='sun',
+        hour=3,
+        minute=30,
+        replace_existing=True,
+    )
+    logger.info("Trek episode/series pre-fetch job scheduled (weekly, Sunday 3:30 AM)")
+
+    # Also run once on startup (delayed by 30 seconds to avoid blocking init)
+    scheduler.add_job(
+        _run_trek_prefetch,
+        trigger='date',
+        id='trek_prefetch_startup',
+        run_date=datetime.now(timezone.utc) + timedelta(seconds=30),
+        replace_existing=True,
+    )
+
+
+def _run_trek_prefetch():
+    """Execute trek episode and series pre-fetch inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.trek.sync_worker import prefetch_episodes, prefetch_series
+        prefetch_series(_app)
+        prefetch_episodes(_app)
+    except Exception as e:
+        logger.error(f"Trek pre-fetch failed: {e}")

@@ -219,6 +219,23 @@ def get_system_stats():
     except Exception:
         pass
 
+    # ── Trek Database ────────────────────────────────────────────
+    trek_favorites = 0
+    trek_daily_name = None
+    trek_cached = 0
+
+    try:
+        from app.models.trek import TrekFavorite, TrekDailyEntry
+        trek_favorites = TrekFavorite.query.count()
+        today_entry = TrekDailyEntry.query.filter_by(entry_date=today).first()
+        if today_entry:
+            trek_daily_name = today_entry.entity_name
+        trek_cached = AstroCache.query.filter(
+            AstroCache.source.like('stapi_detail_%')
+        ).count()
+    except Exception:
+        pass
+
     return jsonify({
         'notes': {
             'count': note_count,
@@ -245,6 +262,11 @@ def get_system_stats():
             'crew_in_space': crew_in_space,
             'next_launch_name': next_launch_name,
             'next_launch_time': next_launch_time,
+        },
+        'trek': {
+            'favorites': trek_favorites,
+            'daily_entry': trek_daily_name,
+            'cached_entities': trek_cached,
         },
     })
 
