@@ -227,32 +227,47 @@ class AstroApiClient:
     def _extract_craft(self, astro):
         """
         Determine which station/craft an astronaut is currently on
-        from their LL2 flight data.  Uses the most recent flight's
-        spacecraft name and destination.
+        from their LL2 flight data.
+
+        Checks multiple paths in order of reliability:
+          1. landings[].destination (e.g. "International Space Station")
+          2. flights[-1].program[].name (e.g. "International Space Station")
+          3. Agency-based guess (CNSA → Tiangong, else ISS)
         """
+        # 1. Check landings for destination (most recent first)
+        landings = astro.get('landings', [])
+        for landing in reversed(landings):
+            dest = landing.get('destination', '')
+            if dest:
+                return self._normalize_station_name(dest)
+
+        # 2. Check most recent flight's program names
         flights = astro.get('flights', [])
-        if not flights:
-            agency = astro.get('agency', {}).get('abbrev', '')
-            # Best-effort guess from agency if no flight data
-            if agency == 'CNSA':
-                return 'Tiangong'
+        if flights:
+            latest = flights[-1]
+            programs = latest.get('program', [])
+            for prog in programs:
+                prog_name = prog.get('name', '')
+                normalized = self._normalize_station_name(prog_name)
+                if normalized != prog_name:
+                    # Only use it if we recognized it as a station
+                    return normalized
+
+        # 3. Agency-based guess
+        agency = astro.get('agency', {}).get('abbrev', '')
+        if agency == 'CNSA':
+            return 'Tiangong'
+
+        return 'ISS'
+
+    @staticmethod
+    def _normalize_station_name(name):
+        """Shorten verbose station names for display."""
+        if 'International Space Station' in name:
             return 'ISS'
-
-        # Most recent flight is last in list
-        latest = flights[-1]
-        # Try spacecraft config name first (e.g. "Crew Dragon Freedom")
-        spacecraft = latest.get('spacecraft', {})
-        if isinstance(spacecraft, dict):
-            craft_name = spacecraft.get('spacecraft', {}).get('name', '')
-            if craft_name:
-                # Append destination if available for clarity
-                dest = latest.get('destination', '')
-                if dest:
-                    return dest
-                return craft_name
-
-        # Fall back to mission name
-        return latest.get('name', 'Unknown')
+        if 'Tiangong' in name or 'Chinese Space Station' in name:
+            return 'Tiangong'
+        return name
 
     def _get_people_open_notify(self):
         """Fallback: fetch crew from Open Notify (may be stale)."""

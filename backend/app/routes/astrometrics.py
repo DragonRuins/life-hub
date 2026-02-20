@@ -336,7 +336,7 @@ def get_iss_groundtrack():
     Query params:
       minutes (optional): How far ahead (default 90, max 180)
     """
-    minutes = min(int(request.args.get('minutes', 90)), 180)
+    minutes = min(int(request.args.get('minutes', 50)), 180)
     cache = _get_cache()
 
     try:

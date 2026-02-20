@@ -210,7 +210,7 @@ export default function LCARSAstroIssTracker() {
         {/* Telemetry readout */}
         {position && (
           <LCARSPanel title="Telemetry" color="var(--lcars-ice)" style={{ marginTop: '8px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '4px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               <LCARSDataRow label="Latitude" value={position[0].toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
               <LCARSDataRow label="Longitude" value={position[1].toFixed(4) + '\u00B0'} color="var(--lcars-ice)" />
               <LCARSDataRow label="Altitude" value="408 km" color="var(--lcars-ice)" />

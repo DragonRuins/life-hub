@@ -353,6 +353,7 @@ export function LCARSDataRow({ label, value, color = 'var(--lcars-sunflower)', i
             fontSize: '0.85rem',
             fontWeight: 600,
             color: 'var(--lcars-space-white)',
+            whiteSpace: 'nowrap',
           }}
         >
           {value}

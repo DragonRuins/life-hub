@@ -131,7 +131,7 @@ def get_visible_passes(lat, lng, days_ahead=7):
         return []
 
 
-def get_ground_track(minutes=90, step_seconds=30, history_minutes=45):
+def get_ground_track(minutes=50, step_seconds=30, history_minutes=45):
     """
     Compute the ISS ground track (sub-satellite points) spanning both past
     and future positions so the station appears in the middle of the track.
@@ -140,7 +140,7 @@ def get_ground_track(minutes=90, step_seconds=30, history_minutes=45):
     regular intervals.
 
     Args:
-        minutes: How far ahead to compute (default 90 ~ 1 orbit)
+        minutes: How far ahead to compute (default 45 ~ half orbit)
         step_seconds: Interval between sample points (default 30s)
         history_minutes: How far back to compute (default 45 ~ half orbit)
 
