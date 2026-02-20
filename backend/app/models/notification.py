@@ -286,8 +286,8 @@ class NotificationLog(db.Model):
             'delivery_duration_ms': self.delivery_duration_ms,
             'event_data': self.event_data,
             'is_read': self.is_read,
-            'sent_at': self.sent_at.isoformat() if self.sent_at else None,
-            'read_at': self.read_at.isoformat() if self.read_at else None,
+            'sent_at': (self.sent_at.isoformat() + 'Z') if self.sent_at else None,
+            'read_at': (self.read_at.isoformat() + 'Z') if self.read_at else None,
         }
 
 

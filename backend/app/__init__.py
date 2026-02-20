@@ -230,6 +230,14 @@ def _seed_astro_notification_rules(db):
             'title_template': 'APOD: {{title}}',
             'body_template': "Today's Astronomy Picture of the Day: {{title}}.",
         },
+        {
+            'name': 'Launch In Flight',
+            'event_name': 'astro.launch_inflight',
+            'module': 'astrometrics',
+            'description': 'Get notified when a tracked launch has lifted off',
+            'title_template': 'Liftoff: {{launch_name}}',
+            'body_template': '{{launch_name}} by {{provider}} has launched from {{pad_name}}.',
+        },
     ]
 
     for rule_data in astro_rules:

@@ -131,7 +131,7 @@ AVAILABLE_EVENTS = [
         'name': 'astro.launch_reminder',
         'module': 'astrometrics',
         'description': 'When a rocket launch is approaching within the configured reminder window',
-        'fields': ['name', 'provider', 'net', 'hours_until', 'pad'],
+        'fields': ['launch_name', 'provider', 'net', 'hours_until', 'pad_name'],
     },
     {
         'name': 'astro.neo_close_approach',
@@ -144,6 +144,12 @@ AVAILABLE_EVENTS = [
         'module': 'astrometrics',
         'description': 'When a potentially hazardous asteroid is detected this week',
         'fields': ['name', 'date', 'miss_distance_ld', 'velocity_kps'],
+    },
+    {
+        'name': 'astro.launch_inflight',
+        'module': 'astrometrics',
+        'description': 'When a tracked launch transitions to In Flight status',
+        'fields': ['launch_name', 'provider', 'net', 'pad_name'],
     },
     {
         'name': 'astro.apod_new',
