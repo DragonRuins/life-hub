@@ -41,29 +41,48 @@ def get_apod():
     Query params:
       date (optional): YYYY-MM-DD format. Defaults to today.
 
+    If no date is specified and today's APOD isn't available yet (NASA
+    typically publishes around midnight US Eastern), automatically falls
+    back to yesterday's image.
+
     Returns cached data when available, fetches live otherwise.
     """
-    date = request.args.get('date')
-    if not date:
-        date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    date = request.args.get('date') or datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
     client = _get_client()
     cache = _get_cache()
 
-    try:
-        result = cache.get_or_fetch(
-            source='nasa_apod',
-            cache_key=date,
-            fetch_fn=lambda: client.get_apod(date),
-        )
+    def _try_fetch(d):
+        """Attempt to fetch APOD for a given date, returns (result, None) or (None, error)."""
+        try:
+            result = cache.get_or_fetch(
+                source='nasa_apod',
+                cache_key=d,
+                fetch_fn=lambda: client.get_apod(d),
+            )
+            favorite = AstroApodFavorite.query.filter_by(date=d).first()
+            result['is_favorite'] = favorite is not None
+            return result, None
+        except Exception as e:
+            return None, e
 
-        # Check if this date is a favorite
-        favorite = AstroApodFavorite.query.filter_by(date=date).first()
-        result['is_favorite'] = favorite is not None
+    result, error = _try_fetch(date)
 
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({'error': f'Failed to fetch APOD: {str(e)}'}), 502
+    # If today's APOD isn't available yet (NASA publishes around midnight
+    # US Eastern), fall back to yesterday's image automatically.
+    if error and date == today:
+        yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
+        result, fallback_error = _try_fetch(yesterday)
+        if result:
+            return jsonify(result)
+        # Both days failed — return the original error
+        return jsonify({'error': f'Failed to fetch APOD: {str(error)}'}), 502
+
+    if error:
+        return jsonify({'error': f'Failed to fetch APOD: {str(error)}'}), 502
+
+    return jsonify(result)
 
 
 @astrometrics_bp.route('/apod/random', methods=['GET'])

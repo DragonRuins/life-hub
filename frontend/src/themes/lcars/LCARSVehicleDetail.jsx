@@ -343,8 +343,8 @@ export default function LCARSVehicleDetail() {
 
           {vehicle?.maintenance_logs?.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {vehicle.maintenance_logs.map((log) => (
-                <LCARSMaintenanceRow key={log.id} log={log} onDelete={() => handleDeleteMaintenance(log.id)} />
+              {vehicle.maintenance_logs.map((log, i) => (
+                <LCARSMaintenanceRow key={log.id} log={log} index={i} onDelete={() => handleDeleteMaintenance(log.id)} />
               ))}
             </div>
           ) : (
@@ -612,12 +612,14 @@ export default function LCARSVehicleDetail() {
                     </tr>
                   </thead>
                   <tbody>
-                    {fuelLogs.map(log => (
+                    {fuelLogs.map((log, i) => {
+                      const rowBg = i % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent'
+                      return (
                       <tr
                         key={log.id}
-                        style={{ transition: 'background 0.1s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(153, 153, 51, 0.04)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        style={{ transition: 'background 0.1s', background: rowBg }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(153, 153, 51, 0.06)'}
+                        onMouseLeave={e => e.currentTarget.style.background = rowBg}
                       >
                         <LTd>{new Date(log.date).toLocaleDateString()}</LTd>
                         <LTd align="right">{log.mileage?.toLocaleString()}</LTd>
@@ -656,7 +658,8 @@ export default function LCARSVehicleDetail() {
                           </button>
                         </LTd>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -726,11 +729,11 @@ function VehicleInfoField({ label, value, icon }) {
 /**
  * LCARS-styled maintenance log row.
  */
-function LCARSMaintenanceRow({ log, onDelete }) {
+function LCARSMaintenanceRow({ log, index = 0, onDelete }) {
   return (
     <div style={{
       display: 'flex',
-      background: '#000000',
+      background: index % 2 !== 0 ? '#0a0a0a' : '#000000',
       border: '1px solid rgba(102, 102, 136, 0.3)',
       overflow: 'hidden',
     }}>

@@ -156,8 +156,8 @@ export default function LCARSAstroLaunches() {
 
       {/* Upcoming */}
       <LCARSPanel title={`Upcoming Missions (${upcomingList.length})`} color="var(--lcars-sunflower)" noPadding style={{ marginBottom: '8px' }}>
-        {upcomingList.map(launch => (
-          <LCARSLaunchRow key={launch.id} launch={launch} />
+        {upcomingList.map((launch, i) => (
+          <LCARSLaunchRow key={launch.id} launch={launch} index={i} />
         ))}
       </LCARSPanel>
 
@@ -176,8 +176,8 @@ export default function LCARSAstroLaunches() {
         </button>
         {showPast && (
           <LCARSPanel title="Mission Archive" color="var(--lcars-almond-creme)" noPadding>
-            {pastList.map(launch => (
-              <LCARSLaunchRow key={launch.id} launch={launch} isPast />
+            {pastList.map((launch, i) => (
+              <LCARSLaunchRow key={launch.id} launch={launch} isPast index={i} />
             ))}
           </LCARSPanel>
         )}
@@ -186,7 +186,7 @@ export default function LCARSAstroLaunches() {
   )
 }
 
-function LCARSLaunchRow({ launch, isPast = false }) {
+function LCARSLaunchRow({ launch, isPast = false, index = 0 }) {
   const status = getStatus(launch.status?.id)
 
   return (
@@ -195,6 +195,7 @@ function LCARSLaunchRow({ launch, isPast = false }) {
       padding: '0.5rem 0.75rem',
       borderBottom: '1px solid rgba(102, 102, 136, 0.15)',
       opacity: isPast ? 0.75 : 1,
+      background: index % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
     }}>
       {launch.image && (
         <img src={launch.image} alt="" style={{

@@ -170,11 +170,11 @@ export default function LCARSAstroNeo() {
       <LCARSPanel title="Object Registry" color="var(--lcars-tanoi)" noPadding>
         {isMobile ? (
           <div style={{ padding: '0.5rem' }}>
-            {sortedNeos.map(neo => (
+            {sortedNeos.map((neo, i) => (
               <div key={neo.id} style={{
                 padding: '0.5rem', marginBottom: '4px',
                 borderLeft: neo.is_hazardous ? '3px solid var(--lcars-red-alert)' : '3px solid var(--lcars-gray)',
-                background: 'rgba(102, 102, 136, 0.05)',
+                background: i % 2 !== 0 ? 'rgba(102, 102, 136, 0.08)' : 'rgba(102, 102, 136, 0.03)',
               }}>
                 <div style={{ fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem', color: 'var(--lcars-space-white)', textTransform: 'uppercase' }}>
                   {neo.name}
@@ -215,8 +215,8 @@ export default function LCARSAstroNeo() {
                 </tr>
               </thead>
               <tbody>
-                {sortedNeos.map(neo => (
-                  <tr key={neo.id} style={{ borderBottom: '1px solid rgba(102, 102, 136, 0.15)' }}>
+                {sortedNeos.map((neo, i) => (
+                  <tr key={neo.id} style={{ borderBottom: '1px solid rgba(102, 102, 136, 0.15)', background: i % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent' }}>
                     <td style={{ padding: '0.5rem 0.75rem', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem', color: 'var(--lcars-space-white)' }}>
                       {neo.name}
                     </td>

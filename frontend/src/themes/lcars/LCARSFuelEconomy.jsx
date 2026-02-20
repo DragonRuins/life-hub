@@ -419,12 +419,14 @@ export default function LCARSFuelEconomy() {
                     </tr>
                   </thead>
                   <tbody>
-                    {entries.map((entry) => (
+                    {entries.map((entry, i) => {
+                      const rowBg = i % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent'
+                      return (
                       <tr
                         key={entry.id}
-                        style={{ transition: 'background 0.1s' }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 204, 153, 0.03)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        style={{ transition: 'background 0.1s', background: rowBg }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 204, 153, 0.06)'}
+                        onMouseLeave={e => e.currentTarget.style.background = rowBg}
                       >
                         <LTd>{new Date(entry.date).toLocaleDateString()}</LTd>
                         <LTd align="right">{entry.mileage?.toLocaleString()}</LTd>
@@ -482,7 +484,8 @@ export default function LCARSFuelEconomy() {
                           </button>
                         </LTd>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

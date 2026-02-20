@@ -238,7 +238,7 @@ export default function LCARSAstroIssTracker() {
                 </thead>
                 <tbody>
                   {passesData.map((pass, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(102, 102, 136, 0.15)' }}>
+                    <tr key={i} style={{ borderBottom: '1px solid rgba(102, 102, 136, 0.15)', background: i % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent' }}>
                       <td style={{ padding: '0.4rem 0.6rem', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem', color: 'var(--lcars-space-white)' }}>
                         {pass.rise_time ? new Date(pass.rise_time).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--'}
                       </td>
@@ -290,10 +290,11 @@ export default function LCARSAstroIssTracker() {
             }}>
               {craft}
             </div>
-            {names.map(name => (
+            {names.map((name, i) => (
               <div key={name} style={{
                 fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
-                color: 'var(--lcars-space-white)', padding: '0.125rem 0',
+                color: 'var(--lcars-space-white)', padding: '0.125rem 0.25rem',
+                background: i % 2 !== 0 ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
               }}>
                 {name}
               </div>
