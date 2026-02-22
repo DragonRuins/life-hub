@@ -11,6 +11,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
+import { formatDate as formatDateStd } from '../../utils/formatDate'
 import { ChevronLeft, ChevronRight, Heart, Shuffle, ExternalLink, Calendar } from 'lucide-react'
 
 // APOD started on June 16, 1995
@@ -298,7 +299,7 @@ export default function AstroApod() {
                 <div style={{ padding: '0.5rem 0.75rem' }}>
                   <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 500 }}>{fav.title}</p>
                   <p style={{ margin: '0.125rem 0 0', fontSize: '0.7rem', color: 'var(--color-subtext-0)' }}>
-                    {fav.date}
+                    {formatDateStd(fav.date)}
                   </p>
                 </div>
               </div>

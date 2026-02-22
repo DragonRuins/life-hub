@@ -6,10 +6,11 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Palette, Maximize, Minimize } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Palette, Maximize, Minimize, MessageSquare } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
+import useChat from './hooks/useChat'
 
 import Dashboard from './pages/Dashboard'
 import Vehicles from './pages/Vehicles'
@@ -62,6 +63,8 @@ import LCARSTrekSearch from './themes/lcars/LCARSTrekSearch'
 import LCARSTrekFavorites from './themes/lcars/LCARSTrekFavorites'
 import SettingsPage from './pages/Settings'
 import LCARSSettings from './themes/lcars/LCARSSettings'
+import ChatWidget from './components/ChatWidget'
+import LCARSChatTerminal from './themes/lcars/LCARSChatTerminal'
 
 // Settings sub-pages
 import VehicleSettings from './pages/settings/VehicleSettings'
@@ -70,9 +73,12 @@ import NotificationSettings from './pages/settings/NotificationSettings'
 import LCARSVehicleSettings from './themes/lcars/settings/LCARSVehicleSettings'
 import LCARSAstroSettings from './themes/lcars/settings/LCARSAstroSettings'
 import LCARSNotificationSettings from './themes/lcars/settings/LCARSNotificationSettings'
+import AISettings from './pages/settings/AISettings'
+import LCARSAISettings from './themes/lcars/settings/LCARSAISettings'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
+  const chat = useChat()
 
   return (
     <BrowserRouter>
@@ -93,8 +99,11 @@ export default function App() {
         />
 
         {/* Main app with sidebar (default) or LCARS frame */}
-        <Route path="*" element={isLCARS ? <LCARSAppShell /> : <AppShell />} />
+        <Route path="*" element={isLCARS ? <LCARSAppShell chat={chat} /> : <AppShell chat={chat} />} />
       </Routes>
+
+      {/* Global chat widget — persists across page navigation */}
+      {isLCARS ? <LCARSChatTerminal chat={chat} /> : <ChatWidget chat={chat} />}
     </BrowserRouter>
   )
 }
@@ -103,9 +112,9 @@ export default function App() {
  * LCARS version of the app shell.
  * Renders all page routes inside the LCARS frame layout.
  */
-function LCARSAppShell() {
+function LCARSAppShell({ chat }) {
   return (
-    <LCARSLayout>
+    <LCARSLayout chat={chat}>
       <Routes>
         <Route path="/" element={<LCARSDashboard />} />
         <Route path="/vehicles" element={<LCARSVehicles />} />
@@ -136,6 +145,7 @@ function LCARSAppShell() {
         <Route path="/settings/vehicles" element={<LCARSVehicleSettings />} />
         <Route path="/settings/astrometrics" element={<LCARSAstroSettings />} />
         <Route path="/settings/notifications" element={<LCARSNotificationSettings />} />
+        <Route path="/settings/ai" element={<LCARSAISettings />} />
       </Routes>
     </LCARSLayout>
   )
@@ -145,7 +155,7 @@ function LCARSAppShell() {
  * Main app shell with sidebar navigation.
  * Separated so standalone pages (like FuelEntry) can render without it.
  */
-function AppShell() {
+function AppShell({ chat }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const isMobile = useIsMobile()
@@ -322,7 +332,7 @@ function AppShell() {
         }}
       >
         {/* Header Bar */}
-        <HeaderBar isMobile={isMobile} onMenuClick={() => setDrawerOpen(true)} />
+        <HeaderBar isMobile={isMobile} onMenuClick={() => setDrawerOpen(true)} chat={chat} />
 
         {/* Page Content */}
         <div style={{ flex: 1, padding: isMobile ? '1rem' : '2rem' }}>
@@ -356,6 +366,7 @@ function AppShell() {
             <Route path="/settings/vehicles" element={<VehicleSettings />} />
             <Route path="/settings/astrometrics" element={<AstroSettings />} />
             <Route path="/settings/notifications" element={<NotificationSettings />} />
+            <Route path="/settings/ai" element={<AISettings />} />
           </Routes>
         </div>
       </main>
@@ -368,7 +379,7 @@ function AppShell() {
  * Header bar with notification bell, theme toggle, and settings link.
  * Sits at the top of the main content area.
  */
-function HeaderBar({ isMobile, onMenuClick }) {
+function HeaderBar({ isMobile, onMenuClick, chat }) {
   const { setTheme, isLCARS } = useTheme()
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
 
@@ -425,6 +436,31 @@ function HeaderBar({ isMobile, onMenuClick }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {/* Notification Bell */}
         <NotificationBell />
+
+        {/* AI Chat Toggle Button */}
+        <button
+          onClick={() => chat?.toggle()}
+          title="AI Assistant"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            background: chat?.isOpen ? 'rgba(137, 180, 250, 0.1)' : 'transparent',
+            border: 'none',
+            color: chat?.isOpen ? 'var(--color-blue)' : 'var(--color-subtext-0)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(137, 180, 250, 0.05)'}
+          onMouseLeave={e => {
+            if (!chat?.isOpen) e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <MessageSquare size={18} />
+        </button>
 
         {/* Theme Toggle Button */}
         <button

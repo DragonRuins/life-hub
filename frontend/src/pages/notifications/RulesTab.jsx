@@ -13,6 +13,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Pencil, Trash2, X, Play, Clock, Zap, Filter } from 'lucide-react'
 import { notifications } from '../../api/client'
+import { formatShortDate } from '../../utils/formatDate'
 import RuleForm from './RuleForm'
 
 // Color mapping for priority badges
@@ -145,7 +146,7 @@ export default function RulesTab() {
   function formatTimestamp(isoString) {
     if (!isoString) return 'Never'
     const date = new Date(isoString)
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+    return formatShortDate(isoString) +
            ' ' + date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   }
 

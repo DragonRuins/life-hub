@@ -44,6 +44,7 @@ import { Highlight } from '@tiptap/extension-highlight'
 import { common, createLowlight } from 'lowlight'
 
 import { notes, folders, attachments } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import useIsMobile from '../../hooks/useIsMobile'
 import LCARSPanel from './LCARSPanel'
 import LCARSModal from './LCARSModal'
@@ -838,7 +839,7 @@ function LCARSNoteListPanel({
     if (hrs < 24) return `${hrs}h ago`
     const days = Math.floor(hrs / 24)
     if (days < 30) return `${days}d ago`
-    return new Date(dateStr).toLocaleDateString()
+    return formatDate(dateStr)
   }
 
   return (

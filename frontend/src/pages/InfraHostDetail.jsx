@@ -18,6 +18,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { infrastructure } from '../api/client'
+import { formatShortDate } from '../utils/formatDate'
 import InfraHostForm from '../components/InfraHostForm'
 import InfraServiceForm from '../components/InfraServiceForm'
 import InfraContainerCard from '../components/InfraContainerCard'
@@ -634,10 +635,10 @@ function CatppuccinTooltip({ active, payload, label, metricDef, timeRange }) {
  * Format XAxis tick labels — time-only for short ranges, date for longer.
  */
 function formatXTick(isoStr, timeRange) {
-  const d = new Date(isoStr)
   if (['7d', '30d'].includes(timeRange)) {
-    return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+    return formatShortDate(isoStr)
   }
+  const d = new Date(isoStr)
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 

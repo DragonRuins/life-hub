@@ -34,6 +34,7 @@ services:
       - WEATHER_LAT=${WEATHER_LAT:-41.2}
       - WEATHER_LON=${WEATHER_LON:--87.2}
       - FUEL_API_KEY=${FUEL_API_KEY:-send-fuel-logs-here}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - ./backend:/app  # Hot-reload: edit files, see changes instantly
       - uploads:/app/uploads  # Persistent file storage for note attachments

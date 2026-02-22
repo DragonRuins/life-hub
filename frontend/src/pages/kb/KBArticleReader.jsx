@@ -14,6 +14,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Edit3, Trash2, Clock, ExternalLink, Tag, History, Link2, Bookmark, Download, Upload, FileText } from 'lucide-react'
 import useIsMobile from '../../hooks/useIsMobile'
 import { kb } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import TipTapEditor from '../notes/TipTapEditor'
 import KBRevisionHistory from './KBRevisionHistory'
 import KBTableOfContents from './KBTableOfContents'
@@ -74,7 +75,7 @@ export default function KBArticleReader({ article, onEdit, onDelete, onRestore }
   }
 
   const updatedDate = article.updated_at
-    ? new Date(article.updated_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? formatDate(article.updated_at)
     : ''
 
   return (

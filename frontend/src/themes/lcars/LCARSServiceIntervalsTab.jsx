@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Wrench, Plus, Pencil, Trash2, X, Settings, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import { vehicles } from '../../api/client'
+import { formatShortDateWithYear } from '../../utils/formatDate'
 import LCARSPanel from './LCARSPanel'
 
 export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
@@ -677,7 +678,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
             <DataField
               label="Serviced"
               value={interval.last_service_date
-                ? `${formatDate(interval.last_service_date)}${interval.last_service_mileage ? ` @ ${interval.last_service_mileage.toLocaleString()} mi` : ''}`
+                ? `${formatShortDateWithYear(interval.last_service_date)}${interval.last_service_mileage ? ` @ ${interval.last_service_mileage.toLocaleString()} mi` : ''}`
                 : 'Never'}
             />
             {(interval.next_due_mileage || interval.next_due_date) && (
@@ -685,7 +686,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
                 label="Due"
                 value={[
                   interval.next_due_mileage ? `${interval.next_due_mileage.toLocaleString()} mi` : '',
-                  interval.next_due_date ? formatDate(interval.next_due_date) : '',
+                  interval.next_due_date ? formatShortDateWithYear(interval.next_due_date) : '',
                 ].filter(Boolean).join(' / ')}
                 color={color}
               />
@@ -1148,9 +1149,3 @@ function LCARSBtn({ children, onClick, color, type = 'button' }) {
 }
 
 
-/** Format an ISO date string to a human-readable format */
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}

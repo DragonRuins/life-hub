@@ -46,6 +46,7 @@ import KBRevisionHistory from '../../pages/kb/KBRevisionHistory'
 import KBTemplatePickerModal from '../../pages/kb/KBTemplatePickerModal'
 import KBTableOfContents from '../../pages/kb/KBTableOfContents'
 import { kb } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import LCARSPanel, { LCARSStat } from './LCARSPanel'
 import CalloutBlock from '../../components/tiptap-extensions/CalloutBlock'
 import { CollapsibleBlock, CollapsibleSummary, CollapsibleContent } from '../../components/tiptap-extensions/CollapsibleBlock'
@@ -886,7 +887,7 @@ function LCARSDashboardArticleList({ articles, emptyText }) {
               color: 'var(--lcars-gray)',
               whiteSpace: 'nowrap',
             }}>
-              {article.updated_at ? new Date(article.updated_at).toLocaleDateString() : ''}
+              {article.updated_at ? formatDate(article.updated_at) : ''}
             </span>
           </Link>
         )
@@ -1297,7 +1298,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                 fontSize: '0.72rem', color: 'var(--lcars-gray)',
                 display: 'flex', alignItems: 'center', gap: '0.25rem',
               }}>
-                <Clock size={12} /> {new Date(article.updated_at).toLocaleDateString()}
+                <Clock size={12} /> {formatDate(article.updated_at)}
               </span>
             )}
             {article.source_url && (

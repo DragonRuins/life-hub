@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings } from 'lucide-react'
 import { vehicles } from '../api/client'
+import { formatDate } from '../utils/formatDate'
 import ComponentCard from '../components/ComponentCard'
 import ComponentForm from '../components/ComponentForm'
 import ComponentLogForm from '../components/ComponentLogForm'
@@ -360,7 +361,7 @@ export default function VehicleDetail() {
                           {log.service_type}
                         </div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'flex', gap: '1rem', marginTop: '0.125rem' }}>
-                          <span>{log.date}</span>
+                          <span>{formatDate(log.date)}</span>
                           {log.mileage && <span> • {log.mileage.toLocaleString()} mi</span>}
                         </div>
                       </div>
@@ -661,7 +662,7 @@ export default function VehicleDetail() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                        {new Date(log.date).toLocaleDateString()}
+                        {formatDate(log.date)}
                       </div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--color-subtext-0)' }}>
                         {log.mileage?.toLocaleString()} mi

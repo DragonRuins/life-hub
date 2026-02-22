@@ -344,12 +344,45 @@ class AstroApiClient:
         """
         Fetch the single next upcoming launch.
 
+        The Launch Library 2 API sometimes keeps completed launches in the
+        upcoming list for hours after completion. To work around this, we
+        fetch several results and filter to the first one that is genuinely
+        upcoming (not completed, and NET is in the future).
+
+        Status IDs:
+            1 = Go, 2 = TBD, 3 = Success, 4 = Failure,
+            5 = Hold, 6 = In Flight, 7 = Partial Failure
+
         Returns:
             dict: Launch object for the next scheduled launch, or None
         """
+        # Status IDs that mean the mission is finished
+        COMPLETED_STATUSES = {3, 4, 7}
+
         try:
-            data = self.get_upcoming_launches(limit=1)
+            data = self.get_upcoming_launches(limit=10)
             results = data.get('results', [])
+            now = datetime.now(timezone.utc)
+
+            for launch in results:
+                # Skip completed launches the API hasn't removed yet
+                status_id = launch.get('status', {}).get('id')
+                if status_id in COMPLETED_STATUSES:
+                    continue
+
+                # Skip launches whose NET has already passed (unless In Flight)
+                net_str = launch.get('net')
+                if net_str and status_id != 6:
+                    try:
+                        net_dt = datetime.fromisoformat(net_str.replace('Z', '+00:00'))
+                        if net_dt < now:
+                            continue
+                    except (ValueError, TypeError):
+                        pass  # If we can't parse the date, include it
+
+                return launch
+
+            # Fallback: return the first result even if filtering excluded everything
             return results[0] if results else None
         except Exception:
             return None

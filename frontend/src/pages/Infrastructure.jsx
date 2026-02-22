@@ -15,6 +15,7 @@ import {
   Wifi, Settings, RefreshCw,
 } from 'lucide-react'
 import { infrastructure } from '../api/client'
+import { formatDate } from '../utils/formatDate'
 import InfraHostForm from '../components/InfraHostForm'
 import InfraContainerCard from '../components/InfraContainerCard'
 import InfraServiceCard from '../components/InfraServiceCard'
@@ -332,7 +333,7 @@ export default function Infrastructure() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{i.title}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-subtext-0)' }}>
-                    {i.status} &middot; {new Date(i.started_at).toLocaleDateString()}
+                    {i.status} &middot; {formatDate(i.started_at)}
                   </div>
                 </div>
               </div>

@@ -9,7 +9,7 @@
  */
 import { Link } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
-import { Car, Telescope, Bell } from 'lucide-react'
+import { Car, Telescope, Bell, Bot } from 'lucide-react'
 import LCARSPanel from './LCARSPanel'
 
 /**
@@ -67,6 +67,13 @@ const MODULE_CARDS = [
     title: 'Notifications',
     description: 'Toggle, quiet hours, priority',
     color: 'var(--lcars-butterscotch)',
+  },
+  {
+    to: '/settings/ai',
+    icon: Bot,
+    title: 'AI Assistant',
+    description: 'Model, system prompt, API key',
+    color: 'var(--lcars-lilac)',
   },
 ]
 

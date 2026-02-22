@@ -7,6 +7,7 @@
  */
 import { useState } from 'react'
 import { Search, Plus, Trash2, ArrowUpDown, Menu, RotateCcw } from 'lucide-react'
+import { formatShortDate } from '../../utils/formatDate'
 
 export default function NoteList({
   notes,
@@ -57,7 +58,7 @@ export default function NoteList({
     if (diffMins < 60) return `${diffMins}m ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays < 7) return `${diffDays}d ago`
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    return formatShortDate(dateStr)
   }
 
   return (

@@ -26,6 +26,10 @@ class Config:
     # Set this in your .env or Docker environment
     FUEL_API_KEY = os.environ.get('FUEL_API_KEY', '')
 
+    # Anthropic API key for AI assistant
+    ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+    AI_DEFAULT_MODEL = os.environ.get('AI_DEFAULT_MODEL', 'claude-sonnet-4-20250514')
+
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_UPLOAD_SIZE', 50 * 1024 * 1024))  # 50MB default

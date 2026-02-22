@@ -277,6 +277,24 @@ function handleSubmit() {
 }
 ```
 
+### Docker + Dependencies (CRITICAL)
+
+This project runs in Docker with volume mounts. The `node_modules` directory lives **inside the container**, protected by an anonymous volume (`/app/node_modules` in `docker-compose.yml`). This means:
+
+- **Editing `package.json` on the host does NOT install packages inside the container.** The container's `node_modules` is isolated from the host filesystem.
+- **Editing `requirements.txt` on the host does NOT install Python packages inside the container.** Same principle.
+
+**When adding new npm dependencies:**
+1. Edit `frontend/package.json` to add the dependency
+2. Tell the user to run: `docker compose exec frontend npm install` (or rebuild with `docker compose up --build`)
+3. The Vite dev server will then have access to the new package
+
+**When adding new Python (pip) dependencies:**
+1. Edit `backend/requirements.txt` to add the dependency
+2. Tell the user to rebuild: `docker compose up --build` (pip install runs during the Docker build step, so `exec pip install` won't persist — a rebuild is required)
+
+**Never assume that editing a dependency manifest file is sufficient.** Always remind the user to install/rebuild after dependency changes.
+
 ## Key Technical Decisions
 
 - **Weather:** Uses Open-Meteo API (free, no key). Proxied through Flask so frontend doesn't make external calls directly.

@@ -30,7 +30,7 @@ import LCARSMobileNav from './LCARSMobileNav'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useTheme } from './ThemeProvider'
 
-export default function LCARSLayout({ children }) {
+export default function LCARSLayout({ children, chat }) {
   const isMobile = useIsMobile()
   const { alertCondition } = useTheme()
   const location = useLocation()
@@ -65,7 +65,7 @@ export default function LCARSLayout({ children }) {
 
       {/* Top header bar */}
       <div className="lcars-header">
-        <LCARSHeader />
+        <LCARSHeader chat={chat} />
       </div>
 
       {/* Left sidebar with pill navigation */}

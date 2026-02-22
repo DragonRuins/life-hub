@@ -6,6 +6,7 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import LCARSPanel from '../../themes/lcars/LCARSPanel'
 import { ChevronLeft, ChevronRight, Heart, Shuffle, ExternalLink } from 'lucide-react'
 
@@ -167,7 +168,7 @@ export default function LCARSAstroApod() {
               fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
               color: 'var(--lcars-gray)', marginBottom: '0.5rem',
             }}>
-              {apod.date}{apod.copyright ? ` \u2022 ${apod.copyright}` : ''}
+              {formatDate(apod.date)}{apod.copyright ? ` \u2022 ${apod.copyright}` : ''}
             </div>
             <p style={{
               margin: 0, fontSize: '0.85rem', lineHeight: 1.6,
@@ -216,7 +217,7 @@ export default function LCARSAstroApod() {
                   <div style={{
                     fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem',
                     color: 'var(--lcars-gray)',
-                  }}>{fav.date}</div>
+                  }}>{formatDate(fav.date)}</div>
                 </div>
               </div>
             ))}

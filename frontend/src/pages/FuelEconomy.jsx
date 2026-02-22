@@ -15,6 +15,7 @@ import { Fuel, Trash2, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, Ba
 import useIsMobile from '../hooks/useIsMobile'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { vehicles, fuel } from '../api/client'
+import { formatDate, formatShortDate } from '../utils/formatDate'
 
 export default function FuelEconomy() {
   const { id } = useParams()
@@ -74,7 +75,7 @@ export default function FuelEconomy() {
     .reverse()
     .filter(e => e.mpg != null)
     .map(e => ({
-      date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: formatShortDate(e.date),
       mpg: e.mpg,
       pricePerGallon: e.cost_per_gallon,
     }))
@@ -83,7 +84,7 @@ export default function FuelEconomy() {
   const priceChartData = [...filteredEntries]
     .reverse()
     .map(e => ({
-      date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: formatShortDate(e.date),
       pricePerGallon: e.cost_per_gallon,
     }))
 
@@ -309,7 +310,7 @@ export default function FuelEconomy() {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                           <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>
-                            {new Date(entry.date).toLocaleDateString()}
+                            {formatDate(entry.date)}
                           </span>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                             {entry.mpg != null ? (
@@ -378,7 +379,7 @@ export default function FuelEconomy() {
                             key={entry.id}
                             style={{ borderBottom: '1px solid var(--color-surface-0)' }}
                           >
-                            <Td>{new Date(entry.date).toLocaleDateString()}</Td>
+                            <Td>{formatDate(entry.date)}</Td>
                             <Td align="right">{entry.mileage?.toLocaleString()}</Td>
                             <Td align="right">{entry.gallons_added?.toFixed(2)}</Td>
                             <Td align="right">${entry.cost_per_gallon?.toFixed(3)}</Td>

@@ -12,6 +12,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Wrench, Plus, Pencil, Trash2, X, Settings, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import { vehicles } from '../api/client'
+import { formatShortDateWithYear } from '../utils/formatDate'
 
 export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
   // ── State ──────────────────────────────────────────────────────
@@ -575,14 +576,14 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.8rem', color: 'var(--color-subtext-0)', marginBottom: '0.25rem' }}>
           <span>
             {interval.last_service_date
-              ? `Serviced: ${formatDate(interval.last_service_date)}${interval.last_service_mileage ? ` @ ${interval.last_service_mileage.toLocaleString()} mi` : ''}`
+              ? `Serviced: ${formatShortDateWithYear(interval.last_service_date)}${interval.last_service_mileage ? ` @ ${interval.last_service_mileage.toLocaleString()} mi` : ''}`
               : 'Never serviced'}
           </span>
           {(interval.next_due_mileage || interval.next_due_date) && (
             <span>
               Due: {interval.next_due_mileage ? `${interval.next_due_mileage.toLocaleString()} mi` : ''}
               {interval.next_due_mileage && interval.next_due_date ? ' / ' : ''}
-              {interval.next_due_date ? formatDate(interval.next_due_date) : ''}
+              {interval.next_due_date ? formatShortDateWithYear(interval.next_due_date) : ''}
             </span>
           )}
           <span style={{ color: 'var(--color-overlay-0)' }}>
@@ -844,9 +845,3 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
 
 // ── Utility ────────────────────────────────────────────────────
 
-/** Format an ISO date string to a human-readable format (e.g., "Jan 15, 2025") */
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}

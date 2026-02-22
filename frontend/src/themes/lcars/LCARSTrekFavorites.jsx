@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, Trash2, ArrowLeft } from 'lucide-react'
 import { trek } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import { getTrekLCARSLabel, getTrekRoute } from '../../utils/trekHelpers'
 import LCARSPanel, { LCARSDataRow } from './LCARSPanel'
 
@@ -144,7 +145,7 @@ export default function LCARSTrekFavorites() {
                   fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem',
                   color: 'var(--lcars-gray)', flexShrink: 0,
                 }}>
-                  {fav.created_at?.split('T')[0]}
+                  {formatDate(fav.created_at)}
                 </span>
 
                 <button

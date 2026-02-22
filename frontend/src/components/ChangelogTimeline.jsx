@@ -12,6 +12,7 @@
  *   onDelete   - (id) => Promise — delete an entry
  */
 import { useState } from 'react'
+import { formatShortDateWithYear } from '../utils/formatDate'
 import {
   Plus, X, Trash2, Edit2, Check,
   Rocket, Flag, Sparkles, Bug, FileText, AlertTriangle,
@@ -235,7 +236,7 @@ function TimelineEntry({ entry, isEditing, onStartEdit, onCancelEdit, onUpdate, 
             flexWrap: 'wrap', marginBottom: '0.25rem',
           }}>
             <span style={{ fontSize: '0.7rem', color: 'var(--color-subtext-0)', fontFamily: 'var(--font-mono)' }}>
-              {new Date(entry.entry_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              {formatShortDateWithYear(entry.entry_date)}
             </span>
             <span style={{
               fontSize: '0.6rem', fontWeight: 600, padding: '0.1rem 0.35rem',

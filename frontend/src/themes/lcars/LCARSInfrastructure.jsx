@@ -11,6 +11,7 @@ import {
   Wifi, Settings, RefreshCw,
 } from 'lucide-react'
 import { infrastructure } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import LCARSPanel, { LCARSDataRow, LCARSStat } from './LCARSPanel'
 import InfraHostForm from '../../components/InfraHostForm'
 
@@ -488,7 +489,7 @@ export default function LCARSInfrastructure() {
                 fontFamily: "'JetBrains Mono', monospace", fontSize: '0.65rem',
                 color: 'var(--lcars-gray)',
               }}>
-                {new Date(i.started_at).toLocaleDateString()}
+                {formatDate(i.started_at)}
               </span>
             </div>
           ))}

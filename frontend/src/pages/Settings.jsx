@@ -9,7 +9,7 @@
  */
 import { Link } from 'react-router-dom'
 import { useTheme } from '../themes/lcars/ThemeProvider'
-import { Car, Telescope, Bell, Palette, ChevronRight } from 'lucide-react'
+import { Car, Telescope, Bell, Palette, ChevronRight, Bot } from 'lucide-react'
 
 /**
  * All available color schemes, grouped by family.
@@ -125,6 +125,13 @@ const MODULE_CARDS = [
     title: 'Notifications',
     description: 'Global toggle, quiet hours, priority, retention',
     color: 'var(--color-peach)',
+  },
+  {
+    to: '/settings/ai',
+    icon: Bot,
+    title: 'AI Assistant',
+    description: 'Model selection, system prompt, API key status',
+    color: 'var(--color-mauve)',
   },
 ]
 

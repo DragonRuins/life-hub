@@ -19,6 +19,7 @@ import MaintenanceForm from '../../components/MaintenanceForm'
 import LCARSServiceIntervalsTab from './LCARSServiceIntervalsTab'
 import TireSetForm from '../../components/TireSetForm'
 import FuelForm from '../../components/FuelForm'
+import { formatDate } from '../../utils/formatDate'
 import { getComponentType } from '../../constants/componentTypes'
 import LCARSPanel, { LCARSDataRow, LCARSStat } from './LCARSPanel'
 import LCARSComponentCard from './LCARSComponentCard'
@@ -621,7 +622,7 @@ export default function LCARSVehicleDetail() {
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(153, 153, 51, 0.06)'}
                         onMouseLeave={e => e.currentTarget.style.background = rowBg}
                       >
-                        <LTd>{new Date(log.date).toLocaleDateString()}</LTd>
+                        <LTd>{formatDate(log.date)}</LTd>
                         <LTd align="right">{log.mileage?.toLocaleString()}</LTd>
                         <LTd align="right">{log.gallons_added?.toFixed(2)}</LTd>
                         <LTd align="right">${log.cost_per_gallon?.toFixed(3)}</LTd>
@@ -760,7 +761,7 @@ function LCARSMaintenanceRow({ log, index = 0, onDelete }) {
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.75rem',
             }}>
-              <span style={{ color: 'var(--lcars-sunflower)' }}>{log.date}</span>
+              <span style={{ color: 'var(--lcars-sunflower)' }}>{formatDate(log.date)}</span>
               {log.mileage && <span style={{ color: 'var(--lcars-gray)' }}>{log.mileage.toLocaleString()} mi</span>}
             </div>
             {log.description && (

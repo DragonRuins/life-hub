@@ -803,6 +803,32 @@ export const infrastructure = {
   },
 }
 
+// ── AI Assistant ──────────────────────────────────────────────────
+
+export const ai = {
+  conversations: {
+    list: () => apiFetch('/ai/conversations'),
+    create: (data) => apiFetch('/ai/conversations', {
+      method: 'POST',
+      body: JSON.stringify(data || {}),
+    }),
+    get: (id) => apiFetch(`/ai/conversations/${id}`),
+    update: (id, data) => apiFetch(`/ai/conversations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+    delete: (id) => apiFetch(`/ai/conversations/${id}`, { method: 'DELETE' }),
+  },
+  settings: {
+    get: () => apiFetch('/ai/settings'),
+    update: (data) => apiFetch('/ai/settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  },
+  status: () => apiFetch('/ai/status'),
+}
+
 // ── Star Trek Database ────────────────────────────────────────────
 
 export const trek = {

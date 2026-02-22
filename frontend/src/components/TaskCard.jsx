@@ -8,6 +8,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Calendar, Clock } from 'lucide-react'
+import { formatShortDate } from '../utils/formatDate'
 
 // Priority → left-border color mapping (Catppuccin palette)
 const PRIORITY_COLORS = {
@@ -98,7 +99,7 @@ export default function TaskCard({ task, onClick, isDragOverlay }) {
               color: isOverdue ? 'var(--color-red)' : 'var(--color-subtext-0)',
             }}>
               <Calendar size={10} />
-              {new Date(task.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              {formatShortDate(task.due_date)}
             </span>
           )}
 

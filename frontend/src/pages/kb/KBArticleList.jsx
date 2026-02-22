@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FileText, Clock, Tag, Plus, Bookmark, Eye, Upload, ChevronLeft, ChevronRight, Folder } from 'lucide-react'
 import { kb } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 
 // Status label and color mapping
 const STATUS_STYLES = {
@@ -139,7 +140,7 @@ export default function KBArticleList({
 
 function ArticleCard({ article }) {
   const status = STATUS_STYLES[article.status] || STATUS_STYLES.draft
-  const updatedDate = article.updated_at ? new Date(article.updated_at).toLocaleDateString() : ''
+  const updatedDate = article.updated_at ? formatDate(article.updated_at) : ''
 
   // Use search headline if available (from full-text search), otherwise fallback to content_text
   const preview = article.headline
@@ -496,7 +497,7 @@ function DashboardArticleList({ articles }) {
         >
           <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{article.title}</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)', flexShrink: 0, marginLeft: '0.5rem' }}>
-            {article.updated_at ? new Date(article.updated_at).toLocaleDateString() : ''}
+            {article.updated_at ? formatDate(article.updated_at) : ''}
           </span>
         </Link>
       ))}

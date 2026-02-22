@@ -19,3 +19,4 @@ from .kb import (
 )
 from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings
 from .trek import TrekDailyEntry, TrekFavorite, TrekSettings
+from .ai_chat import Conversation, Message, AISettings

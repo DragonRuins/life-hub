@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { dashboard, vehicles } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import MaintenanceForm from '../../components/MaintenanceForm'
 import FuelForm from '../../components/FuelForm'
@@ -541,7 +542,7 @@ function VehicleReadoutPanel({ vehicle, fleetStatus, isAllFleet }) {
         <LCARSDataRow
           icon={<Wrench size={13} />}
           label="Last Service"
-          value={`${lastService.title} — ${lastService.date}`}
+          value={`${lastService.title} — ${formatDate(lastService.date)}`}
           color="var(--lcars-sunflower)"
         />
       )}
@@ -800,7 +801,7 @@ function ActivityTimelinePanel({ timeline }) {
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
               }}>
-                {entry.date}
+                {formatDate(entry.date)}
               </div>
             </div>
           ))}

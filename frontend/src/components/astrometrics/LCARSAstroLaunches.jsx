@@ -74,7 +74,12 @@ export default function LCARSAstroLaunches() {
   )
 
   const nextData = nextLaunch?.data || {}
-  const upcomingList = upcoming?.data?.results || []
+  // Filter out completed launches (3=Success, 4=Failure, 7=Partial) that the
+  // API may keep in the upcoming list for a while after mission completion
+  const COMPLETED_STATUSES = new Set([3, 4, 7])
+  const upcomingList = (upcoming?.data?.results || []).filter(
+    l => !COMPLETED_STATUSES.has(l.status?.id)
+  )
   const pastList = past?.data?.results || []
 
   return (

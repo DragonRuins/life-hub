@@ -13,6 +13,7 @@ import {
   Kanban, Clock, Settings, FolderKanban,
 } from 'lucide-react'
 import { projects } from '../api/client'
+import { formatDate } from '../utils/formatDate'
 import useIsMobile from '../hooks/useIsMobile'
 import KanbanBoard from '../components/KanbanBoard'
 import TaskDetailModal from '../components/TaskDetailModal'
@@ -252,7 +253,7 @@ export default function ProjectDetail() {
           {project.started_at && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
               <Calendar size={14} />
-              Started {new Date(project.started_at).toLocaleDateString()}
+              Started {formatDate(project.started_at)}
             </span>
           )}
         </div>
@@ -519,7 +520,7 @@ function ProjectInfoSection({ project, onUpdate }) {
           <InfoRow label="Status" value={project.status} />
           <InfoRow label="Repository" value={project.repo_url} link />
           <InfoRow label="Live URL" value={project.live_url} link />
-          <InfoRow label="Started" value={project.started_at ? new Date(project.started_at).toLocaleDateString() : 'Not set'} />
+          <InfoRow label="Started" value={project.started_at ? formatDate(project.started_at) : 'Not set'} />
           <InfoRow label="Color" value={project.color} color />
         </div>
       )}

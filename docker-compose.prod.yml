@@ -31,6 +31,7 @@ services:
       - WEATHER_LAT=${WEATHER_LAT:-41.2}
       - WEATHER_LON=${WEATHER_LON:--87.2}
       - FUEL_API_KEY=${FUEL_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
       - uploads:/app/uploads
       - /var/run/docker.sock:/var/run/docker.sock  # Docker API access for infrastructure module

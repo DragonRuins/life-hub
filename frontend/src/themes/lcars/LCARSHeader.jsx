@@ -6,13 +6,13 @@
  * notification bell, theme toggle button, and settings link.
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Bell, Settings, Palette, Check, ExternalLink, Maximize, Minimize } from 'lucide-react'
+import { Bell, Settings, Palette, Check, ExternalLink, Maximize, Minimize, MessageSquare } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
 import { notifications } from '../../api/client'
 import useIsMobile from '../../hooks/useIsMobile'
 
-export default function LCARSHeader() {
+export default function LCARSHeader({ chat }) {
   const { setTheme, isLCARS } = useTheme()
   const isMobile = useIsMobile()
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
@@ -99,6 +99,31 @@ export default function LCARSHeader() {
 
         {/* Custom LCARS notification bell */}
         <LCARSNotificationBell />
+
+        {/* AI Chat Toggle Button */}
+        <button
+          onClick={() => chat?.toggle()}
+          title="AI Assistant"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            background: chat?.isOpen ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+            border: 'none',
+            color: '#000000',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+          onMouseLeave={e => {
+            if (!chat?.isOpen) e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <MessageSquare size={18} />
+        </button>
 
         {/* Theme Toggle Button */}
         <button

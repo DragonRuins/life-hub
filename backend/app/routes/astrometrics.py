@@ -428,6 +428,9 @@ def get_upcoming_launches():
     """
     Get upcoming rocket launches.
 
+    Filters out completed launches (status 3=Success, 4=Failure, 7=Partial)
+    that the API may still return for a while after mission completion.
+
     Query params:
       limit (optional): Max results (default 10, max 25)
     """
@@ -436,12 +439,26 @@ def get_upcoming_launches():
     client = _get_client()
     cache = _get_cache()
 
+    # Fetch extra results so we still have enough after filtering
+    fetch_limit = min(limit + 10, 25)
+
     try:
         result = cache.get_or_fetch(
             source='launches_upcoming',
             cache_key='upcoming',
-            fetch_fn=lambda: client.get_upcoming_launches(limit=limit),
+            fetch_fn=lambda: client.get_upcoming_launches(limit=fetch_limit),
         )
+
+        # Filter out completed launches from the results
+        if result and 'data' in result and 'results' in result['data']:
+            completed_statuses = {3, 4, 7}
+            filtered = [
+                launch for launch in result['data']['results']
+                if launch.get('status', {}).get('id') not in completed_statuses
+            ]
+            result['data']['results'] = filtered[:limit]
+            result['data']['count'] = len(filtered[:limit])
+
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': f'Failed to fetch upcoming launches: {str(e)}'}), 502

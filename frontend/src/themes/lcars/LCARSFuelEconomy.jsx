@@ -13,6 +13,7 @@ import { useParams, Link } from 'react-router-dom'
 import { Fuel, Trash2, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { vehicles, fuel } from '../../api/client'
+import { formatDate, formatShortDate } from '../../utils/formatDate'
 import useIsMobile from '../../hooks/useIsMobile'
 import LCARSPanel, { LCARSStat } from './LCARSPanel'
 
@@ -72,7 +73,7 @@ export default function LCARSFuelEconomy() {
     .reverse()
     .filter(e => e.mpg != null)
     .map(e => ({
-      date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: formatShortDate(e.date),
       mpg: e.mpg,
       pricePerGallon: e.cost_per_gallon,
     }))
@@ -80,7 +81,7 @@ export default function LCARSFuelEconomy() {
   const priceChartData = [...filteredEntries]
     .reverse()
     .map(e => ({
-      date: new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: formatShortDate(e.date),
       pricePerGallon: e.cost_per_gallon,
     }))
 
@@ -352,7 +353,7 @@ export default function LCARSFuelEconomy() {
                         fontSize: '0.82rem',
                         color: 'var(--lcars-sunflower)',
                       }}>
-                        {new Date(entry.date).toLocaleDateString()}
+                        {formatDate(entry.date)}
                       </span>
                       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         {entry.mpg != null ? (
@@ -428,7 +429,7 @@ export default function LCARSFuelEconomy() {
                         onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 204, 153, 0.06)'}
                         onMouseLeave={e => e.currentTarget.style.background = rowBg}
                       >
-                        <LTd>{new Date(entry.date).toLocaleDateString()}</LTd>
+                        <LTd>{formatDate(entry.date)}</LTd>
                         <LTd align="right">{entry.mileage?.toLocaleString()}</LTd>
                         <LTd align="right">{entry.gallons_added?.toFixed(2)}</LTd>
                         <LTd align="right">${entry.cost_per_gallon?.toFixed(3)}</LTd>

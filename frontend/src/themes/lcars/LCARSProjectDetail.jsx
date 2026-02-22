@@ -16,6 +16,7 @@ import {
   Plus, X, Trash2, Check, Kanban, Clock, Settings,
 } from 'lucide-react'
 import { projects } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import useIsMobile from '../../hooks/useIsMobile'
 import KanbanBoard from '../../components/KanbanBoard'
 import TaskDetailModal from '../../components/TaskDetailModal'
@@ -308,7 +309,7 @@ export default function LCARSProjectDetail() {
                   fontFamily: "'JetBrains Mono', monospace", fontSize: '0.72rem',
                 }}>
                   <Calendar size={12} />
-                  Started {new Date(project.started_at).toLocaleDateString()}
+                  Started {formatDate(project.started_at)}
                 </span>
               )}
             </div>
@@ -607,7 +608,7 @@ function LCARSProjectInfoSection({ project, onUpdate }) {
           <LCARSInfoField label="Status" value={project.status} />
           <LCARSInfoField label="Repository" value={project.repo_url} link />
           <LCARSInfoField label="Live URL" value={project.live_url} link />
-          <LCARSInfoField label="Started" value={project.started_at ? new Date(project.started_at).toLocaleDateString() : 'Not set'} />
+          <LCARSInfoField label="Started" value={project.started_at ? formatDate(project.started_at) : 'Not set'} />
           <LCARSInfoField label="Color" value={project.color} color />
         </div>
       )}

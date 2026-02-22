@@ -17,6 +17,7 @@ import {
   CheckCircle2, AlertTriangle, CircleDot, ChevronRight
 } from 'lucide-react'
 import { dashboard, vehicles } from '../api/client'
+import { formatDate } from '../utils/formatDate'
 import { getWeatherInfo, getDayName } from '../components/weatherCodes'
 import MaintenanceForm from '../components/MaintenanceForm'
 import FuelForm from '../components/FuelForm'
@@ -494,7 +495,7 @@ function RecentActivityCard({ timeline }) {
                   flexShrink: 0,
                   fontFamily: "'JetBrains Mono', monospace",
                 }}>
-                  {entry.date}
+                  {formatDate(entry.date)}
                 </span>
               </div>
             )

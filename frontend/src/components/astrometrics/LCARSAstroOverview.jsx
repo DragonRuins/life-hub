@@ -10,6 +10,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import LCARSPanel, { LCARSStat } from '../../themes/lcars/LCARSPanel'
 import useIsMobile from '../../hooks/useIsMobile'
 
@@ -169,7 +170,7 @@ export default function LCARSAstroOverview() {
           fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
           color: 'var(--lcars-gray)', marginTop: '0.25rem',
         }}>
-          {apodData.date || '---'}
+          {formatDate(apodData.date) || '---'}
         </div>
       </LCARSPanel>
 

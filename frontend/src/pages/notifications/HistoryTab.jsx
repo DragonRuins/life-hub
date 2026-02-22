@@ -11,6 +11,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Activity, AlertTriangle, TrendingUp, Star } from 'lucide-react'
 import { notifications } from '../../api/client'
+import { formatShortDate } from '../../utils/formatDate'
 
 // Priority badge styles
 const PRIORITY_STYLES = {
@@ -93,7 +94,7 @@ export default function HistoryTab() {
   function formatTimestamp(isoString) {
     if (!isoString) return '--'
     const date = new Date(isoString)
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+    return formatShortDate(isoString) +
            ' ' + date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   }
 

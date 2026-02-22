@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart, ChevronRight, Trash2 } from 'lucide-react'
 import { trek } from '../../api/client'
+import { formatDate } from '../../utils/formatDate'
 import { getTrekCategoryLabel, getTrekRoute, ENTITY_CATEGORIES } from '../../utils/trekHelpers'
 
 export default function TrekFavorites() {
@@ -137,7 +138,7 @@ export default function TrekFavorites() {
               </Link>
 
               <span style={{ fontSize: '0.7rem', color: 'var(--color-overlay-0)', flexShrink: 0, fontFamily: "'JetBrains Mono', monospace" }}>
-                {fav.created_at?.split('T')[0]}
+                {formatDate(fav.created_at)}
               </span>
 
               <button
