@@ -801,6 +801,106 @@ export const infrastructure = {
     latest: (sourceType, sourceId) =>
       apiFetch(`/infrastructure/metrics/latest/${sourceType}/${sourceId}`),
   },
+
+  // Smart Home
+  smarthome: {
+    // Rooms
+    rooms: {
+      list: () => apiFetch('/infrastructure/smarthome/rooms'),
+      create: (data) => apiFetch('/infrastructure/smarthome/rooms', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => apiFetch(`/infrastructure/smarthome/rooms/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => apiFetch(`/infrastructure/smarthome/rooms/${id}`, { method: 'DELETE' }),
+      reorder: (items) => apiFetch('/infrastructure/smarthome/rooms/reorder', {
+        method: 'PUT',
+        body: JSON.stringify(items),
+      }),
+    },
+
+    // Devices
+    devices: {
+      list: (params = {}) => {
+        const query = new URLSearchParams(params).toString()
+        return apiFetch(`/infrastructure/smarthome/devices${query ? '?' + query : ''}`)
+      },
+      create: (data) => apiFetch('/infrastructure/smarthome/devices', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+      update: (id, data) => apiFetch(`/infrastructure/smarthome/devices/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+      delete: (id) => apiFetch(`/infrastructure/smarthome/devices/${id}`, { method: 'DELETE' }),
+      history: (id, params = {}) => {
+        const query = new URLSearchParams(params).toString()
+        return apiFetch(`/infrastructure/smarthome/devices/${id}/history${query ? '?' + query : ''}`)
+      },
+      bulkImport: (devices) => apiFetch('/infrastructure/smarthome/devices/bulk-import', {
+        method: 'POST',
+        body: JSON.stringify(devices),
+      }),
+      bulkUpdate: (deviceIds, updates) => apiFetch('/infrastructure/smarthome/devices/bulk-update', {
+        method: 'PUT',
+        body: JSON.stringify({ device_ids: deviceIds, updates }),
+      }),
+      bulkDelete: (deviceIds) => apiFetch('/infrastructure/smarthome/devices/bulk-delete', {
+        method: 'DELETE',
+        body: JSON.stringify({ device_ids: deviceIds }),
+      }),
+      control: (id, data) => apiFetch(`/infrastructure/smarthome/devices/${id}/control`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+      favorite: (id, data) => apiFetch(`/infrastructure/smarthome/devices/${id}/favorite`, {
+        method: 'PUT',
+        body: JSON.stringify(data || {}),
+      }),
+    },
+
+    // Favorites
+    favorites: () => apiFetch('/infrastructure/smarthome/favorites'),
+
+    // Discovery & Sync
+    discover: (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/smarthome/discover${query ? '?' + query : ''}`)
+    },
+    sync: () => apiFetch('/infrastructure/smarthome/sync', { method: 'POST' }),
+    dashboard: () => apiFetch('/infrastructure/smarthome/dashboard'),
+
+    // SSE stream for real-time state updates
+    stream: {
+      connect: (onEvent, onError) => {
+        const es = new EventSource('/api/infrastructure/smarthome/stream')
+        es.onmessage = (e) => onEvent(JSON.parse(e.data))
+        es.onerror = (e) => onError?.(e)
+        return es  // caller closes with es.close()
+      },
+    },
+  },
+
+  // 3D Printer
+  printer: {
+    status: () => apiFetch('/infrastructure/printer/status'),
+    current: (deviceId) => apiFetch(`/infrastructure/printer/${deviceId}/current`),
+    jobs: (deviceId, params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/printer/${deviceId}/jobs${query ? '?' + query : ''}`)
+    },
+    job: (deviceId, jobId) => apiFetch(`/infrastructure/printer/${deviceId}/jobs/${jobId}`),
+    metrics: (deviceId, params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      return apiFetch(`/infrastructure/printer/${deviceId}/metrics${query ? '?' + query : ''}`)
+    },
+    k2plus: (deviceId) => apiFetch(`/infrastructure/printer/${deviceId}/k2plus`),
+    cameraStreamUrl: (deviceId) => `/api/infrastructure/smarthome/camera/${deviceId}/stream`,
+  },
 }
 
 // ── AI Assistant ──────────────────────────────────────────────────

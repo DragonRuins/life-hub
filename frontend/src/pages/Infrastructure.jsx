@@ -251,6 +251,12 @@ export default function Infrastructure() {
         <Link to="/infrastructure/integrations" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
           <Settings size={16} /> Integrations
         </Link>
+        <Link to="/infrastructure/smarthome" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+          <Wifi size={16} /> Smart Home
+        </Link>
+        <Link to="/infrastructure/printer" className="btn btn-ghost" style={{ textDecoration: 'none' }}>
+          <Box size={16} /> 3D Printer
+        </Link>
       </div>
 
       {/* Hosts */}

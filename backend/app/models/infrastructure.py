@@ -338,3 +338,146 @@ class InfraIntegrationConfig(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+class InfraSmarthomeRoom(db.Model):
+    """A room/area grouping for smart home devices."""
+    __tablename__ = 'infra_smarthome_rooms'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)          # e.g., "Living Room"
+    icon = db.Column(db.String(50), default='home')           # Lucide icon name
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    # Relationship: devices in this room
+    devices = db.relationship('InfraSmarthomeDevice', backref='room',
+                              foreign_keys='InfraSmarthomeDevice.room_id')
+
+    def to_dict(self):
+        """Convert to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'icon': self.icon,
+            'sort_order': self.sort_order,
+            'device_count': len(self.devices) if self.devices else 0,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class InfraSmarthomeDevice(db.Model):
+    """A smart home device registered from HomeAssistant."""
+    __tablename__ = 'infra_smarthome_devices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    integration_config_id = db.Column(db.Integer,
+                                       db.ForeignKey('infra_integration_configs.id', ondelete='CASCADE'),
+                                       nullable=False)
+    entity_id = db.Column(db.String(255), nullable=False)      # e.g., "sensor.living_room_temp"
+    friendly_name = db.Column(db.String(300))                   # e.g., "Living Room Temperature"
+    domain = db.Column(db.String(50))                           # sensor, light, switch, climate, etc.
+    device_class = db.Column(db.String(100))                    # temperature, humidity, motion, door, etc.
+    room_id = db.Column(db.Integer, db.ForeignKey('infra_smarthome_rooms.id', ondelete='SET NULL'))
+    category = db.Column(db.String(50), default='general')      # climate, lighting, security, sensor, media, printer, other
+    is_visible = db.Column(db.Boolean, default=True)
+    is_tracked = db.Column(db.Boolean, default=False)           # Whether to record metrics for this device
+    is_favorited = db.Column(db.Boolean, default=False)         # Show in header quick menu
+    track_interval_seconds = db.Column(db.Integer, default=300) # How often to record metrics when tracked
+    config = db.Column(db.JSON, default=dict)                   # Thresholds, printer_entities, show_chart, etc.
+    sort_order = db.Column(db.Integer, default=0)
+    last_state = db.Column(db.String(255))                      # Cached current state from HA
+    last_attributes = db.Column(db.JSON)                        # Cached full HA attributes
+    last_updated_at = db.Column(db.DateTime)                    # When state was last refreshed
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    integration = db.relationship('InfraIntegrationConfig', foreign_keys=[integration_config_id])
+    printer_jobs = db.relationship('InfraPrinterJob', backref='device', cascade='all, delete-orphan')
+
+    __table_args__ = (
+        db.UniqueConstraint('integration_config_id', 'entity_id',
+                            name='uq_smarthome_device_integration_entity'),
+        db.Index('idx_smarthome_devices_room', 'room_id'),
+        db.Index('idx_smarthome_devices_category', 'category'),
+        db.Index('idx_smarthome_devices_domain', 'domain'),
+    )
+
+    def to_dict(self):
+        """Convert to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'integration_config_id': self.integration_config_id,
+            'entity_id': self.entity_id,
+            'friendly_name': self.friendly_name,
+            'domain': self.domain,
+            'device_class': self.device_class,
+            'room_id': self.room_id,
+            'category': self.category,
+            'is_visible': self.is_visible,
+            'is_tracked': self.is_tracked,
+            'is_favorited': self.is_favorited,
+            'track_interval_seconds': self.track_interval_seconds,
+            'config': self.config or {},
+            'sort_order': self.sort_order,
+            'last_state': self.last_state,
+            'last_attributes': self.last_attributes or {},
+            'last_updated_at': self.last_updated_at.isoformat() if self.last_updated_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class InfraPrinterJob(db.Model):
+    """A 3D print job tracked from printer device state transitions."""
+    __tablename__ = 'infra_printer_jobs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer,
+                          db.ForeignKey('infra_smarthome_devices.id', ondelete='CASCADE'),
+                          nullable=False)
+    file_name = db.Column(db.String(500))
+    status = db.Column(db.String(30), default='printing')       # printing, completed, failed, cancelled, paused
+    progress = db.Column(db.Float, default=0.0)                 # 0-100 percentage
+    started_at = db.Column(db.DateTime)
+    completed_at = db.Column(db.DateTime)
+    estimated_end_at = db.Column(db.DateTime)
+    duration_seconds = db.Column(db.Integer)
+    nozzle_temp_avg = db.Column(db.Float)
+    bed_temp_avg = db.Column(db.Float)
+    chamber_temp_avg = db.Column(db.Float)
+    job_metadata = db.Column(db.JSON, default=dict)               # Extensible: filament type, layer count, etc.
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.Index('idx_printer_jobs_device', 'device_id'),
+        db.Index('idx_printer_jobs_status', 'status'),
+        db.Index('idx_printer_jobs_started', started_at.desc()),
+    )
+
+    def to_dict(self):
+        """Convert to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'file_name': self.file_name,
+            'status': self.status,
+            'progress': self.progress,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'estimated_end_at': self.estimated_end_at.isoformat() if self.estimated_end_at else None,
+            'duration_seconds': self.duration_seconds,
+            'nozzle_temp_avg': self.nozzle_temp_avg,
+            'bed_temp_avg': self.bed_temp_avg,
+            'chamber_temp_avg': self.chamber_temp_avg,
+            'metadata': self.job_metadata or {},
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }

@@ -22,6 +22,7 @@ import FuelEntry from './pages/FuelEntry'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import NotificationBell from './components/NotificationBell'
+import SmartHomeQuickMenu from './components/SmartHomeQuickMenu'
 import LCARSLayout from './themes/lcars/LCARSLayout'
 import LCARSBootSequence from './themes/lcars/LCARSBootSequence'
 import LCARSDashboard from './themes/lcars/LCARSDashboard'
@@ -39,12 +40,16 @@ import InfraNetwork from './pages/InfraNetwork'
 import InfraServices from './pages/InfraServices'
 import InfraIncidents from './pages/InfraIncidents'
 import InfraIntegrations from './pages/InfraIntegrations'
+import InfraSmartHome from './pages/InfraSmartHome'
+import InfraPrinter from './pages/InfraPrinter'
 import LCARSInfrastructure from './themes/lcars/LCARSInfrastructure'
 import LCARSInfraHostDetail from './themes/lcars/LCARSInfraHostDetail'
 import LCARSInfraNetwork from './themes/lcars/LCARSInfraNetwork'
 import LCARSInfraServices from './themes/lcars/LCARSInfraServices'
 import LCARSInfraIncidents from './themes/lcars/LCARSInfraIncidents'
 import LCARSInfraIntegrations from './themes/lcars/LCARSInfraIntegrations'
+import LCARSInfraSmartHome from './themes/lcars/LCARSInfraSmartHome'
+import LCARSInfraPrinter from './themes/lcars/LCARSInfraPrinter'
 import Astrometrics from './pages/Astrometrics'
 import LCARSAstrometrics from './themes/lcars/LCARSAstrometrics'
 import TrekDatabase from './pages/TrekDatabase'
@@ -132,6 +137,8 @@ function LCARSAppShell({ chat }) {
         <Route path="/infrastructure/services" element={<LCARSInfraServices />} />
         <Route path="/infrastructure/incidents" element={<LCARSInfraIncidents />} />
         <Route path="/infrastructure/integrations" element={<LCARSInfraIntegrations />} />
+        <Route path="/infrastructure/smarthome" element={<LCARSInfraSmartHome />} />
+        <Route path="/infrastructure/printer" element={<LCARSInfraPrinter />} />
         <Route path="/astrometrics" element={<LCARSAstrometrics />} />
         <Route path="/trek" element={<LCARSTrekDatabase />} />
         <Route path="/trek/search" element={<LCARSTrekSearch />} />
@@ -353,6 +360,8 @@ function AppShell({ chat }) {
             <Route path="/infrastructure/services" element={<InfraServices />} />
             <Route path="/infrastructure/incidents" element={<InfraIncidents />} />
             <Route path="/infrastructure/integrations" element={<InfraIntegrations />} />
+            <Route path="/infrastructure/smarthome" element={<InfraSmartHome />} />
+            <Route path="/infrastructure/printer" element={<InfraPrinter />} />
             <Route path="/astrometrics" element={<Astrometrics />} />
             <Route path="/trek" element={<TrekDatabase />} />
             <Route path="/trek/search" element={<TrekSearch />} />
@@ -436,6 +445,9 @@ function HeaderBar({ isMobile, onMenuClick, chat }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {/* Notification Bell */}
         <NotificationBell />
+
+        {/* Smart Home Quick Menu */}
+        <SmartHomeQuickMenu />
 
         {/* AI Chat Toggle Button */}
         <button

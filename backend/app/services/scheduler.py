@@ -58,6 +58,7 @@ def init_scheduler(app):
             _add_uptime_check_job()
             _add_metrics_retention_job()
             _add_astrometrics_sync_job()
+            _add_smarthome_poll_job()
             _add_trek_daily_entry_job()
             _add_trek_prefetch_job()
 
@@ -317,6 +318,40 @@ def _run_infrastructure_sync():
         run_all_syncs(_app)
     except Exception as e:
         logger.error(f"Infrastructure sync failed: {e}")
+
+
+def _add_smarthome_poll_job():
+    """
+    Add a 60-second fallback polling job for smart home device state updates.
+
+    The HA WebSocket client handles real-time updates; this poll is a
+    fallback to catch any missed events and record tracked device metrics.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_smarthome_poll,
+        trigger='interval',
+        id='smarthome_poll',
+        seconds=60,
+        replace_existing=True,
+    )
+    logger.info("Smart home poll job scheduled (every 60s, fallback)")
+
+
+def _run_smarthome_poll():
+    """Execute smart home polling inside app context."""
+    global _app
+    if not _app:
+        return
+
+    try:
+        from app.services.infrastructure.smarthome_poller import poll_device_states
+        poll_device_states(_app)
+    except Exception as e:
+        logger.error(f"Smart home poll failed: {e}")
 
 
 def _add_uptime_check_job():

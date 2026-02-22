@@ -13,6 +13,9 @@ export default defineConfig({
       '/api': {
         target: 'http://backend:5000',
         changeOrigin: true,
+        // SSE streams and camera proxies need no buffering/timeout
+        ws: true,
+        timeout: 0,
       },
     },
   },

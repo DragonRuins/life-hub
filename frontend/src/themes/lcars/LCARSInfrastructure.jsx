@@ -8,7 +8,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Server, Box, Globe, AlertTriangle, Plus, X, ChevronRight,
-  Wifi, Settings, RefreshCw,
+  Wifi, Settings, RefreshCw, Thermometer, Printer,
 } from 'lucide-react'
 import { infrastructure } from '../../api/client'
 import { formatDate } from '../../utils/formatDate'
@@ -303,6 +303,8 @@ export default function LCARSInfrastructure() {
           { to: '/infrastructure/services', label: 'Services', icon: Globe, color: 'var(--lcars-tanoi)' },
           { to: '/infrastructure/incidents', label: 'Incidents', icon: AlertTriangle, color: 'var(--lcars-butterscotch)' },
           { to: '/infrastructure/integrations', label: 'Integrations', icon: Settings, color: 'var(--lcars-ice)' },
+          { to: '/infrastructure/smarthome', label: 'Smart Home', icon: Thermometer, color: 'var(--lcars-gold)' },
+          { to: '/infrastructure/printer', label: 'Fabrication', icon: Printer, color: 'var(--lcars-african-violet)' },
         ].map(nav => (
           <Link key={nav.to} to={nav.to} style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.375rem',

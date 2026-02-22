@@ -88,6 +88,11 @@ def create_app():
         from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat  # noqa: F401
         db.create_all()
 
+        # ── Safe column migrations ──────────────────────────────
+        # db.create_all() doesn't add columns to existing tables.
+        # These ALTER TABLE statements are idempotent (IF NOT EXISTS / IF EXISTS).
+        _run_safe_migrations(db)
+
         # Auto-seed preset maintenance items if the table is empty.
         # This runs on first deploy so the user doesn't need to run the
         # seed script manually.
@@ -101,6 +106,12 @@ def create_app():
         # Auto-seed astrometrics notification rules (all disabled by default).
         try:
             _seed_astro_notification_rules(db)
+        except Exception:
+            pass  # Don't break startup if seeding fails
+
+        # Auto-seed smart home / printer notification rules (all disabled by default).
+        try:
+            _seed_smarthome_notification_rules(db)
         except Exception:
             pass  # Don't break startup if seeding fails
 
@@ -140,6 +151,16 @@ def create_app():
     if should_start_scheduler:
         from app.services.scheduler import init_scheduler
         init_scheduler(app)
+
+        # Start HA WebSocket client for real-time state updates
+        try:
+            from app.services.infrastructure.ha_websocket import HAWebSocketClient
+            app.ha_ws_client = HAWebSocketClient(app)
+            app.ha_ws_client.start()
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Failed to start HA WebSocket client: {e}")
+            app.ha_ws_client = None
 
     # Simple health check endpoint
     @app.route('/api/health')
@@ -263,4 +284,109 @@ def _seed_astro_notification_rules(db):
                 priority='normal',
                 is_enabled=False,
             ))
+    db.session.commit()
+
+
+def _seed_smarthome_notification_rules(db):
+    """Seed default smart home and printer notification rules on first startup.
+
+    Creates event-based rules (all disabled by default) for smart home
+    device monitoring and 3D printer job tracking.
+    """
+    from app.models.notification import NotificationRule
+
+    smarthome_rules = [
+        {
+            'name': 'Smart Home Device Unavailable',
+            'event_name': 'smarthome.device_unavailable',
+            'module': 'infrastructure',
+            'description': 'Alert when a smart home device becomes unavailable',
+            'title_template': 'Device Offline: {{device_name}}',
+            'body_template': '{{device_name}} ({{domain}}) in {{room}} is now unavailable.',
+        },
+        {
+            'name': 'Smart Home Device Recovered',
+            'event_name': 'smarthome.device_recovered',
+            'module': 'infrastructure',
+            'description': 'Notification when a device recovers from unavailable state',
+            'title_template': 'Device Online: {{device_name}}',
+            'body_template': '{{device_name}} ({{domain}}) in {{room}} is back online.',
+        },
+        {
+            'name': 'Print Job Completed',
+            'event_name': 'printer.job_completed',
+            'module': 'infrastructure',
+            'description': 'Get notified when a 3D print job finishes successfully',
+            'title_template': 'Print Complete: {{file_name}}',
+            'body_template': '{{file_name}} on {{printer_name}} completed successfully.',
+        },
+        {
+            'name': 'Print Job Failed',
+            'event_name': 'printer.job_failed',
+            'module': 'infrastructure',
+            'description': 'Alert when a 3D print job fails or errors',
+            'title_template': 'Print Failed: {{file_name}}',
+            'body_template': '{{file_name}} on {{printer_name}} failed at {{progress}}% progress.',
+        },
+        {
+            'name': 'Print Job Started',
+            'event_name': 'printer.job_started',
+            'module': 'infrastructure',
+            'description': 'Notification when a new print job begins',
+            'title_template': 'Print Started: {{file_name}}',
+            'body_template': '{{printer_name}} has started printing {{file_name}}.',
+        },
+    ]
+
+    for rule_data in smarthome_rules:
+        existing = NotificationRule.query.filter_by(
+            event_name=rule_data['event_name']
+        ).first()
+        if not existing:
+            db.session.add(NotificationRule(
+                name=rule_data['name'],
+                description=rule_data['description'],
+                module=rule_data['module'],
+                rule_type='event',
+                event_name=rule_data['event_name'],
+                title_template=rule_data['title_template'],
+                body_template=rule_data['body_template'],
+                priority='normal',
+                is_enabled=False,
+            ))
+    db.session.commit()
+
+
+def _run_safe_migrations(db):
+    """Run idempotent ALTER TABLE statements for columns added after initial table creation.
+
+    These use IF NOT EXISTS / IF EXISTS so they're safe to run repeatedly.
+    PostgreSQL 9.6+ supports ADD COLUMN IF NOT EXISTS.
+    """
+    from sqlalchemy import text
+
+    migrations = [
+        # Add is_favorited to smart home devices (for header quick menu)
+        """ALTER TABLE infra_smarthome_devices
+           ADD COLUMN IF NOT EXISTS is_favorited BOOLEAN DEFAULT FALSE""",
+
+        # Rename metadata -> job_metadata on printer jobs
+        # (metadata is reserved in SQLAlchemy 2.x Declarative API)
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'infra_printer_jobs' AND column_name = 'metadata'
+            ) THEN
+                ALTER TABLE infra_printer_jobs RENAME COLUMN metadata TO job_metadata;
+            END IF;
+        END $$""",
+    ]
+
+    for sql in migrations:
+        try:
+            db.session.execute(text(sql))
+        except Exception:
+            db.session.rollback()
+            continue
     db.session.commit()

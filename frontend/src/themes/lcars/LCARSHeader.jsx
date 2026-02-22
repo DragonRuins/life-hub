@@ -11,6 +11,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
 import { notifications } from '../../api/client'
 import useIsMobile from '../../hooks/useIsMobile'
+import LCARSSmartHomeQuickMenu from './LCARSSmartHomeQuickMenu'
 
 export default function LCARSHeader({ chat }) {
   const { setTheme, isLCARS } = useTheme()
@@ -99,6 +100,9 @@ export default function LCARSHeader({ chat }) {
 
         {/* Custom LCARS notification bell */}
         <LCARSNotificationBell />
+
+        {/* Smart Home Quick Menu */}
+        <LCARSSmartHomeQuickMenu />
 
         {/* AI Chat Toggle Button */}
         <button
