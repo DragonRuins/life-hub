@@ -69,14 +69,14 @@ export default function LCARSChatTerminal({ chat }) {
       <div
         style={{
           position: 'fixed',
-          bottom: isMobile ? '0' : '1.5rem',
+          bottom: isMobile ? '0' : 'calc(36px + 0.75rem)',
           right: isMobile ? '0' : '1.5rem',
           width: isMobile ? '100%' : 'min(420px, calc(100vw - 2rem))',
-          height: isMobile ? '100dvh' : 'min(600px, calc(100dvh - 3rem))',
+          height: isMobile ? '100dvh' : 'min(600px, calc(100dvh - 36px - 1.5rem))',
           background: '#000000',
-          border: isMobile ? 'none' : '2px solid var(--lcars-african-violet)',
+          border: isMobile ? 'none' : '2px solid var(--lcars-butterscotch)',
           borderRadius: isMobile ? '0' : '4px',
-          boxShadow: '0 4px 24px rgba(204, 153, 255, 0.15)',
+          boxShadow: '0 4px 24px rgba(255, 153, 0, 0.15)',
           zIndex: 1100,
           display: 'flex',
           flexDirection: 'column',
@@ -88,7 +88,7 @@ export default function LCARSChatTerminal({ chat }) {
           display: 'flex',
           alignItems: 'center',
           padding: '0',
-          background: 'var(--lcars-sunflower)',
+          background: 'var(--lcars-butterscotch)',
           flexShrink: 0,
           minHeight: '36px',
         }}>
@@ -96,7 +96,7 @@ export default function LCARSChatTerminal({ chat }) {
           <div style={{
             width: '12px',
             height: '100%',
-            background: 'var(--lcars-butterscotch)',
+            background: 'var(--lcars-rust)',
             borderRadius: '0 0 12px 0',
             flexShrink: 0,
           }} />
@@ -125,7 +125,7 @@ export default function LCARSChatTerminal({ chat }) {
           />
           <LCARSPillButton
             label="LOG"
-            color={showThreadList ? 'var(--lcars-african-violet)' : 'var(--lcars-tanoi)'}
+            color={showThreadList ? 'var(--lcars-rust)' : 'var(--lcars-tanoi)'}
             onClick={() => setShowThreadList(!showThreadList)}
           />
           <LCARSPillButton
@@ -313,7 +313,7 @@ export default function LCARSChatTerminal({ chat }) {
             <div style={{
               padding: '0.5rem 0.75rem',
               paddingBottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : '0.5rem',
-              borderTop: '2px solid var(--lcars-african-violet)',
+              borderTop: '2px solid var(--lcars-butterscotch)',
               display: 'flex',
               gap: '0.5rem',
               alignItems: 'flex-end',
@@ -515,8 +515,8 @@ function LCARSThreadItem({ conversation, isActive, onSelect, onDelete }) {
         padding: '0.5rem 0.75rem',
         cursor: 'pointer',
         borderBottom: '1px solid rgba(102, 102, 136, 0.2)',
-        borderLeft: isActive ? '3px solid var(--lcars-african-violet)' : '3px solid transparent',
-        background: isActive ? 'rgba(204, 153, 255, 0.05)' : 'transparent',
+        borderLeft: isActive ? '3px solid var(--lcars-butterscotch)' : '3px solid transparent',
+        background: isActive ? 'rgba(255, 153, 0, 0.05)' : 'transparent',
         transition: 'background 0.1s ease',
       }}
       onMouseEnter={e => {
@@ -533,7 +533,7 @@ function LCARSThreadItem({ conversation, isActive, onSelect, onDelete }) {
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.03em',
-          color: isActive ? 'var(--lcars-african-violet)' : 'var(--lcars-space-white)',
+          color: isActive ? 'var(--lcars-butterscotch)' : 'var(--lcars-space-white)',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
