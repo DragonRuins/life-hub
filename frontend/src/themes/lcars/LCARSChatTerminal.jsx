@@ -69,13 +69,27 @@ export default function LCARSChatTerminal({ chat }) {
       <div
         style={{
           position: 'fixed',
-          bottom: isMobile ? '0' : 'calc(36px + 0.75rem)',
-          right: isMobile ? '0' : '1.5rem',
-          width: isMobile ? '100%' : 'min(420px, calc(100vw - 2rem))',
-          height: isMobile ? '100dvh' : 'min(600px, calc(100dvh - 36px - 1.5rem))',
+          ...(isMobile ? {
+            // Mobile: fit between LCARS header (48px) and mobile nav (56px)
+            top: '48px',
+            bottom: '56px',
+            left: 0,
+            right: 0,
+            borderLeft: 'none',
+            borderRight: 'none',
+            borderTop: '2px solid var(--lcars-butterscotch)',
+            borderBottom: '2px solid var(--lcars-butterscotch)',
+            borderRadius: 0,
+          } : {
+            // Desktop: float above the 36px footer
+            bottom: 'calc(36px + 0.75rem)',
+            right: '1.5rem',
+            width: 'min(420px, calc(100vw - 2rem))',
+            height: 'min(600px, calc(100dvh - 36px - 1.5rem))',
+            border: '2px solid var(--lcars-butterscotch)',
+            borderRadius: '4px',
+          }),
           background: '#000000',
-          border: isMobile ? 'none' : '2px solid var(--lcars-butterscotch)',
-          borderRadius: isMobile ? '0' : '4px',
           boxShadow: '0 4px 24px rgba(255, 153, 0, 0.15)',
           zIndex: 1100,
           display: 'flex',
@@ -312,7 +326,7 @@ export default function LCARSChatTerminal({ chat }) {
             {/* ── Input Area ────────────────────────────────── */}
             <div style={{
               padding: '0.5rem 0.75rem',
-              paddingBottom: isMobile ? 'calc(0.5rem + env(safe-area-inset-bottom, 0px))' : '0.5rem',
+              paddingBottom: '0.5rem',
               borderTop: '2px solid var(--lcars-butterscotch)',
               display: 'flex',
               gap: '0.5rem',
