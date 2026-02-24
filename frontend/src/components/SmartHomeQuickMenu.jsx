@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Home, ExternalLink, Lightbulb, ToggleLeft, Wind, Lock, Thermometer, Eye, Tv, Star } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { infrastructure } from '../api/client'
+import useIsMobile from '../hooks/useIsMobile'
 
 // Icon mapping for common HA domains
 const DOMAIN_ICONS = {
@@ -32,10 +33,12 @@ export default function SmartHomeQuickMenu() {
   const [devices, setDevices] = useState([])
   const [loading, setLoading] = useState(false)
   const [toggling, setToggling] = useState(null) // device id being toggled
+  const [dropdownTop, setDropdownTop] = useState(0)
   const dropdownRef = useRef(null)
   const refreshRef = useRef(null)
   const sseRef = useRef(null)
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -90,6 +93,11 @@ export default function SmartHomeQuickMenu() {
 
   async function toggleDropdown() {
     if (!isOpen) {
+      // Compute position for mobile fixed dropdown before opening
+      if (isMobile && dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect()
+        setDropdownTop(rect.bottom + 4)
+      }
       setLoading(true)
       await fetchFavorites()
       setLoading(false)
@@ -170,11 +178,19 @@ export default function SmartHomeQuickMenu() {
       {/* Dropdown */}
       {isOpen && (
         <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '4px',
-          width: 'min(320px, calc(100vw - 1rem))',
+          ...(isMobile ? {
+            position: 'fixed',
+            top: dropdownTop + 'px',
+            left: '0.5rem',
+            right: '0.5rem',
+            width: 'auto',
+          } : {
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: '4px',
+            width: 'min(320px, calc(100vw - 1rem))',
+          }),
           background: 'var(--color-base)',
           border: '1px solid var(--color-surface-0)',
           borderRadius: '12px',

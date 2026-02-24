@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { astrometrics as api } from '../../api/client'
 import LCARSPanel, { LCARSDataRow } from '../../themes/lcars/LCARSPanel'
 import { ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import useIsMobile from '../../hooks/useIsMobile'
 
 const STATUS_COLORS = {
   1: { bg: 'rgba(102, 204, 0, 0.2)', color: 'var(--lcars-green, #66CC00)', label: 'Go' },
@@ -32,6 +33,7 @@ export default function LCARSAstroLaunches() {
   const [loading, setLoading] = useState(true)
   const [showPast, setShowPast] = useState(false)
   const intervalRef = useRef(null)
+  const isMobile = useIsMobile()
 
   const loadData = useCallback(async () => {
     try {
@@ -87,36 +89,42 @@ export default function LCARSAstroLaunches() {
       {/* Next Launch Hero */}
       {nextData.name && (
         <LCARSPanel title="Next Mission" color="var(--lcars-sunflower)" style={{ marginBottom: '8px' }}>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            {nextData.image && (
-              <img src={nextData.image} alt="" style={{
-                width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', opacity: 0.9,
-              }} />
-            )}
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <div style={{
-                fontFamily: "'Antonio', sans-serif", fontSize: '1.1rem',
-                color: 'var(--lcars-sunflower)', textTransform: 'uppercase',
-                letterSpacing: '0.05em', marginBottom: '0.25rem',
-              }}>
-                {nextData.name}
-              </div>
-              <div style={{
-                fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
-                color: 'var(--lcars-gray)', marginBottom: '0.5rem',
-              }}>
-                {nextData.launch_service_provider?.name}
-                {nextData.pad?.name && ` \u2022 ${nextData.pad.name}`}
+          {isMobile ? (
+            /* Mobile: image floated top-left, text wraps beside it, countdown full-width below */
+            <div>
+              <div style={{ marginBottom: '0.5rem' }}>
+                {nextData.image && (
+                  <img src={nextData.image} alt="" style={{
+                    width: '64px', height: '64px', objectFit: 'cover', borderRadius: '4px',
+                    opacity: 0.9, float: 'left', marginRight: '0.75rem', marginBottom: '0.25rem',
+                  }} />
+                )}
+                <div style={{
+                  fontFamily: "'Antonio', sans-serif", fontSize: '1.1rem',
+                  color: 'var(--lcars-sunflower)', textTransform: 'uppercase',
+                  letterSpacing: '0.05em', marginBottom: '0.25rem',
+                }}>
+                  {nextData.name}
+                </div>
+                <div style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem',
+                  color: 'var(--lcars-gray)', marginBottom: '0.25rem',
+                }}>
+                  {nextData.launch_service_provider?.name}
+                  {nextData.pad?.name && ` \u2022 ${nextData.pad.name}`}
+                </div>
+                <div style={{ clear: 'both' }} />
               </div>
 
-              {/* Countdown */}
+              {/* Countdown - scaled down for mobile, single line */}
               {countdown && !countdown.passed && (
                 <div style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontSize: '1.75rem',
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: '1.1rem',
                   fontWeight: 700, color: 'var(--lcars-gold)',
-                  letterSpacing: '0.05em', margin: '0.5rem 0',
+                  letterSpacing: '0.02em', margin: '0.5rem 0',
+                  whiteSpace: 'nowrap',
                 }}>
-                  T - {String(countdown.d).padStart(3, '0')} : {String(countdown.h).padStart(2, '0')} : {String(countdown.m).padStart(2, '0')} : {String(countdown.s).padStart(2, '0')}
+                  T-{String(countdown.d).padStart(3, '0')}:{String(countdown.h).padStart(2, '0')}:{String(countdown.m).padStart(2, '0')}:{String(countdown.s).padStart(2, '0')}
                 </div>
               )}
               {countdown?.passed && (
@@ -139,7 +147,6 @@ export default function LCARSAstroLaunches() {
                 </div>
               )}
 
-              {/* Links */}
               <div style={{ display: 'flex', gap: '6px', marginTop: '0.5rem' }}>
                 {nextData.vidURLs?.[0]?.url && (
                   <a href={nextData.vidURLs[0].url} target="_blank" rel="noopener noreferrer"
@@ -155,7 +162,78 @@ export default function LCARSAstroLaunches() {
                 )}
               </div>
             </div>
-          </div>
+          ) : (
+            /* Desktop: side-by-side flex layout */
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+              {nextData.image && (
+                <img src={nextData.image} alt="" style={{
+                  width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', opacity: 0.9,
+                }} />
+              )}
+              <div style={{ flex: 1, minWidth: '200px' }}>
+                <div style={{
+                  fontFamily: "'Antonio', sans-serif", fontSize: '1.1rem',
+                  color: 'var(--lcars-sunflower)', textTransform: 'uppercase',
+                  letterSpacing: '0.05em', marginBottom: '0.25rem',
+                }}>
+                  {nextData.name}
+                </div>
+                <div style={{
+                  fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
+                  color: 'var(--lcars-gray)', marginBottom: '0.5rem',
+                }}>
+                  {nextData.launch_service_provider?.name}
+                  {nextData.pad?.name && ` \u2022 ${nextData.pad.name}`}
+                </div>
+
+                {/* Countdown */}
+                {countdown && !countdown.passed && (
+                  <div style={{
+                    fontFamily: "'JetBrains Mono', monospace", fontSize: '1.75rem',
+                    fontWeight: 700, color: 'var(--lcars-gold)',
+                    letterSpacing: '0.05em', margin: '0.5rem 0',
+                  }}>
+                    T - {String(countdown.d).padStart(3, '0')} : {String(countdown.h).padStart(2, '0')} : {String(countdown.m).padStart(2, '0')} : {String(countdown.s).padStart(2, '0')}
+                  </div>
+                )}
+                {countdown?.passed && (
+                  <div style={{
+                    fontFamily: "'Antonio', sans-serif", fontSize: '1rem',
+                    color: 'var(--lcars-tanoi)', textTransform: 'uppercase',
+                    margin: '0.5rem 0',
+                  }}>
+                    Launch window reached
+                  </div>
+                )}
+
+                {nextData.mission?.description && (
+                  <div style={{
+                    fontSize: '0.8rem', color: 'var(--lcars-space-white)',
+                    lineHeight: 1.5, marginTop: '0.5rem',
+                  }}>
+                    {nextData.mission.description.slice(0, 250)}
+                    {nextData.mission.description.length > 250 ? '...' : ''}
+                  </div>
+                )}
+
+                {/* Links */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '0.5rem' }}>
+                  {nextData.vidURLs?.[0]?.url && (
+                    <a href={nextData.vidURLs[0].url} target="_blank" rel="noopener noreferrer"
+                      style={{
+                        padding: '0.25rem 0.75rem', background: 'var(--lcars-ice)',
+                        borderRadius: '999px', color: '#000', textDecoration: 'none',
+                        fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
+                        textTransform: 'uppercase', display: 'inline-flex',
+                        alignItems: 'center', gap: '0.25rem',
+                      }}>
+                      <ExternalLink size={12} /> Webcast
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </LCARSPanel>
       )}
 

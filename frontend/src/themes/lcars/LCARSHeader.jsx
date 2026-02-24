@@ -213,9 +213,11 @@ function LCARSNotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [items, setItems] = useState([])
+  const [dropdownTop, setDropdownTop] = useState(0)
   const dropdownRef = useRef(null)
   const bellRef = useRef(null)
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
 
   // Poll for unread count every 30 seconds
   useEffect(() => {
@@ -262,6 +264,11 @@ function LCARSNotificationBell() {
 
   async function toggleDropdown() {
     if (!isOpen) {
+      // Compute position for mobile fixed dropdown before opening
+      if (isMobile && dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect()
+        setDropdownTop(rect.bottom + 8)
+      }
       try {
         const data = await notifications.feed({ limit: 10 })
         setItems(data)
@@ -344,11 +351,19 @@ function LCARSNotificationBell() {
       {/* Dropdown - LCARS styled on black background */}
       {isOpen && (
         <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '8px',
-          width: 'min(360px, calc(100vw - 1rem))',
+          ...(isMobile ? {
+            position: 'fixed',
+            top: dropdownTop + 'px',
+            left: '0.5rem',
+            right: '0.5rem',
+            width: 'auto',
+          } : {
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: '8px',
+            width: 'min(360px, calc(100vw - 1rem))',
+          }),
           background: '#000000',
           border: '2px solid var(--lcars-sunflower)',
           borderRadius: '4px',

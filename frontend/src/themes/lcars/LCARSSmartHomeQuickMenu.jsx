@@ -25,6 +25,7 @@ export default function LCARSSmartHomeQuickMenu() {
   const sseRef = useRef(null)
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+  const [dropdownTop, setDropdownTop] = useState(0)
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -77,6 +78,11 @@ export default function LCARSSmartHomeQuickMenu() {
 
   async function toggleDropdown() {
     if (!isOpen) {
+      // Compute position for mobile fixed dropdown before opening
+      if (isMobile && dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect()
+        setDropdownTop(rect.bottom + 8)
+      }
       setLoading(true)
       await fetchFavorites()
       setLoading(false)
@@ -158,11 +164,19 @@ export default function LCARSSmartHomeQuickMenu() {
       {/* LCARS-styled dropdown */}
       {isOpen && (
         <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '8px',
-          width: isMobile ? 'calc(100vw - 1rem)' : '340px',
+          ...(isMobile ? {
+            position: 'fixed',
+            top: dropdownTop + 'px',
+            left: '0.5rem',
+            right: '0.5rem',
+            width: 'auto',
+          } : {
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: '8px',
+            width: '340px',
+          }),
           background: '#000000',
           border: '2px solid var(--lcars-gold)',
           borderRadius: '4px',
