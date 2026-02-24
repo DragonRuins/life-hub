@@ -300,6 +300,10 @@ def chat():
                     })
 
                     full_response_text += response_text
+                    # Add paragraph break so post-tool text doesn't run into pre-tool text
+                    if response_text:
+                        full_response_text += "\n\n"
+                        yield f"data: {json.dumps({'type': 'text_delta', 'text': '\n\n'})}\n\n"
                     tool_use_blocks = []
                     # Continue the loop to get Claude's response after tool results
                 else:

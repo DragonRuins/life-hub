@@ -194,6 +194,11 @@ export default function useChat() {
                     get_fuel_stats: 'Calculating fuel statistics...',
                     get_infrastructure_overview: 'Checking infrastructure...',
                     get_dashboard_summary: 'Loading dashboard summary...',
+                    get_all_fuel_logs: 'Loading all fuel logs...',
+                    get_fuel_analytics: 'Analyzing fuel data...',
+                    get_all_maintenance_logs: 'Loading all maintenance logs...',
+                    get_maintenance_analytics: 'Analyzing maintenance data...',
+                    web_search: 'Searching the web...',
                   }
                   setToolStatus(toolLabels[data.tool] || `Using ${data.tool}...`)
                   break

@@ -251,6 +251,24 @@ def get_tool_definitions():
                 "required": []
             }
         },
+        {
+            "name": "web_search",
+            "description": "Search the web for current information. Use this for questions that require up-to-date data beyond your training knowledge (news, current prices, recent events, product specs, etc.). Do NOT use this for Datacore database queries.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search query"
+                    },
+                    "max_results": {
+                        "type": "integer",
+                        "description": "Number of results to return (default 5, max 10)"
+                    }
+                },
+                "required": ["query"]
+            }
+        },
     ]
 
 
@@ -831,6 +849,32 @@ def _get_maintenance_analytics(vehicle_id=None):
     return result
 
 
+def _web_search(query, max_results=5):
+    """Search the web using DuckDuckGo and return results."""
+    max_results = min(max_results or 5, 10)
+    try:
+        from duckduckgo_search import DDGS
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results))
+
+        if not results:
+            return {"message": "No results found", "query": query, "results": []}
+
+        return {
+            "query": query,
+            "result_count": len(results),
+            "results": [{
+                "title": r.get("title", ""),
+                "url": r.get("href", ""),
+                "snippet": r.get("body", ""),
+            } for r in results],
+        }
+    except ImportError:
+        return {"error": "Web search unavailable — duckduckgo-search package not installed"}
+    except Exception as e:
+        return {"error": f"Web search failed: {str(e)}"}
+
+
 # ── Dispatcher ──────────────────────────────────────────────────────
 
 # Map tool names to handler functions
@@ -852,6 +896,7 @@ _TOOL_HANDLERS = {
     "get_all_maintenance_logs": lambda inp: _get_all_maintenance_logs(
         inp.get("vehicle_id"), inp.get("start_date"), inp.get("end_date"), inp.get("service_type")),
     "get_maintenance_analytics": lambda inp: _get_maintenance_analytics(inp.get("vehicle_id")),
+    "web_search": lambda inp: _web_search(inp["query"], inp.get("max_results")),
 }
 
 

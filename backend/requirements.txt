@@ -13,3 +13,4 @@ docker>=7.0.0
 skyfield>=1.49
 anthropic>=0.40.0
 websockets>=13.0
+duckduckgo-search>=7.0.0
