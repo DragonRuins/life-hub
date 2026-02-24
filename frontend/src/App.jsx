@@ -80,6 +80,8 @@ import LCARSAstroSettings from './themes/lcars/settings/LCARSAstroSettings'
 import LCARSNotificationSettings from './themes/lcars/settings/LCARSNotificationSettings'
 import AISettings from './pages/settings/AISettings'
 import LCARSAISettings from './themes/lcars/settings/LCARSAISettings'
+import DataImport from './pages/settings/DataImport'
+import LCARSDataImport from './themes/lcars/settings/LCARSDataImport'
 
 export default function App() {
   const { isLCARS, booting } = useTheme()
@@ -153,6 +155,7 @@ function LCARSAppShell({ chat }) {
         <Route path="/settings/astrometrics" element={<LCARSAstroSettings />} />
         <Route path="/settings/notifications" element={<LCARSNotificationSettings />} />
         <Route path="/settings/ai" element={<LCARSAISettings />} />
+        <Route path="/settings/import" element={<LCARSDataImport />} />
       </Routes>
     </LCARSLayout>
   )
@@ -376,6 +379,7 @@ function AppShell({ chat }) {
             <Route path="/settings/astrometrics" element={<AstroSettings />} />
             <Route path="/settings/notifications" element={<NotificationSettings />} />
             <Route path="/settings/ai" element={<AISettings />} />
+            <Route path="/settings/import" element={<DataImport />} />
           </Routes>
         </div>
       </main>

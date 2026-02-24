@@ -77,6 +77,9 @@ def create_app():
     from app.routes.ai import ai_bp
     app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
+    from app.routes.data_import import import_bp
+    app.register_blueprint(import_bp, url_prefix='/api/import')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.

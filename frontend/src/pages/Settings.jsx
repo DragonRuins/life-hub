@@ -9,7 +9,7 @@
  */
 import { Link } from 'react-router-dom'
 import { useTheme } from '../themes/lcars/ThemeProvider'
-import { Car, Telescope, Bell, Palette, ChevronRight, Bot } from 'lucide-react'
+import { Car, Telescope, Bell, Palette, ChevronRight, Bot, Database } from 'lucide-react'
 
 /**
  * All available color schemes, grouped by family.
@@ -132,6 +132,13 @@ const MODULE_CARDS = [
     title: 'AI Assistant',
     description: 'Model selection, system prompt, API key status',
     color: 'var(--color-mauve)',
+  },
+  {
+    to: '/settings/import',
+    icon: Database,
+    title: 'Data Import',
+    description: 'Import maintenance and fuel logs from Fuelly CSV',
+    color: 'var(--color-green)',
   },
 ]
 
