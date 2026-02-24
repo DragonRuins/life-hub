@@ -523,12 +523,19 @@ def update_settings():
 
     Updatable fields: nasa_api_key, home_latitude, home_longitude,
     refresh intervals, notification thresholds.
+
+    When launch gate settings change, all pending launch reminders are
+    invalidated and will be rescheduled on the next sync cycle.
     """
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400
 
     settings = AstroSettings.get_settings()
+
+    # Snapshot current gate values before applying updates
+    old_gate1 = settings.launch_reminder_hours
+    old_gate2 = settings.launch_reminder_minutes_2
 
     updatable_fields = (
         'nasa_api_key', 'home_latitude', 'home_longitude',
@@ -544,7 +551,48 @@ def update_settings():
 
     db.session.commit()
 
+    # If gate settings changed, invalidate all pending launch reminders.
+    # The next 15-minute sync will reschedule with the new gate values.
+    gate1_changed = ('launch_reminder_hours' in data and data['launch_reminder_hours'] != old_gate1)
+    gate2_changed = ('launch_reminder_minutes_2' in data and data['launch_reminder_minutes_2'] != old_gate2)
+
+    if gate1_changed or gate2_changed:
+        _invalidate_pending_launch_reminders()
+
     return jsonify(settings.to_dict())
+
+
+def _invalidate_pending_launch_reminders():
+    """
+    Cancel all pending launch reminder APScheduler jobs and mark their
+    DB records as 'cancelled'. Called when gate settings change so that
+    the next sync reschedules with the new gate values.
+    """
+    from app.models.astrometrics import AstroLaunchNotification
+    from app.services.scheduler import cancel_launch_reminder
+
+    try:
+        pending = AstroLaunchNotification.query.filter_by(status='scheduled').all()
+        count = 0
+
+        for record in pending:
+            if record.scheduler_job_id:
+                cancel_launch_reminder(record.scheduler_job_id)
+            record.status = 'cancelled'
+            count += 1
+
+        db.session.commit()
+
+        if count:
+            import logging
+            logging.getLogger(__name__).info(
+                f"Invalidated {count} pending launch reminders due to gate settings change"
+            )
+
+    except Exception as e:
+        db.session.rollback()
+        import logging
+        logging.getLogger(__name__).error(f"Failed to invalidate launch reminders: {e}")
 
 
 # ═══════════════════════════════════════════════════════════════════

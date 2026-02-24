@@ -46,7 +46,13 @@ def init_scheduler(app):
             )
         }
 
-        scheduler = BackgroundScheduler(jobstores=jobstores)
+        scheduler = BackgroundScheduler(
+            jobstores=jobstores,
+            job_defaults={
+                # Allow jobs to fire up to 1 hour late (e.g. after container restart)
+                'misfire_grace_time': 3600,
+            },
+        )
         scheduler.start()
 
         # Sync scheduled rules from database
@@ -61,6 +67,8 @@ def init_scheduler(app):
             _add_smarthome_poll_job()
             _add_trek_daily_entry_job()
             _add_trek_prefetch_job()
+            _add_launch_notification_cleanup_job()
+            _reconcile_launch_reminders()
 
         logger.info("Notification scheduler started")
 
@@ -606,3 +614,233 @@ def _run_trek_prefetch():
         prefetch_episodes(_app)
     except Exception as e:
         logger.error(f"Trek pre-fetch failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Launch Reminder One-Shot Jobs
+# ═══════════════════════════════════════════════════════════════════════════
+
+def schedule_launch_reminder(job_id, notification_id, fire_at):
+    """
+    Schedule a one-shot APScheduler job to fire a launch reminder at an exact time.
+
+    Args:
+        job_id: Unique APScheduler job ID (e.g. 'launch_reminder_<uuid>_gate1')
+        notification_id: AstroLaunchNotification.id to look up at fire time
+        fire_at: datetime (UTC) when the notification should fire
+    """
+    global scheduler
+    if not scheduler:
+        logger.warning("Scheduler not initialized, cannot schedule launch reminder")
+        return
+
+    scheduler.add_job(
+        _fire_launch_reminder,
+        trigger='date',
+        id=job_id,
+        run_date=fire_at,
+        args=[notification_id],
+        replace_existing=True,
+    )
+    logger.info(f"Scheduled launch reminder job '{job_id}' for {fire_at.isoformat()}")
+
+
+def cancel_launch_reminder(job_id):
+    """
+    Cancel a scheduled launch reminder job. Safe to call if the job already fired
+    or doesn't exist.
+
+    Args:
+        job_id: APScheduler job ID to cancel
+    """
+    global scheduler
+    if not scheduler or not job_id:
+        return
+
+    try:
+        scheduler.remove_job(job_id)
+        logger.info(f"Cancelled launch reminder job '{job_id}'")
+    except Exception:
+        # Job already fired or was never scheduled — that's fine
+        pass
+
+
+def _fire_launch_reminder(notification_id):
+    """
+    Called by APScheduler at the exact fire_at time for a launch gate.
+
+    Looks up the DB record, verifies it's still in 'scheduled' status (dedup),
+    calculates a human-readable time label, emits the event, and marks as 'sent'.
+
+    Args:
+        notification_id: AstroLaunchNotification.id
+    """
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.astrometrics import AstroLaunchNotification
+
+        try:
+            record = db.session.get(AstroLaunchNotification, notification_id)
+            if not record:
+                logger.warning(f"Launch notification {notification_id} not found at fire time")
+                return
+
+            # Dedup: only fire if still in 'scheduled' status
+            if record.status != 'scheduled':
+                logger.debug(f"Launch notification {notification_id} already {record.status}, skipping")
+                return
+
+            # Calculate time label for the notification message
+            now = datetime.now(timezone.utc)
+            seconds_until = (record.launch_time - now).total_seconds()
+            if seconds_until < 0:
+                # Launch time has passed (shouldn't happen normally)
+                time_label = "imminent"
+            elif seconds_until < 3600:
+                time_label = f"{max(1, round(seconds_until / 60))} minutes"
+            else:
+                hours = seconds_until / 3600
+                time_label = f"{round(hours, 1)} hours"
+
+            # Emit the event via the event bus
+            from app.services.event_bus import emit
+            emit('astro.launch_reminder',
+                 launch_name=record.launch_name,
+                 provider=record.provider,
+                 net=record.launch_time.isoformat(),
+                 hours_until=time_label,
+                 pad_name=record.pad_name)
+
+            # Mark as sent
+            record.status = 'sent'
+            db.session.commit()
+            logger.info(f"Fired launch reminder: {record.launch_name} ({record.gate}) — {time_label} until launch")
+
+        except Exception as e:
+            logger.error(f"Failed to fire launch reminder {notification_id}: {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+
+def _add_launch_notification_cleanup_job():
+    """
+    Add a daily job to delete old AstroLaunchNotification records
+    where launch_time is more than 48 hours in the past.
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _cleanup_old_launch_notifications,
+        trigger='cron',
+        id='astro_launch_notification_cleanup',
+        hour=4,
+        minute=30,
+        replace_existing=True,
+    )
+    logger.info("Launch notification cleanup job scheduled (daily at 4:30 AM)")
+
+
+def _cleanup_old_launch_notifications():
+    """Delete AstroLaunchNotification records for launches that are 48+ hours past."""
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.astrometrics import AstroLaunchNotification
+
+        try:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
+            deleted = AstroLaunchNotification.query.filter(
+                AstroLaunchNotification.launch_time < cutoff
+            ).delete()
+            db.session.commit()
+
+            if deleted:
+                logger.info(f"Cleaned up {deleted} old launch notification records")
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Launch notification cleanup failed: {e}")
+
+
+def _reconcile_launch_reminders():
+    """
+    Startup reconciliation: check for 'scheduled' records that lost their
+    APScheduler job during an unclean restart.
+
+    For each 'scheduled' record:
+      - If fire_at is in the future: reschedule the APScheduler job
+      - If fire_at is in the past but within misfire_grace_time (1 hour): fire immediately
+      - If fire_at is more than 1 hour in the past: mark as 'cancelled' (missed window)
+    """
+    global scheduler
+    if not scheduler:
+        return
+
+    from app import db
+    from app.models.astrometrics import AstroLaunchNotification
+
+    try:
+        pending = AstroLaunchNotification.query.filter_by(status='scheduled').all()
+        if not pending:
+            return
+
+        now = datetime.now(timezone.utc)
+        rescheduled = 0
+        fired_late = 0
+        cancelled = 0
+
+        for record in pending:
+            job_id = record.scheduler_job_id
+            if not job_id:
+                # Inflight records have no job — shouldn't be 'scheduled', fix it
+                record.status = 'cancelled'
+                cancelled += 1
+                continue
+
+            # Check if the APScheduler job still exists
+            existing_job = None
+            try:
+                existing_job = scheduler.get_job(job_id)
+            except Exception:
+                pass
+
+            if existing_job:
+                # Job is still registered in APScheduler, nothing to do
+                continue
+
+            # Job is missing — decide what to do based on fire_at
+            if record.fire_at and record.fire_at > now:
+                # Fire time is in the future — reschedule
+                schedule_launch_reminder(job_id, record.id, record.fire_at)
+                rescheduled += 1
+            elif record.fire_at and (now - record.fire_at).total_seconds() <= 3600:
+                # Fire time was within the last hour — fire it now (late but acceptable)
+                _fire_launch_reminder(record.id)
+                fired_late += 1
+            else:
+                # Fire time was more than 1 hour ago — missed window, cancel
+                record.status = 'cancelled'
+                cancelled += 1
+
+        db.session.commit()
+        logger.info(
+            f"Launch reminder reconciliation: {rescheduled} rescheduled, "
+            f"{fired_late} fired late, {cancelled} cancelled"
+        )
+
+    except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        logger.error(f"Launch reminder reconciliation failed: {e}")

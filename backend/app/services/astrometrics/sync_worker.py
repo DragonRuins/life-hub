@@ -7,9 +7,14 @@ gets fast responses from cache instead of waiting for live API calls.
 
 Also checks for notification-worthy events:
   - New APOD available (once daily)
-  - Launch within reminder window
+  - Launch reminders scheduled as precise one-shot APScheduler jobs
   - NEO approaching closer than threshold
   - Potentially hazardous asteroid detected
+
+Launch reminder dedup is backed by the astro_launch_notifications DB table
+(AstroLaunchNotification model) so it survives container restarts. Each
+(launch_id, gate) pair gets a precise one-shot job at exactly fire_at time,
+eliminating timing drift from the 15-minute polling interval.
 
 Notification events are emitted via the event bus, which checks
 if any enabled rules match and dispatches accordingly.
@@ -22,11 +27,9 @@ logger = logging.getLogger(__name__)
 # Track the last APOD date we saw, so we only emit once per new APOD
 _last_apod_date = None
 
-# Track which launches/NEOs we've already notified about this process lifetime.
-# Resets on restart, which is acceptable (at most one duplicate).
-_notified_launches = set()
+# Track which NEOs we've already notified about this process lifetime.
+# NEO dedup stays in-memory because NEO events are idempotent and low-frequency.
 _notified_neos = set()
-_notified_inflight = set()
 
 
 def run_astro_sync(app):
@@ -227,18 +230,25 @@ def _check_neo_alerts(neo_data, settings):
 
 def _check_launch_reminders(launches_data, settings):
     """
-    Two-gate launch reminder system + in-flight detection.
+    DB-backed launch reminder system with precise one-shot APScheduler jobs.
 
-    Gate 1 (required): fires when a launch is within launch_reminder_hours.
-    Gate 2 (optional): fires when a launch is within launch_reminder_minutes_2
-                       (disabled when null/0).
-    In-flight: fires once when a launch status changes to 'In Flight' (status id 6).
+    For each launch and each active gate, calculates the exact fire_at time
+    (launch_time - gate_delta) and either:
+      - Creates a new DB record + schedules an APScheduler date-trigger job
+      - Skips if already handled or fire_at is in the past
+      - Reschedules if the launch has been moved (different NET)
 
-    Each (launch, gate) pair is independently notified once per process lifetime.
+    In-flight detection fires immediately when status changes to 'In Flight' (status id 6).
+
+    Dedup is persistent in the astro_launch_notifications table, so it
+    survives container restarts (unlike the old in-memory sets).
     """
+    from app import db
+    from app.models.astrometrics import AstroLaunchNotification
+
     now = datetime.now(timezone.utc)
 
-    # Build list of active gates: (gate_name, cutoff_timedelta)
+    # Build list of active gates: (gate_name, gate_timedelta)
     gates = []
     if settings.launch_reminder_hours:
         gates.append(('gate1', timedelta(hours=settings.launch_reminder_hours)))
@@ -257,13 +267,8 @@ def _check_launch_reminders(launches_data, settings):
 
         # Check for in-flight status (status id 6)
         status_id = launch.get('status', {}).get('id')
-        if status_id == 6 and launch_id not in _notified_inflight:
-            _notified_inflight.add(launch_id)
-            _emit_event('astro.launch_inflight',
-                        launch_name=launch_name,
-                        provider=provider,
-                        net=net,
-                        pad_name=pad_name)
+        if status_id == 6:
+            _handle_inflight(db, launch_id, launch_name, provider, net, pad_name)
 
         try:
             launch_time = datetime.fromisoformat(net.replace('Z', '+00:00'))
@@ -273,30 +278,159 @@ def _check_launch_reminders(launches_data, settings):
         if launch_time <= now:
             continue  # Already launched
 
-        # Each gate fires independently. If the process restarts and both
-        # gates qualify at the same time, the user gets separate notifications
-        # for each gate (one "X hours" reminder, one "X minutes" reminder).
-        # This is preferable to silently suppressing Gate 2.
+        # Schedule each gate independently
         for gate_name, gate_delta in gates:
-            dedup_key = f"{launch_id}_{gate_name}"
-            if dedup_key in _notified_launches:
-                continue
+            fire_at = launch_time - gate_delta
+            _schedule_gate(db, launch_id, gate_name, launch_time, fire_at, now,
+                           launch_name, provider, pad_name)
 
-            if launch_time <= now + gate_delta:
-                _notified_launches.add(dedup_key)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to commit launch reminder records: {e}")
 
-                hours_until = (launch_time - now).total_seconds() / 3600
-                if hours_until < 1:
-                    time_label = f"{round(hours_until * 60)} minutes"
-                else:
-                    time_label = f"{round(hours_until, 1)} hours"
 
-                _emit_event('astro.launch_reminder',
-                            launch_name=launch_name,
-                            provider=provider,
-                            net=net,
-                            hours_until=time_label,
-                            pad_name=pad_name)
+def _schedule_gate(db, launch_id, gate_name, launch_time, fire_at, now,
+                   launch_name, provider, pad_name):
+    """
+    Handle scheduling logic for a single (launch_id, gate) pair.
+
+    Cases:
+      - No existing record + fire_at is future: create record, schedule job
+      - No existing record + fire_at is past: skip (missed window, don't send late)
+      - Record exists with status='sent': skip (already handled)
+      - Record exists with same launch_time: skip (already scheduled)
+      - Record exists with different launch_time: cancel old job, update, reschedule
+    """
+    from app.models.astrometrics import AstroLaunchNotification
+
+    existing = AstroLaunchNotification.query.filter_by(
+        launch_id=launch_id, gate=gate_name
+    ).first()
+
+    if existing:
+        if existing.status == 'sent':
+            return  # Already delivered
+
+        if existing.status == 'cancelled':
+            # Was cancelled (e.g. by settings change), treat as if no record
+            # Fall through to create new schedule
+            _cancel_scheduler_job(existing.scheduler_job_id)
+            db.session.delete(existing)
+            db.session.flush()
+        elif existing.launch_time == launch_time:
+            return  # Same launch time, job already scheduled
+        else:
+            # Launch was rescheduled — cancel old job and update the record
+            _cancel_scheduler_job(existing.scheduler_job_id)
+
+            if fire_at <= now:
+                # New fire_at is in the past — mark cancelled, don't send late
+                existing.status = 'cancelled'
+                existing.launch_time = launch_time
+                existing.fire_at = fire_at
+                logger.info(f"Launch rescheduled but gate {gate_name} for {launch_name} "
+                            f"is now in the past, marking cancelled")
+                return
+
+            # Update and reschedule
+            job_id = f"launch_reminder_{launch_id}_{gate_name}"
+            existing.launch_time = launch_time
+            existing.fire_at = fire_at
+            existing.scheduler_job_id = job_id
+            existing.launch_name = launch_name
+            existing.provider = provider
+            existing.pad_name = pad_name
+            existing.status = 'scheduled'
+
+            _add_reminder_job(job_id, existing.id, fire_at)
+            logger.info(f"Rescheduled {gate_name} for {launch_name} to {fire_at.isoformat()}")
+            return
+
+    # No existing record (or it was just deleted after cancellation)
+    if fire_at <= now:
+        # Gate crossing already passed — skip silently
+        return
+
+    # Create new record and schedule the job
+    job_id = f"launch_reminder_{launch_id}_{gate_name}"
+    record = AstroLaunchNotification(
+        launch_id=launch_id,
+        gate=gate_name,
+        launch_time=launch_time,
+        fire_at=fire_at,
+        scheduler_job_id=job_id,
+        status='scheduled',
+        launch_name=launch_name,
+        provider=provider,
+        pad_name=pad_name,
+    )
+    db.session.add(record)
+    db.session.flush()  # Get the record.id for the APScheduler job
+
+    _add_reminder_job(job_id, record.id, fire_at)
+    logger.info(f"Scheduled {gate_name} for {launch_name} at {fire_at.isoformat()}")
+
+
+def _handle_inflight(db, launch_id, launch_name, provider, net, pad_name):
+    """
+    Handle in-flight detection. Fires immediately (no scheduled job needed).
+
+    Inserts a record with status='sent' to prevent duplicates on subsequent syncs.
+    """
+    from app.models.astrometrics import AstroLaunchNotification
+
+    existing = AstroLaunchNotification.query.filter_by(
+        launch_id=launch_id, gate='inflight'
+    ).first()
+
+    if existing:
+        return  # Already notified (regardless of status)
+
+    try:
+        launch_time = datetime.fromisoformat(net.replace('Z', '+00:00'))
+    except (ValueError, TypeError):
+        launch_time = datetime.now(timezone.utc)
+
+    record = AstroLaunchNotification(
+        launch_id=launch_id,
+        gate='inflight',
+        launch_time=launch_time,
+        fire_at=None,
+        scheduler_job_id=None,
+        status='sent',
+        launch_name=launch_name,
+        provider=provider,
+        pad_name=pad_name,
+    )
+    db.session.add(record)
+
+    _emit_event('astro.launch_inflight',
+                launch_name=launch_name,
+                provider=provider,
+                net=net,
+                pad_name=pad_name)
+
+
+def _add_reminder_job(job_id, notification_id, fire_at):
+    """Schedule an APScheduler one-shot job for a launch reminder."""
+    try:
+        from app.services.scheduler import schedule_launch_reminder
+        schedule_launch_reminder(job_id, notification_id, fire_at)
+    except Exception as e:
+        logger.error(f"Failed to schedule APScheduler job '{job_id}': {e}")
+
+
+def _cancel_scheduler_job(job_id):
+    """Cancel an APScheduler job. Safe if the job doesn't exist."""
+    if not job_id:
+        return
+    try:
+        from app.services.scheduler import cancel_launch_reminder
+        cancel_launch_reminder(job_id)
+    except Exception as e:
+        logger.warning(f"Failed to cancel APScheduler job '{job_id}': {e}")
 
 
 def _emit_event(event_name, **payload):

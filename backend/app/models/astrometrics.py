@@ -1,10 +1,11 @@
 """
 Astrometrics Module - Database Models
 
-Defines three tables for the space/astronomy data dashboard:
+Defines tables for the space/astronomy data dashboard:
   - astro_cache: Cached API responses from NASA, Launch Library 2, etc.
   - astro_apod_favorites: User's saved APOD (Astronomy Picture of the Day) favorites
   - astro_settings: Singleton configuration (API keys, refresh intervals, thresholds)
+  - astro_launch_notifications: Persistent dedup table for launch reminder scheduling
 
 The module is read-only from a data perspective — all space data comes from
 external APIs and is cached locally. The only user-created records are
@@ -161,4 +162,73 @@ class AstroSettings(db.Model):
             'launch_reminder_minutes_2': self.launch_reminder_minutes_2,
             'neo_close_approach_threshold_ld': self.neo_close_approach_threshold_ld,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class AstroLaunchNotification(db.Model):
+    """
+    Persistent dedup table for launch reminder notifications.
+
+    Each row represents a (launch_id, gate) pair. The sync worker creates
+    a record and schedules an APScheduler one-shot job at the exact
+    fire_at time. When the job fires, it marks the record as 'sent'.
+
+    This replaces the in-memory sets (_notified_launches, _notified_inflight)
+    so dedup survives container restarts.
+
+    Gates:
+      - 'gate1': Primary reminder (e.g. 24 hours before launch)
+      - 'gate2': Secondary reminder (e.g. 30 minutes before launch)
+      - 'inflight': Fires once when launch status changes to In Flight
+    """
+    __tablename__ = 'astro_launch_notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # Launch Library 2 UUID
+    launch_id = db.Column(db.String(255), nullable=False)
+
+    # Which gate: 'gate1', 'gate2', or 'inflight'
+    gate = db.Column(db.String(20), nullable=False)
+
+    # The NET (No Earlier Than) from the API — used to detect rescheduled launches
+    launch_time = db.Column(db.DateTime(timezone=True), nullable=False)
+
+    # When the notification should fire (null for inflight, which fires immediately)
+    fire_at = db.Column(db.DateTime(timezone=True), nullable=True)
+
+    # APScheduler job ID, used to cancel/reschedule (null for inflight)
+    scheduler_job_id = db.Column(db.String(255), nullable=True)
+
+    # 'scheduled' = waiting to fire, 'sent' = already delivered, 'cancelled' = invalidated
+    status = db.Column(db.String(20), nullable=False, default='scheduled')
+
+    # Snapshot fields for the notification payload (avoids re-fetching at fire time)
+    launch_name = db.Column(db.String(500), nullable=False)
+    provider = db.Column(db.String(255), nullable=False, default='Unknown')
+    pad_name = db.Column(db.String(255), nullable=False, default='Unknown')
+
+    created_at = db.Column(db.DateTime(timezone=True),
+                           default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        db.UniqueConstraint('launch_id', 'gate', name='uq_astro_launch_notif_id_gate'),
+        db.Index('idx_astro_launch_notif_status', 'status'),
+        db.Index('idx_astro_launch_notif_launch_time', 'launch_time'),
+    )
+
+    def to_dict(self):
+        """Convert to dictionary for JSON responses."""
+        return {
+            'id': self.id,
+            'launch_id': self.launch_id,
+            'gate': self.gate,
+            'launch_time': self.launch_time.isoformat() if self.launch_time else None,
+            'fire_at': self.fire_at.isoformat() if self.fire_at else None,
+            'scheduler_job_id': self.scheduler_job_id,
+            'status': self.status,
+            'launch_name': self.launch_name,
+            'provider': self.provider,
+            'pad_name': self.pad_name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
         }

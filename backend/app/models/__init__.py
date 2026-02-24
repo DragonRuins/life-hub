@@ -17,6 +17,6 @@ from .kb import (
     KBCategory, KBTag, kb_article_tags, KBArticle,
     KBArticleLink, KBArticleRevision, KBBookmark, KBRecentView
 )
-from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings
+from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings, AstroLaunchNotification
 from .trek import TrekDailyEntry, TrekFavorite, TrekSettings
 from .ai_chat import Conversation, Message, AISettings
