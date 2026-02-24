@@ -599,9 +599,20 @@ def update_vehicle_interval(interval_id):
                   'notify_miles_thresholds', 'notify_months_thresholds', 'is_enabled',
                   'notification_channel_ids', 'notification_priority',
                   'notification_title_template', 'notification_body_template',
-                  'notification_timing'):
+                  'notification_timing', 'last_service_mileage'):
         if field in data:
             setattr(interval, field, data[field])
+
+    # Handle last_service_date separately (needs date parsing)
+    if 'last_service_date' in data:
+        if data['last_service_date']:
+            interval.last_service_date = date.fromisoformat(data['last_service_date'])
+        else:
+            interval.last_service_date = None
+
+    # If last service info was updated, clear notified milestones so they re-trigger
+    if 'last_service_date' in data or 'last_service_mileage' in data:
+        interval.notified_milestones = {"miles": [], "months": []}
 
     db.session.commit()
     return jsonify(interval.to_dict()), 200

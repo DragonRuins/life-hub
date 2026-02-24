@@ -36,6 +36,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
   })
 
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [confirmEditId, setConfirmEditId] = useState(null)
 
   // ── Data loading ───────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -72,6 +73,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
   }
 
   function startEditing(interval) {
+    setConfirmEditId(null)
     setEditingId(interval.id)
     setEditForm({
       miles_interval: interval.miles_interval ?? '',
@@ -79,6 +81,8 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
       condition_type: interval.condition_type || 'or',
       notify_miles_thresholds: (interval.notify_miles_thresholds || []).join(', '),
       notify_months_thresholds: (interval.notify_months_thresholds || []).join(', '),
+      last_service_date: interval.last_service_date || '',
+      last_service_mileage: interval.last_service_mileage ?? '',
     })
   }
 
@@ -97,6 +101,8 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
         condition_type: editForm.condition_type,
         notify_miles_thresholds: milesThresholds,
         notify_months_thresholds: monthsThresholds,
+        last_service_date: editForm.last_service_date || null,
+        last_service_mileage: editForm.last_service_mileage ? parseInt(editForm.last_service_mileage) : null,
       })
       setEditingId(null)
       await loadData()
@@ -503,7 +509,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
 
               {!isEditing && (
                 <ActionBtn
-                  onClick={() => startEditing(interval)}
+                  onClick={() => setConfirmEditId(interval.id)}
                   title="Edit"
                 >
                   <Pencil size={13} />
@@ -714,6 +720,34 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
             </div>
           )}
 
+          {/* Confirm edit dialog */}
+          {confirmEditId === interval.id && (
+            <div style={{
+              marginTop: '0.75rem',
+              padding: '0.625rem 0.75rem',
+              background: 'rgba(153, 204, 255, 0.08)',
+              border: '1px solid rgba(153, 204, 255, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+            }}>
+              <Pencil size={14} style={{ color: 'var(--lcars-ice)', flexShrink: 0 }} />
+              <span style={{
+                fontFamily: "'Antonio', sans-serif",
+                fontSize: '0.78rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                color: 'var(--lcars-space-white)',
+              }}>
+                Edit this interval?
+              </span>
+              <div style={{ display: 'flex', gap: '3px', marginLeft: 'auto' }}>
+                <LCARSBtn onClick={() => setConfirmEditId(null)} color="var(--lcars-gray)">Cancel</LCARSBtn>
+                <LCARSBtn onClick={() => startEditing(interval)} color="var(--lcars-ice)">Edit</LCARSBtn>
+              </div>
+            </div>
+          )}
+
           {/* Confirm delete dialog */}
           {confirmDeleteId === interval.id && (
             <div style={{
@@ -805,6 +839,48 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
                   />
                 </div>
               </div>
+
+              {/* Last Serviced override */}
+              <div style={{
+                padding: '0.75rem',
+                background: 'rgba(153, 204, 255, 0.06)',
+                border: '1px solid rgba(153, 204, 255, 0.15)',
+                marginBottom: '0.75rem',
+              }}>
+                <div style={{
+                  fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  color: 'var(--lcars-ice)',
+                  marginBottom: '0.5rem',
+                }}>
+                  Last Serviced
+                </div>
+                <div className="form-grid-2col">
+                  <div>
+                    <label style={labelStyle}>Date</label>
+                    <input
+                      type="date"
+                      value={editForm.last_service_date}
+                      onChange={e => setEditForm({ ...editForm, last_service_date: e.target.value })}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Mileage</label>
+                    <input
+                      type="number"
+                      value={editForm.last_service_mileage}
+                      onChange={e => setEditForm({ ...editForm, last_service_mileage: e.target.value })}
+                      placeholder="e.g. 52000"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', gap: '3px', justifyContent: 'flex-end' }}>
                 <LCARSBtn onClick={() => setEditingId(null)} color="var(--lcars-gray)">Cancel</LCARSBtn>
                 <LCARSBtn onClick={() => handleSaveEdit(interval.id)} color="var(--lcars-ice)">Save</LCARSBtn>

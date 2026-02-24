@@ -39,6 +39,8 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
 
   // Confirmation dialog for deleting an interval
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  // Confirmation dialog before opening edit form
+  const [confirmEditId, setConfirmEditId] = useState(null)
 
   // ── Data loading ───────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -75,8 +77,9 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
     }
   }
 
-  /** Start editing an interval inline */
+  /** Start editing an interval inline (called after confirmation) */
   function startEditing(interval) {
+    setConfirmEditId(null)
     setEditingId(interval.id)
     setEditForm({
       miles_interval: interval.miles_interval ?? '',
@@ -84,6 +87,8 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
       condition_type: interval.condition_type || 'or',
       notify_miles_thresholds: (interval.notify_miles_thresholds || []).join(', '),
       notify_months_thresholds: (interval.notify_months_thresholds || []).join(', '),
+      last_service_date: interval.last_service_date || '',
+      last_service_mileage: interval.last_service_mileage ?? '',
     })
   }
 
@@ -104,6 +109,8 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
         condition_type: editForm.condition_type,
         notify_miles_thresholds: milesThresholds,
         notify_months_thresholds: monthsThresholds,
+        last_service_date: editForm.last_service_date || null,
+        last_service_mileage: editForm.last_service_mileage ? parseInt(editForm.last_service_mileage) : null,
       })
       setEditingId(null)
       await loadData()
@@ -459,11 +466,11 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
               }} />
             </button>
 
-            {/* Edit button */}
+            {/* Edit button (shows confirmation first) */}
             {!isEditing && (
               <button
                 className="btn btn-ghost"
-                onClick={() => startEditing(interval)}
+                onClick={() => setConfirmEditId(interval.id)}
                 style={{ padding: '0.375rem' }}
                 title="Edit interval"
               >
@@ -600,6 +607,26 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
           </div>
         )}
 
+        {/* Confirm edit dialog */}
+        {confirmEditId === interval.id && (
+          <div style={{
+            marginTop: '0.75rem', padding: '0.75rem',
+            background: 'var(--color-surface-0)', borderRadius: '8px',
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+          }}>
+            <Pencil size={16} style={{ color: 'var(--color-blue)', flexShrink: 0 }} />
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>Edit this interval?</span>
+            <div style={{ display: 'flex', gap: '0.375rem', marginLeft: 'auto' }}>
+              <button className="btn btn-ghost" onClick={() => setConfirmEditId(null)} style={{ fontSize: '0.8rem' }}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={() => startEditing(interval)} style={{ fontSize: '0.8rem' }}>
+                Edit
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Confirm delete dialog */}
         {confirmDeleteId === interval.id && (
           <div style={{
@@ -691,6 +718,44 @@ export default function ServiceIntervalsTab({ vehicleId, vehicle }) {
                 />
               </div>
             </div>
+
+            {/* Last Serviced override */}
+            <div style={{
+              padding: '0.75rem',
+              background: 'var(--color-surface-1)',
+              borderRadius: '6px',
+              marginBottom: '0.75rem',
+            }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.5rem' }}>
+                Last Serviced
+              </div>
+              <div className="form-grid-2col">
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.last_service_date}
+                    onChange={e => setEditForm({ ...editForm, last_service_date: e.target.value })}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'block', marginBottom: '0.25rem' }}>
+                    Mileage
+                  </label>
+                  <input
+                    type="number"
+                    value={editForm.last_service_mileage}
+                    onChange={e => setEditForm({ ...editForm, last_service_mileage: e.target.value })}
+                    placeholder="e.g. 52000"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
               <button className="btn btn-ghost" onClick={() => setEditingId(null)} style={{ fontSize: '0.8rem' }}>
                 Cancel

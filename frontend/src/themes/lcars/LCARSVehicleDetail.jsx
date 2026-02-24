@@ -11,7 +11,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car, AlertTriangle } from 'lucide-react'
 import { vehicles } from '../../api/client'
 import ComponentForm from '../../components/ComponentForm'
 import ComponentLogForm from '../../components/ComponentLogForm'
@@ -49,6 +49,7 @@ export default function LCARSVehicleDetail() {
   const [maintenanceItems, setMaintenanceItems] = useState([])
   const [intervalsRefreshKey, setIntervalsRefreshKey] = useState(0)
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // ── Data Loading ──────────────────────────────────────────────
   async function loadVehicle() {
@@ -176,6 +177,10 @@ export default function LCARSVehicleDetail() {
     } catch (err) { alert('Failed to delete vehicle: ' + err.message) }
   }
 
+  function confirmDeleteVehicle() {
+    setShowDeleteConfirm(true)
+  }
+
   async function handleAddTireSet(data) {
     try {
       await vehicles.tireSets.create(id, data)
@@ -281,7 +286,7 @@ export default function LCARSVehicleDetail() {
           </div>
 
           <button
-            onClick={handleDeleteVehicle}
+            onClick={confirmDeleteVehicle}
             className="btn btn-danger"
             style={{ fontSize: '0.78rem', flexShrink: 0 }}
             title="Delete vehicle"
@@ -290,6 +295,74 @@ export default function LCARSVehicleDetail() {
           </button>
         </div>
       </div>
+
+      {/* Delete vehicle confirmation dialog */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: 'min(420px, calc(100vw - 2rem))',
+            padding: '1.5rem',
+            background: '#000',
+            border: '2px solid var(--lcars-tomato)',
+            textAlign: 'center',
+          }}>
+            <AlertTriangle size={28} style={{ color: 'var(--lcars-tomato)', marginBottom: '0.75rem' }} />
+            <div style={{
+              fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: 'var(--lcars-space-white)',
+              marginBottom: '0.75rem',
+            }}>
+              Delete Vehicle?
+            </div>
+            <p style={{
+              fontFamily: "'Antonio', sans-serif",
+              fontSize: '0.8rem',
+              color: 'var(--lcars-gray)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              marginBottom: '1.25rem',
+              lineHeight: 1.5,
+            }}>
+              This will permanently delete {vehicle?.year} {vehicle?.make} {vehicle?.model} and all associated data.
+            </p>
+            <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                style={{
+                  height: '30px', padding: '0 1rem', borderRadius: '15px',
+                  background: 'var(--lcars-gray)', border: 'none', color: '#000',
+                  cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteVehicle}
+                style={{
+                  height: '30px', padding: '0 1rem', borderRadius: '15px',
+                  background: 'var(--lcars-tomato)', border: 'none', color: '#000',
+                  cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
+                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                Delete Vehicle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* LCARS Tab Bar */}
       <div style={{

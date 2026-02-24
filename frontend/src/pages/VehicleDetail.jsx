@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings, AlertTriangle } from 'lucide-react'
 import { vehicles } from '../api/client'
 import { formatDate } from '../utils/formatDate'
 import ComponentCard from '../components/ComponentCard'
@@ -55,6 +55,9 @@ export default function VehicleDetail() {
 
   // Maintenance Items (global catalog, used by MaintenanceForm checkbox picker)
   const [maintenanceItems, setMaintenanceItems] = useState([])
+
+  // Delete vehicle confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Counter to force ServiceIntervalsTab to reload when maintenance is added
   const [intervalsRefreshKey, setIntervalsRefreshKey] = useState(0)
@@ -224,6 +227,10 @@ export default function VehicleDetail() {
     }
   }
 
+  function confirmDeleteVehicle() {
+    setShowDeleteConfirm(true)
+  }
+
   // Tire Set handlers
   async function handleAddTireSet(data) {
     try {
@@ -285,7 +292,7 @@ export default function VehicleDetail() {
           </div>
         </div>
         <button
-          onClick={handleDeleteVehicle}
+          onClick={confirmDeleteVehicle}
           className="btn btn-danger"
           style={{ fontSize: '0.8rem' }}
           title="Delete vehicle"
@@ -293,6 +300,31 @@ export default function VehicleDetail() {
           <Trash2 size={16} />
         </button>
       </div>
+
+      {/* Delete vehicle confirmation dialog */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        }}>
+          <div className="card" style={{ width: '100%', maxWidth: 'min(420px, calc(100vw - 2rem))', textAlign: 'center' }}>
+            <AlertTriangle size={32} style={{ color: 'var(--color-red)', marginBottom: '0.75rem' }} />
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Delete Vehicle?</h2>
+            <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+              This will permanently delete <strong>{vehicle?.year} {vehicle?.make} {vehicle?.model}</strong> and all its maintenance logs, fuel logs, tire sets, components, and service intervals.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button className="btn btn-ghost" onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={handleDeleteVehicle}>
+                Delete Vehicle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
