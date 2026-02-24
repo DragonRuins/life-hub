@@ -84,13 +84,13 @@ import DataImport from './pages/settings/DataImport'
 import LCARSDataImport from './themes/lcars/settings/LCARSDataImport'
 
 export default function App() {
-  const { isLCARS, booting } = useTheme()
+  const { isLCARS, booting, lcarsVariant } = useTheme()
   const chat = useChat()
 
   return (
     <BrowserRouter>
       {/* Boot sequence overlay (only when transitioning TO LCARS) */}
-      {booting && <LCARSBootSequence />}
+      {booting && <LCARSBootSequence variant={lcarsVariant} />}
 
       <Routes>
         {/* FuelEntry: standalone in default theme, gets LCARS frame when active */}

@@ -255,6 +255,27 @@
   animation: lcars-comm-flash 600ms ease-out;
 }
 
+/* ── LCARS Modern Variant Overrides ────────────────────────── */
+/* Slower, subtler animations for the muted Modern aesthetic */
+
+.lcars-theme.lcars-modern .lcars-cascade-inner {
+  animation-duration: 16s;
+}
+
+.lcars-theme.lcars-modern .lcars-status-dot {
+  animation-duration: 5s;
+}
+
+.lcars-theme.lcars-modern .lcars-scan-stripe::after {
+  display: none;
+}
+
+.lcars-theme.lcars-modern .lcars-idle-block-1,
+.lcars-theme.lcars-modern .lcars-idle-block-2,
+.lcars-theme.lcars-modern .lcars-idle-block-3 {
+  animation-duration: 14s;
+}
+
 /* ── Reduced Motion ────────────────────────────────────────── */
 /* Disable all animations when user prefers reduced motion */
 

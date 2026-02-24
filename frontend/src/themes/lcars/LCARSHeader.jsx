@@ -14,7 +14,7 @@ import useIsMobile from '../../hooks/useIsMobile'
 import LCARSSmartHomeQuickMenu from './LCARSSmartHomeQuickMenu'
 
 export default function LCARSHeader({ chat }) {
-  const { setTheme, isLCARS } = useTheme()
+  const { setTheme, isLCARS, isModernLCARS } = useTheme()
   const isMobile = useIsMobile()
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
 
@@ -69,11 +69,74 @@ export default function LCARSHeader({ chat }) {
         >
           Datacore
         </span>
+
+        {/* Decorative system code on main bar — Modern variant only */}
+        {isModernLCARS && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.6rem',
+              color: 'rgba(0, 0, 0, 0.35)',
+              letterSpacing: '0.05em',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            47-C
+          </span>
+        )}
       </div>
 
       {/* Decorative colored segments (hidden on mobile) */}
-      <div className="lcars-header-decor" style={{ width: '60px', background: 'var(--lcars-african-violet)' }} />
-      <div className="lcars-header-decor" style={{ width: '40px', background: 'var(--lcars-ice)' }} />
+      <div
+        className="lcars-header-decor"
+        style={{
+          width: '60px',
+          background: 'var(--lcars-african-violet)',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Segment code overlay — Modern only */}
+        {isModernLCARS && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.55rem',
+              color: 'rgba(0, 0, 0, 0.35)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            09
+          </span>
+        )}
+      </div>
+      <div
+        className="lcars-header-decor"
+        style={{
+          width: '40px',
+          background: 'var(--lcars-ice)',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Segment code overlay — Modern only */}
+        {isModernLCARS && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.55rem',
+              color: 'rgba(0, 0, 0, 0.35)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            17
+          </span>
+        )}
+      </div>
 
       {/* Controls area (notification + theme toggle + settings) on colored bar */}
       <div

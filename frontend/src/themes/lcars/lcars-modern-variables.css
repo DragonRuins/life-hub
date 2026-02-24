@@ -1,0 +1,74 @@
+/* ── LCARS Modern Variant ────────────────────────────────────────
+   Muted blue-gray palette inspired by modern LCARS interpretations.
+   Layered on top of .lcars-theme — requires BOTH classes on <html>.
+   Classic palette in lcars-variables.css stays untouched.
+
+   Design principle: heavily desaturated, cool-toned, with contrast
+   coming from value (lightness) rather than chroma (saturation).
+   ─────────────────────────────────────────────────────────────── */
+
+.lcars-theme.lcars-modern {
+  /* ── Muted Primary Palette ──────────────────────────────────── */
+  --lcars-sunflower: #7A8D9A;       /* cool steel */
+  --lcars-african-violet: #6E7188;  /* slate lavender */
+  --lcars-ice: #567880;             /* dark teal-gray */
+  --lcars-butterscotch: #8A7468;    /* warm gray-brown */
+  --lcars-golden-orange: #887060;   /* taupe */
+  --lcars-almond-creme: #8A8078;    /* warm stone */
+  --lcars-sky: #5A6580;             /* blue-gray */
+  --lcars-lilac: #6E5E7A;          /* dusty violet */
+  --lcars-moonlit-violet: #5A5070;  /* deep muted violet */
+  --lcars-peach: #886860;           /* muted mauve-brown */
+  --lcars-magenta: #6E4E5E;        /* dusty plum */
+  --lcars-blue: #4A5E78;            /* navy slate */
+  --lcars-gray: #404858;            /* cool dark gray */
+  --lcars-tanoi: #787058;           /* olive gray */
+  --lcars-gold: #787050;            /* dark olive */
+  --lcars-green: #4E6650;           /* sage gray */
+  --lcars-tomato: #905050;          /* muted brick */
+  --lcars-red: #704040;             /* dark muted red */
+  --lcars-mars: #6E5048;            /* clay gray */
+  --lcars-space-white: #C8CCD4;     /* cool off-white */
+  --lcars-red-alert: #A04040;       /* subdued alert red */
+
+  /* ── Semantic Mappings (re-derived from muted palette) ──────── */
+  --lcars-text-primary: var(--lcars-space-white);
+  --lcars-text-on-color: #0A0C10;
+  --lcars-sidebar-primary: var(--lcars-sunflower);
+  --lcars-sidebar-secondary: var(--lcars-african-violet);
+  --lcars-sidebar-accent: var(--lcars-butterscotch);
+  --lcars-panel-border: var(--lcars-ice);
+  --lcars-interactive: var(--lcars-blue);
+  --lcars-interactive-hover: var(--lcars-lilac);
+
+  /* ── Deeper Backgrounds ─────────────────────────────────────── */
+  --lcars-bg: #080A0F;
+  --color-base: #080A0F;
+  --color-mantle: #060810;
+  --color-crust: #040608;
+  --color-surface-0: #0E1218;
+  --color-surface-1: #161A22;
+  --color-surface-2: #1E2430;
+
+  /* ── Overlay / subtle contrast ──────────────────────────────── */
+  --color-overlay-0: #343A48;
+  --color-overlay-1: #404858;
+
+  /* ── Text mapped to cooler tones ────────────────────────────── */
+  --color-text: #C8CCD4;
+  --color-subtext-0: #7A8D9A;
+  --color-subtext-1: #606E7A;
+
+  /* ── Accent color overrides ─────────────────────────────────── */
+  --color-blue: #567880;
+  --color-green: #4E6650;
+  --color-peach: #8A7468;
+  --color-red: #905050;
+  --color-mauve: #6E7188;
+  --color-yellow: #787058;
+  --color-teal: #4A6868;
+  --color-sky: #5A6580;
+  --color-lavender: #5A5070;
+  --color-flamingo: #886860;
+  --color-rosewater: #8A8078;
+}

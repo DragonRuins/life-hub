@@ -1,28 +1,36 @@
 /**
  * ThemeProvider.jsx - Theme Context & Provider
  *
- * Manages two independent settings:
+ * Manages three independent settings:
  *   1. Theme engine (catppuccin | lcars) — stored in 'datacore-theme'
  *   2. Color scheme (mocha, dracula, etc.) — stored in 'datacore-color-scheme'
+ *   3. LCARS variant (classic | modern) — stored in 'datacore-lcars-variant'
  *
  * The color scheme only affects the Catppuccin/standard mode. It works by
  * setting a data-color-scheme attribute on <html> which activates CSS
  * variable overrides from color-schemes.css.
  *
+ * The LCARS variant controls Classic (bright TNG) vs Modern (muted blue-gray)
+ * palettes. When variant is 'modern', .lcars-modern is added to <html>,
+ * layering overrides from lcars-modern-variables.css on top of .lcars-theme.
+ *
  * Usage:
  *   import { useTheme } from './themes/lcars/ThemeProvider'
- *   const { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme } = useTheme()
+ *   const { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme,
+ *           lcarsVariant, setLcarsVariant, isModernLCARS } = useTheme()
  */
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { dashboard } from '../../api/client'
 
 // Import all LCARS CSS files so they're available when the theme is active
 import './lcars-variables.css'
+import './lcars-modern-variables.css'
 import './lcars-components.css'
 import './lcars-animations.css'
 
 const STORAGE_KEY = 'datacore-theme'
 const COLOR_SCHEME_KEY = 'datacore-color-scheme'
+const LCARS_VARIANT_KEY = 'datacore-lcars-variant'
 const BOOT_DURATION = 1500 // ms for the boot sequence animation
 
 // Schemes that use light mode (for browser controls, scrollbars, etc.)
@@ -47,7 +55,8 @@ const ThemeContext = createContext(null)
 
 /**
  * Hook to access theme state and controls.
- * Returns { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme }
+ * Returns { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme,
+ *           lcarsVariant, setLcarsVariant, isModernLCARS, alertCondition }
  */
 export function useTheme() {
   const ctx = useContext(ThemeContext)
@@ -82,12 +91,22 @@ export function ThemeProvider({ children }) {
     }
   })
 
+  // LCARS variant: 'classic' (bright TNG) or 'modern' (muted blue-gray)
+  const [lcarsVariant, setLcarsVariantState] = useState(() => {
+    try {
+      return localStorage.getItem(LCARS_VARIANT_KEY) || 'classic'
+    } catch {
+      return 'classic'
+    }
+  })
+
   // Boot sequence state — only true during the transition animation TO LCARS
   const [booting, setBooting] = useState(false)
   const bootTimerRef = useRef(null)
   const isInitialMount = useRef(true)
 
   const isLCARS = theme === 'lcars'
+  const isModernLCARS = isLCARS && lcarsVariant === 'modern'
 
   // Apply or remove the .lcars-theme class on <html>
   useEffect(() => {
@@ -105,6 +124,23 @@ export function ThemeProvider({ children }) {
       // Silently fail if localStorage isn't available
     }
   }, [theme, isLCARS])
+
+  // Apply or remove the .lcars-modern class on <html>
+  useEffect(() => {
+    const root = document.documentElement
+    if (isModernLCARS) {
+      root.classList.add('lcars-modern')
+    } else {
+      root.classList.remove('lcars-modern')
+    }
+
+    // Save variant to localStorage
+    try {
+      localStorage.setItem(LCARS_VARIANT_KEY, lcarsVariant)
+    } catch {
+      // Silently fail if localStorage isn't available
+    }
+  }, [lcarsVariant, isModernLCARS])
 
   // Apply color scheme attribute on <html>
   useEffect(() => {
@@ -173,6 +209,11 @@ export function ThemeProvider({ children }) {
     setColorSchemeState(newScheme)
   }, [])
 
+  // LCARS variant setter — toggles between 'classic' and 'modern'
+  const setLcarsVariant = useCallback((newVariant) => {
+    setLcarsVariantState(newVariant)
+  }, [])
+
   // Clean up timer on unmount
   useEffect(() => {
     return () => {
@@ -219,7 +260,12 @@ export function ThemeProvider({ children }) {
     }
   }, [isLCARS])
 
-  const value = { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme, alertCondition }
+  const value = {
+    theme, setTheme, isLCARS, booting,
+    colorScheme, setColorScheme,
+    lcarsVariant, setLcarsVariant, isModernLCARS,
+    alertCondition,
+  }
 
   return (
     <ThemeContext.Provider value={value}>

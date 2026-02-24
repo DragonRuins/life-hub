@@ -27,12 +27,13 @@ import LCARSHeader from './LCARSHeader'
 import LCARSFooter from './LCARSFooter'
 import LCARSDataCascade from './LCARSDataCascade'
 import LCARSMobileNav from './LCARSMobileNav'
+import LCARSRightSidebar from './LCARSRightSidebar'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useTheme } from './ThemeProvider'
 
 export default function LCARSLayout({ children, chat }) {
   const isMobile = useIsMobile()
-  const { alertCondition } = useTheme()
+  const { alertCondition, isModernLCARS } = useTheme()
   const location = useLocation()
 
   // ── Page Route Transition (Chunk 3) ──────────────────────
@@ -49,15 +50,16 @@ export default function LCARSLayout({ children, chat }) {
     }
   }, [location.pathname])
 
-  // Build root class based on alert condition
+  // Build root class based on alert condition and variant
   const alertClass = alertCondition === 'red'
     ? 'lcars-alert-red'
     : alertCondition === 'yellow'
       ? 'lcars-alert-yellow'
       : ''
+  const modernClass = isModernLCARS ? 'lcars-modern-layout' : ''
 
   return (
-    <div className={`lcars-layout ${alertClass}`}>
+    <div className={`lcars-layout ${alertClass} ${modernClass}`.trim()}>
       {/* Top-left elbow connecting sidebar to header */}
       <div className="lcars-elbow-tl">
         <LCARSElbow color="var(--lcars-sunflower)" />
@@ -82,6 +84,31 @@ export default function LCARSLayout({ children, chat }) {
       <div className={`lcars-content${pageOut ? ' lcars-page-out' : ''}`}>
         {children}
       </div>
+
+      {/* ── Right-side elements (Modern variant only) ── */}
+      {isModernLCARS && (
+        <>
+          {/* Top-right elbow connecting header to right sidebar */}
+          <div className="lcars-elbow-tr">
+            <LCARSElbow color="var(--lcars-ice)" />
+          </div>
+
+          {/* Right-side data cascade strip */}
+          <div className="lcars-cascade-r">
+            <LCARSDataCascade />
+          </div>
+
+          {/* Right sidebar with live data + decorative blocks */}
+          <div className="lcars-right-sidebar">
+            <LCARSRightSidebar />
+          </div>
+
+          {/* Bottom-right elbow connecting right sidebar to footer */}
+          <div className="lcars-elbow-br">
+            <LCARSElbow color="var(--lcars-butterscotch)" />
+          </div>
+        </>
+      )}
 
       {/* Bottom-left elbow connecting sidebar to footer */}
       <div className="lcars-elbow-bl">

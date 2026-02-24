@@ -67,6 +67,40 @@
   grid-area: footer;
 }
 
+/* ── Modern Variant: 5-column grid with right sidebar ────────── */
+/* Adds a right-side cascade strip + right sidebar column.
+   Right elbows connect the right sidebar to header/footer. */
+
+.lcars-layout.lcars-modern-layout {
+  grid-template-columns: 200px 5px 1fr 5px 140px;
+  grid-template-rows: 56px 1fr 36px;
+  grid-template-areas:
+    "elbow-tl header    header     header    elbow-tr"
+    "sidebar  cascade   content    cascade-r right-sidebar"
+    "elbow-bl footer    footer     footer    elbow-br";
+}
+
+/* Right-side grid areas */
+.lcars-elbow-tr {
+  grid-area: elbow-tr;
+}
+
+.lcars-cascade-r {
+  grid-area: cascade-r;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lcars-right-sidebar {
+  grid-area: right-sidebar;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lcars-elbow-br {
+  grid-area: elbow-br;
+}
+
 /* ── Alert State Classes (Frame-Level) ────────────────────── */
 /* Red Alert: elbows pulse red, header/footer bars get red glow */
 
@@ -119,8 +153,22 @@
   .lcars-sidebar,
   .lcars-cascade,
   .lcars-elbow-tl,
-  .lcars-elbow-bl {
+  .lcars-elbow-bl,
+  .lcars-elbow-tr,
+  .lcars-cascade-r,
+  .lcars-right-sidebar,
+  .lcars-elbow-br {
     display: none;
+  }
+
+  /* Force classic 3-column back to single column on mobile even for Modern */
+  .lcars-layout.lcars-modern-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48px 1fr 56px;
+    grid-template-areas:
+      "header"
+      "content"
+      "footer";
   }
 
   .lcars-header-decor {

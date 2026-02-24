@@ -84,8 +84,24 @@ const MODULE_CARDS = [
   },
 ]
 
+/** LCARS variant definitions for the picker */
+const LCARS_VARIANTS = [
+  {
+    key: 'classic',
+    label: 'Classic',
+    description: 'Bright TNG-era palette — sunflower, violet, ice, butterscotch',
+    swatches: ['#FFCC99', '#CC99FF', '#99CCFF', '#FF9966', '#FF9900'],
+  },
+  {
+    key: 'modern',
+    label: 'Modern',
+    description: 'Muted blue-gray palette — desaturated, subdued, contemporary',
+    swatches: ['#7A8D9A', '#6E7188', '#567880', '#8A7468', '#5A6580'],
+  },
+]
+
 export default function LCARSSettings() {
-  const { isLCARS, colorScheme, setColorScheme } = useTheme()
+  const { isLCARS, colorScheme, setColorScheme, lcarsVariant, setLcarsVariant } = useTheme()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -98,6 +114,99 @@ export default function LCARSSettings() {
         }}>
           {MODULE_CARDS.map(card => (
             <LCARSModuleCard key={card.to} {...card} />
+          ))}
+        </div>
+      </LCARSPanel>
+
+      {/* ── LCARS Variant Panel ──────────────────────────────── */}
+      <LCARSPanel title="LCARS Variant" color="var(--lcars-ice)">
+        <p style={{
+          fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+          fontSize: '0.85rem',
+          color: 'var(--lcars-gray)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          marginBottom: '0.75rem',
+        }}>
+          Visual style for the LCARS interface
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gap: '0.5rem',
+        }}>
+          {LCARS_VARIANTS.map((variant) => (
+            <button
+              key={variant.key}
+              onClick={() => setLcarsVariant(variant.key)}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                padding: '0.75rem',
+                background: lcarsVariant === variant.key
+                  ? 'rgba(86, 120, 128, 0.15)'
+                  : 'rgba(102, 102, 136, 0.08)',
+                border: lcarsVariant === variant.key
+                  ? '2px solid var(--lcars-ice)'
+                  : '2px solid rgba(102, 102, 136, 0.2)',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+                transition: 'border-color 0.15s ease, background 0.15s ease',
+                width: '100%',
+              }}
+              onMouseEnter={e => {
+                if (lcarsVariant !== variant.key) {
+                  e.currentTarget.style.borderColor = 'rgba(86, 120, 128, 0.4)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (lcarsVariant !== variant.key) {
+                  e.currentTarget.style.borderColor = 'rgba(102, 102, 136, 0.2)'
+                }
+              }}
+            >
+              {/* Name */}
+              <span style={{
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: lcarsVariant === variant.key ? 'var(--lcars-ice)' : 'var(--lcars-space-white)',
+              }}>
+                {variant.label}
+              </span>
+
+              {/* Description */}
+              <span style={{
+                fontSize: '0.7rem',
+                color: 'var(--lcars-gray)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}>
+                {variant.description}
+              </span>
+
+              {/* Swatch strip */}
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {variant.swatches.map((color, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: color,
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      flexShrink: 0,
+                    }}
+                  />
+                ))}
+              </div>
+            </button>
           ))}
         </div>
       </LCARSPanel>

@@ -26,6 +26,7 @@
  */
 import { useState } from 'react'
 import useIsMobile from '../../hooks/useIsMobile'
+import { useTheme } from './ThemeProvider'
 
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -43,11 +44,19 @@ export default function LCARSPanel({
 }) {
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useIsMobile()
+  const { isModernLCARS } = useTheme()
 
-  // Hover glow applied to all colored frame elements
-  const glowStyle = isHovered
+  // Modern variant: no glow, thinner elements, reduced border radius
+  const radius = isModernLCARS ? '8px' : '16px'
+  const sidebarWidth = isModernLCARS ? '6px' : '10px'
+
+  // Hover glow applied to all colored frame elements (disabled in Modern)
+  const glowStyle = (!isModernLCARS && isHovered)
     ? { boxShadow: `0 0 8px color-mix(in srgb, ${color} 25%, transparent)` }
     : {}
+
+  // Scan-stripe class only in Classic mode
+  const scanClass = isModernLCARS ? '' : 'lcars-scan-stripe'
 
   // ── Mobile: simplified top-bar layout (no sidebar/elbows) ──────────
   if (isMobile) {
@@ -66,14 +75,14 @@ export default function LCARSPanel({
         {/* Top bar with pill cap */}
         {title && (
           <div
-            className="lcars-scan-stripe"
+            className={scanClass}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '0.35rem 0.75rem',
               background: color,
-              borderTopRightRadius: '16px',
+              borderTopRightRadius: radius,
               position: 'relative',
               overflow: 'hidden',
               ...glowStyle,
@@ -111,7 +120,7 @@ export default function LCARSPanel({
             style={{
               padding: '0.35rem 0.75rem',
               background: color,
-              borderBottomRightRadius: '16px',
+              borderBottomRightRadius: radius,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
@@ -124,9 +133,9 @@ export default function LCARSPanel({
         ) : (
           <div
             style={{
-              minHeight: '4px',
+              minHeight: isModernLCARS ? '3px' : '4px',
               background: color,
-              borderBottomRightRadius: '16px',
+              borderBottomRightRadius: radius,
               ...glowStyle,
             }}
           />
@@ -153,7 +162,7 @@ export default function LCARSPanel({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '10px 1fr',
+        gridTemplateColumns: `${sidebarWidth} 1fr`,
         gridTemplateRows: hasTitle ? 'auto 1fr auto' : '1fr auto',
         background: '#000',
         overflow: 'hidden',
@@ -169,16 +178,16 @@ export default function LCARSPanel({
           <div
             style={{
               background: color,
-              borderTopLeftRadius: '16px',
+              borderTopLeftRadius: radius,
               ...glowStyle,
             }}
           />
           {/* Header bar with scan-line */}
           <div
-            className="lcars-scan-stripe"
+            className={scanClass}
             style={{
               background: color,
-              borderTopRightRadius: '16px',
+              borderTopRightRadius: radius,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -234,7 +243,7 @@ export default function LCARSPanel({
       <div
         style={{
           background: color,
-          borderBottomLeftRadius: '16px',
+          borderBottomLeftRadius: radius,
           ...glowStyle,
         }}
       />
@@ -243,7 +252,7 @@ export default function LCARSPanel({
         <div
           style={{
             background: color,
-            borderBottomRightRadius: '16px',
+            borderBottomRightRadius: radius,
             padding: '0.35rem 0.75rem',
             display: 'flex',
             alignItems: 'center',
@@ -258,8 +267,8 @@ export default function LCARSPanel({
         <div
           style={{
             background: color,
-            borderBottomRightRadius: '16px',
-            minHeight: '4px',
+            borderBottomRightRadius: radius,
+            minHeight: isModernLCARS ? '3px' : '4px',
             ...glowStyle,
           }}
         />
@@ -496,11 +505,15 @@ export function LCARSGauge({ label, value, percent = 0, color = 'var(--lcars-sun
  *   style    - Additional outer styles
  */
 export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', children, style = {} }) {
+  const { isModernLCARS } = useTheme()
+  const miniSidebarWidth = isModernLCARS ? '3px' : '4px'
+  const miniRadius = isModernLCARS ? '4px' : '8px'
+
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: '4px 1fr',
+        gridTemplateColumns: `${miniSidebarWidth} 1fr`,
         gridTemplateRows: 'auto 1fr auto',
         background: '#000',
         overflow: 'hidden',
@@ -511,14 +524,14 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
       <div
         style={{
           background: color,
-          borderTopLeftRadius: '8px',
+          borderTopLeftRadius: miniRadius,
         }}
       />
       {/* Header */}
       <div
         style={{
           background: color,
-          borderTopRightRadius: '8px',
+          borderTopRightRadius: miniRadius,
           padding: '0.25rem 0.5rem',
         }}
       >
@@ -548,15 +561,15 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
       <div
         style={{
           background: color,
-          borderBottomLeftRadius: '8px',
+          borderBottomLeftRadius: miniRadius,
         }}
       />
       {/* Bottom closing bar */}
       <div
         style={{
           background: color,
-          borderBottomRightRadius: '8px',
-          minHeight: '3px',
+          borderBottomRightRadius: miniRadius,
+          minHeight: isModernLCARS ? '2px' : '3px',
         }}
       />
     </div>

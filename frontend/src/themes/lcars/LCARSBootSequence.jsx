@@ -15,14 +15,24 @@
 import { useState, useEffect } from 'react'
 
 // LCARS colors for the boot animation elements
-const BOOT_COLORS = [
+const BOOT_COLORS_CLASSIC = [
   '#FFCC99', // sunflower
   '#CC99FF', // african-violet
   '#99CCFF', // ice
   '#FF9966', // butterscotch
 ]
 
-export default function LCARSBootSequence({ onComplete }) {
+// Heavily desaturated modern palette for the boot sequence
+const BOOT_COLORS_MODERN = [
+  '#7A8D9A', // cool steel (sunflower equivalent)
+  '#6E7188', // slate lavender (african-violet equivalent)
+  '#567880', // dark teal-gray (ice equivalent)
+  '#8A7468', // warm gray-brown (butterscotch equivalent)
+]
+
+export default function LCARSBootSequence({ onComplete, variant = 'classic' }) {
+  const isModern = variant === 'modern'
+  const BOOT_COLORS = isModern ? BOOT_COLORS_MODERN : BOOT_COLORS_CLASSIC
   const [phase, setPhase] = useState(0)
   const [visible, setVisible] = useState(true)
 
@@ -39,23 +49,22 @@ export default function LCARSBootSequence({ onComplete }) {
       return
     }
 
-    // Phase timeline:
-    // 0ms: Black screen (phase 0)
-    // 200ms: Frame lines start drawing (phase 1)
-    // 500ms: Sidebar bars appear (phase 2)
-    // 900ms: Content brightens (phase 3)
-    // 1300ms: Begin fade out (phase 4)
-    // 1500ms: Remove from DOM
+    // Phase timeline — Modern is ~30% slower for a subtler boot feel
+    // Classic: 200 / 500 / 900 / 1300 / 1500ms
+    // Modern:  300 / 700 / 1200 / 1700 / 2000ms
+    const t = isModern
+      ? [300, 700, 1200, 1700, 2000]
+      : [200, 500, 900, 1300, 1500]
 
     const timers = [
-      setTimeout(() => setPhase(1), 200),
-      setTimeout(() => setPhase(2), 500),
-      setTimeout(() => setPhase(3), 900),
-      setTimeout(() => setPhase(4), 1300),
+      setTimeout(() => setPhase(1), t[0]),
+      setTimeout(() => setPhase(2), t[1]),
+      setTimeout(() => setPhase(3), t[2]),
+      setTimeout(() => setPhase(4), t[3]),
       setTimeout(() => {
         setVisible(false)
         onComplete?.()
-      }, 1500),
+      }, t[4]),
     ]
 
     return () => timers.forEach(t => clearTimeout(t))
@@ -82,7 +91,7 @@ export default function LCARSBootSequence({ onComplete }) {
         overflow: 'hidden',
       }}
     >
-      {/* Scanline effect */}
+      {/* Scanline effect (subtler in Modern) */}
       {phase >= 1 && (
         <div
           style={{
@@ -90,8 +99,10 @@ export default function LCARSBootSequence({ onComplete }) {
             left: 0,
             right: 0,
             height: '2px',
-            background: 'linear-gradient(90deg, transparent, rgba(255, 204, 153, 0.4), transparent)',
-            animation: 'lcars-scanline 0.8s linear',
+            background: isModern
+              ? 'linear-gradient(90deg, transparent, rgba(122, 141, 154, 0.2), transparent)'
+              : 'linear-gradient(90deg, transparent, rgba(255, 204, 153, 0.4), transparent)',
+            animation: isModern ? 'lcars-scanline 1.1s linear' : 'lcars-scanline 0.8s linear',
             animationFillMode: 'forwards',
             zIndex: 2,
           }}
@@ -232,22 +243,24 @@ export default function LCARSBootSequence({ onComplete }) {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '0.5rem',
-            opacity: phase >= 3 ? 0 : 0.7,
+            opacity: phase >= 3 ? 0 : (isModern ? 0.5 : 0.7),
             transition: 'opacity 0.3s',
             zIndex: 1,
           }}
         >
           <div
             style={{
-              fontFamily: "'Antonio', 'Helvetica Neue', sans-serif",
-              fontSize: '1.5rem',
-              fontWeight: 700,
+              fontFamily: isModern
+                ? "'JetBrains Mono', monospace"
+                : "'Antonio', 'Helvetica Neue', sans-serif",
+              fontSize: isModern ? '1.1rem' : '1.5rem',
+              fontWeight: isModern ? 400 : 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.3em',
+              letterSpacing: isModern ? '0.15em' : '0.3em',
               color: BOOT_COLORS[0],
             }}
           >
-            Initializing
+            {isModern ? 'Datacore // Initializing' : 'Initializing'}
           </div>
           <div
             style={{
@@ -259,7 +272,7 @@ export default function LCARSBootSequence({ onComplete }) {
               color: BOOT_COLORS[2],
             }}
           >
-            Library Computer Access/Retrieval System
+            {isModern ? 'System Ready' : 'Library Computer Access/Retrieval System'}
           </div>
         </div>
       )}

@@ -9,9 +9,10 @@
  * loops seamlessly by translating from -50% to 0.
  */
 import { useMemo } from 'react'
+import { useTheme } from './ThemeProvider'
 
-// LCARS colors for the cascade blocks
-const CASCADE_COLORS = [
+// Classic LCARS colors for the cascade blocks
+const CASCADE_COLORS_CLASSIC = [
   '#FFCC99', // sunflower
   '#CC99FF', // african-violet
   '#99CCFF', // ice
@@ -28,6 +29,24 @@ const CASCADE_COLORS = [
   '#999933', // green
 ]
 
+// Heavily desaturated modern colors for the cascade
+const CASCADE_COLORS_MODERN = [
+  '#7A8D9A', // cool steel
+  '#6E7188', // slate lavender
+  '#567880', // dark teal-gray
+  '#8A7468', // warm gray-brown
+  '#887060', // taupe
+  '#8A8078', // warm stone
+  '#5A6580', // blue-gray
+  '#6E5E7A', // dusty violet
+  '#5A5070', // deep muted violet
+  '#886860', // muted mauve-brown
+  '#6E4E5E', // dusty plum
+  '#4A5E78', // navy slate
+  '#787050', // dark olive
+  '#4E6650', // sage gray
+]
+
 // Generate a pseudo-random 4-character hex string
 const HEX_CHARS = '0123456789ABCDEF'
 function randomHex(seed) {
@@ -40,7 +59,11 @@ function randomHex(seed) {
 }
 
 export default function LCARSDataCascade() {
+  const { isModernLCARS } = useTheme()
+  const CASCADE_COLORS = isModernLCARS ? CASCADE_COLORS_MODERN : CASCADE_COLORS_CLASSIC
+
   // Generate a fixed set of blocks on mount (memoized so they don't re-randomize)
+  // Re-generate when variant changes so colors update
   const blocks = useMemo(() => {
     const result = []
     // Generate enough blocks to fill ~2x the viewport height
@@ -56,7 +79,7 @@ export default function LCARSDataCascade() {
       })
     }
     return result
-  }, [])
+  }, [CASCADE_COLORS])
 
   return (
     <div
@@ -65,7 +88,7 @@ export default function LCARSDataCascade() {
         width: '100%',
         height: '100%',
         overflow: 'hidden',
-        opacity: 0.55,
+        opacity: isModernLCARS ? 0.3 : 0.55,
         background: '#000000',
       }}
     >

@@ -7,8 +7,10 @@
  */
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library } from 'lucide-react'
+import { useTheme } from './ThemeProvider'
 
 // Fixed color assignments per navigation item
+// `code` is a decorative alphanumeric identifier shown in Modern variant
 const NAV_ITEMS = [
   {
     to: '/',
@@ -16,6 +18,7 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
     color: 'var(--lcars-sunflower)',      // #FFCC99
     activeColor: 'var(--lcars-butterscotch)', // #FF9966
+    code: '01-4774',
   },
   {
     to: '/vehicles',
@@ -23,6 +26,7 @@ const NAV_ITEMS = [
     icon: Car,
     color: 'var(--lcars-ice)',            // #99CCFF
     activeColor: 'var(--lcars-butterscotch)',
+    code: '02-1138',
   },
   {
     to: '/notes',
@@ -30,6 +34,7 @@ const NAV_ITEMS = [
     icon: StickyNote,
     color: 'var(--lcars-african-violet)', // #CC99FF
     activeColor: 'var(--lcars-butterscotch)',
+    code: '03-7294',
   },
   {
     to: '/projects',
@@ -37,6 +42,7 @@ const NAV_ITEMS = [
     icon: FolderKanban,
     color: 'var(--lcars-lilac)',          // #CC99CC
     activeColor: 'var(--lcars-butterscotch)',
+    code: '04-5031',
   },
   {
     to: '/kb',
@@ -44,6 +50,7 @@ const NAV_ITEMS = [
     icon: BookOpen,
     color: 'var(--lcars-gold)',           // #FFAA00
     activeColor: 'var(--lcars-butterscotch)',
+    code: '05-8816',
   },
   {
     to: '/infrastructure',
@@ -51,6 +58,7 @@ const NAV_ITEMS = [
     icon: Server,
     color: 'var(--lcars-tanoi)',          // #FFCC66
     activeColor: 'var(--lcars-butterscotch)',
+    code: '06-2447',
   },
   {
     to: '/astrometrics',
@@ -58,6 +66,7 @@ const NAV_ITEMS = [
     icon: Telescope,
     color: 'var(--lcars-ice)',            // #99CCFF
     activeColor: 'var(--lcars-butterscotch)',
+    code: '07-9163',
   },
   {
     to: '/trek',
@@ -65,6 +74,7 @@ const NAV_ITEMS = [
     icon: Library,
     color: 'var(--lcars-almond-creme)',   // #FFBBAA
     activeColor: 'var(--lcars-butterscotch)',
+    code: '08-3350',
   },
 ]
 
@@ -122,8 +132,11 @@ export default function LCARSSidebar() {
 /**
  * Individual LCARS pill-shaped navigation button.
  * Uses NavLink for route matching and active state detection.
+ * In Modern variant, shows a decorative alphanumeric code below the label.
  */
-function LCARSNavButton({ to, label, icon: Icon, color, activeColor }) {
+function LCARSNavButton({ to, label, icon: Icon, color, activeColor, code }) {
+  const { isModernLCARS } = useTheme()
+
   return (
     <NavLink
       to={to}
@@ -133,8 +146,8 @@ function LCARSNavButton({ to, label, icon: Icon, color, activeColor }) {
         alignItems: 'center',
         justifyContent: 'flex-end',
         gap: '0.5rem',
-        padding: '0.5rem 1rem 0.5rem 0.75rem',
-        height: '40px',
+        padding: isModernLCARS ? '0.35rem 1rem 0.35rem 0.75rem' : '0.5rem 1rem 0.5rem 0.75rem',
+        height: isModernLCARS ? '44px' : '40px',
         background: isActive ? activeColor : color,
         color: '#000000',
         textDecoration: 'none',
@@ -162,7 +175,25 @@ function LCARSNavButton({ to, label, icon: Icon, color, activeColor }) {
       }}
     >
       <Icon size={16} />
-      <span style={{ flex: 1, textAlign: 'right' }}>{label}</span>
+      <div style={{ flex: 1, textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+        <span>{label}</span>
+        {/* Decorative numeric code — Modern variant only */}
+        {isModernLCARS && code && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '0.55rem',
+              fontWeight: 400,
+              opacity: 0.5,
+              letterSpacing: '0.04em',
+              textTransform: 'none',
+              lineHeight: 1,
+            }}
+          >
+            {code}
+          </span>
+        )}
+      </div>
     </NavLink>
   )
 }
