@@ -492,7 +492,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
-                color: '#000000',
+                color: 'var(--lcars-text-on-color)',
               }}>
                 {statusIcon(interval.status)}
                 {label}
@@ -931,7 +931,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
             }}>
               Add Maintenance Interval
             </span>
@@ -941,7 +941,7 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: '28px', height: '28px', borderRadius: '50%',
                 background: 'rgba(0, 0, 0, 0.2)', border: 'none',
-                color: '#000000', cursor: 'pointer',
+                color: 'var(--lcars-text-on-color)', cursor: 'pointer',
               }}
             >
               <X size={16} />
@@ -1143,7 +1143,7 @@ function LCARSToggle({ enabled, onToggle }) {
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.04em',
-        color: enabled ? '#000000' : 'var(--lcars-gray)',
+        color: enabled ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
         cursor: 'pointer',
         transition: 'all 0.15s ease',
         minWidth: '38px',
@@ -1175,7 +1175,7 @@ function ActionBtn({ children, onClick, title, hoverColor = 'var(--lcars-sunflow
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = hoverColor
-        e.currentTarget.style.color = '#000000'
+        e.currentTarget.style.color = 'var(--lcars-text-on-color)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(102, 102, 136, 0.15)'
@@ -1212,7 +1212,7 @@ function LCARSBtn({ children, onClick, color, type = 'button' }) {
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = color
-        e.currentTarget.style.color = '#000000'
+        e.currentTarget.style.color = 'var(--lcars-text-on-color)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(102, 102, 136, 0.2)'

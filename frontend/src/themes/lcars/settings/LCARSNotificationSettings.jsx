@@ -81,7 +81,7 @@ export default function LCARSNotificationSettings() {
             style={{
               padding: '0.375rem 1rem',
               background: activeTab === tab.key ? 'var(--lcars-butterscotch)' : 'var(--lcars-sunflower)',
-              color: '#000',
+              color: 'var(--lcars-text-on-color)',
               border: 'none',
               borderRadius: '999px',
               fontFamily: "'Antonio', sans-serif",
@@ -240,7 +240,7 @@ function LCARSGeneralSettings() {
             style={{
               padding: '0.375rem 1.25rem',
               background: settings.enabled ? 'var(--lcars-green, #66CC00)' : 'var(--lcars-tomato)',
-              color: '#000',
+              color: 'var(--lcars-text-on-color)',
               border: 'none',
               borderRadius: '999px',
               fontFamily: "'Antonio', sans-serif",
@@ -273,7 +273,7 @@ function LCARSGeneralSettings() {
             style={{
               padding: '0.25rem 1rem',
               background: quietHoursEnabled ? 'var(--lcars-african-violet)' : 'rgba(102, 102, 136, 0.3)',
-              color: quietHoursEnabled ? '#000' : 'var(--lcars-gray)',
+              color: quietHoursEnabled ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
               border: 'none',
               borderRadius: '999px',
               fontFamily: "'Antonio', sans-serif",
@@ -369,7 +369,7 @@ function LCARSGeneralSettings() {
         <button onClick={handleSave} disabled={saving} style={{
           padding: '0.375rem 1rem',
           background: 'var(--lcars-sunflower)',
-          border: 'none', borderRadius: '999px', color: '#000', cursor: 'pointer',
+          border: 'none', borderRadius: '999px', color: 'var(--lcars-text-on-color)', cursor: 'pointer',
           fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
           textTransform: 'uppercase', letterSpacing: '0.05em',
         }}>

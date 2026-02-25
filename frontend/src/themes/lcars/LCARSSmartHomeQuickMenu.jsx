@@ -146,19 +146,19 @@ export default function LCARSSmartHomeQuickMenu() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '32px',
-          height: '32px',
+          width: isMobile ? '28px' : '32px',
+          height: isMobile ? '28px' : '32px',
           borderRadius: '50%',
-          background: isOpen ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+          background: isOpen ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
           border: 'none',
-          color: '#000000',
+          color: 'var(--lcars-text-on-color)',
           cursor: 'pointer',
           transition: 'all 0.15s ease',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
         onMouseLeave={e => { if (!isOpen) e.currentTarget.style.background = 'transparent' }}
       >
-        <Home size={18} />
+        <Home size={isMobile ? 16 : 18} />
       </button>
 
       {/* LCARS-styled dropdown */}
@@ -198,7 +198,7 @@ export default function LCARSSmartHomeQuickMenu() {
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
             }}>
               Environmental Controls
             </span>

@@ -252,7 +252,7 @@ function LCARSImportSection({ title, subtitle, color, endpoint, vehicles }) {
           borderRadius: '16px',
           background: importing ? 'var(--lcars-gray)' : color,
           border: 'none',
-          color: '#000',
+          color: 'var(--lcars-text-on-color)',
           cursor: importing ? 'default' : 'pointer',
           fontFamily: antonio,
           fontSize: '0.75rem',

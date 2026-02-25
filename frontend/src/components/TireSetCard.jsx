@@ -8,18 +8,8 @@ import { Car } from 'lucide-react'
 export default function TireSetCard({ tireSet, vehicleMileage, onEdit, onDelete, onSwap }) {
   const isCurrent = tireSet.is_current
 
-  // Calculate miles on set:
-  // - If equipped: accumulated miles driven since last swap
-  // - If stored (in storage): just the accumulated value
-  let milesOnSet = tireSet.accumulated_mileage || 0
-  if (isCurrent && tireSet.mileage_at_last_swap != null && vehicleMileage != null) {
-    milesOnSet = (vehicleMileage - tireSet.mileage_at_last_swap)
-  }
-
-  // Show vehicle mileage delta (for context)
-  const vehicleMileageDelta = isCurrent && vehicleMileage != null
-    ? (vehicleMileage - (tireSet.mileage_at_last_swap || 0))
-    : null
+  // Total lifetime miles on this tire set (updated continuously by backend)
+  const milesOnSet = tireSet.accumulated_mileage || 0
 
   return (
     <div className="card" style={{
@@ -87,11 +77,6 @@ export default function TireSetCard({ tireSet, vehicleMileage, onEdit, onDelete,
         <div>
           <span style={{ color: 'var(--color-subtext-0)', marginRight: '0.25rem' }}>Miles on set:</span>
           <span style={{ fontWeight: 600 }}>{milesOnSet > 0 ? milesOnSet.toLocaleString() : '-'}</span>
-          {isCurrent && vehicleMileageDelta != null && (
-            <span style={{ color: 'var(--color-subtext-1)', marginLeft: '0.25rem' }}>
-              (+{Math.abs(vehicleMileageDelta)})
-            </span>
-          )}
         </div>
       </div>
 

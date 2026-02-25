@@ -10,14 +10,8 @@ import { Car, Gauge } from 'lucide-react'
 export default function LCARSTireSetCard({ tireSet, vehicleMileage, onEdit, onDelete, onSwap }) {
   const isCurrent = tireSet.is_current
 
-  let milesOnSet = tireSet.accumulated_mileage || 0
-  if (isCurrent && tireSet.mileage_at_last_swap != null && vehicleMileage != null) {
-    milesOnSet = (vehicleMileage - tireSet.mileage_at_last_swap)
-  }
-
-  const vehicleMileageDelta = isCurrent && vehicleMileage != null
-    ? (vehicleMileage - (tireSet.mileage_at_last_swap || 0))
-    : null
+  // Total lifetime miles on this tire set (updated continuously by backend)
+  const milesOnSet = tireSet.accumulated_mileage || 0
 
   const accentColor = isCurrent ? 'var(--lcars-ice)' : 'var(--lcars-gray)'
 
@@ -65,7 +59,7 @@ export default function LCARSTireSetCard({ tireSet, vehicleMileage, onEdit, onDe
           <span style={{
             padding: '0.1rem 0.5rem',
             background: isCurrent ? 'var(--lcars-ice)' : 'rgba(102, 102, 136, 0.3)',
-            color: isCurrent ? '#000000' : 'var(--lcars-gray)',
+            color: isCurrent ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
             fontFamily: "'Antonio', sans-serif",
             fontSize: '0.65rem',
             fontWeight: 600,
@@ -89,7 +83,6 @@ export default function LCARSTireSetCard({ tireSet, vehicleMileage, onEdit, onDe
           <DataField
             label="Miles on Set"
             value={milesOnSet > 0 ? milesOnSet.toLocaleString() : '-'}
-            suffix={isCurrent && vehicleMileageDelta != null ? ` (+${Math.abs(vehicleMileageDelta).toLocaleString()})` : ''}
           />
           {tireSet.tire_size && <DataField label="Size" value={tireSet.tire_size} />}
         </div>
@@ -170,7 +163,7 @@ function LCARSActionBtn({ children, onClick, color }) {
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = color
-        e.currentTarget.style.color = '#000000'
+        e.currentTarget.style.color = 'var(--lcars-text-on-color)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(102, 102, 136, 0.2)'

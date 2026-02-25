@@ -208,7 +208,7 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.12em',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
             }}>
               Entity Discovery
             </span>
@@ -226,7 +226,7 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
           <button
             onClick={onClose}
             style={{
-              background: 'none', border: 'none', color: '#000000',
+              background: 'none', border: 'none', color: 'var(--lcars-text-on-color)',
               cursor: 'pointer', padding: '2px',
             }}
           >
@@ -369,7 +369,7 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
                         background: allSelected ? domainColor : 'var(--lcars-gray)',
-                        color: '#000',
+                        color: 'var(--lcars-text-on-color)',
                       }}
                     >
                       {allSelected ? 'Deselect All' : 'Select All'}
@@ -487,7 +487,7 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
                 border: 'none',
                 cursor: 'pointer',
                 background: 'var(--lcars-gray)',
-                color: '#000',
+                color: 'var(--lcars-text-on-color)',
                 fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.8rem',
                 fontWeight: 600,
@@ -506,7 +506,7 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
                 border: 'none',
                 cursor: selected.size === 0 || importing ? 'not-allowed' : 'pointer',
                 background: selected.size > 0 && !importing ? 'var(--lcars-gold)' : 'var(--lcars-gray)',
-                color: '#000',
+                color: 'var(--lcars-text-on-color)',
                 fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.8rem',
                 fontWeight: 600,

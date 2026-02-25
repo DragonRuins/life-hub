@@ -1,47 +1,57 @@
 /* ── LCARS Modern Variant ────────────────────────────────────────
-   Muted blue-gray palette inspired by modern LCARS interpretations.
-   Layered on top of .lcars-theme — requires BOTH classes on <html>.
-   Classic palette in lcars-variables.css stays untouched.
+   Vibrant dark palette inspired by modern LCARS interpretations
+   (Titan, Lower Decks, Prodigy). Layered on top of .lcars-theme —
+   requires BOTH classes on <html>. Classic palette in
+   lcars-variables.css stays untouched.
 
-   Design principle: heavily desaturated, cool-toned, with contrast
-   coming from value (lightness) rather than chroma (saturation).
+   Design principle: saturated, vibrant colors in the dark/cool
+   spectrum. NOT muted grays — bright teals, cyans, oranges, and
+   deep navies that read as "dark" but are fully saturated.
+   White text on colored backgrounds for contrast.
    ─────────────────────────────────────────────────────────────── */
 
 .lcars-theme.lcars-modern {
-  /* ── Muted Primary Palette ──────────────────────────────────── */
-  --lcars-sunflower: #7A8D9A;       /* cool steel */
-  --lcars-african-violet: #6E7188;  /* slate lavender */
-  --lcars-ice: #567880;             /* dark teal-gray */
-  --lcars-butterscotch: #8A7468;    /* warm gray-brown */
-  --lcars-golden-orange: #887060;   /* taupe */
-  --lcars-almond-creme: #8A8078;    /* warm stone */
-  --lcars-sky: #5A6580;             /* blue-gray */
-  --lcars-lilac: #6E5E7A;          /* dusty violet */
-  --lcars-moonlit-violet: #5A5070;  /* deep muted violet */
-  --lcars-peach: #886860;           /* muted mauve-brown */
-  --lcars-magenta: #6E4E5E;        /* dusty plum */
-  --lcars-blue: #4A5E78;            /* navy slate */
-  --lcars-gray: #404858;            /* cool dark gray */
-  --lcars-tanoi: #787058;           /* olive gray */
-  --lcars-gold: #787050;            /* dark olive */
-  --lcars-green: #4E6650;           /* sage gray */
-  --lcars-tomato: #905050;          /* muted brick */
-  --lcars-red: #704040;             /* dark muted red */
-  --lcars-mars: #6E5048;            /* clay gray */
-  --lcars-space-white: #C8CCD4;     /* cool off-white */
-  --lcars-red-alert: #A04040;       /* subdued alert red */
+  /* ── Vibrant Dark Palette ─────────────────────────────────────
+     Each color is saturated and vibrant, spaced across the hue
+     wheel so sections are easy to distinguish at a glance.
+     ──────────────────────────────────────────────────────────── */
 
-  /* ── Semantic Mappings (re-derived from muted palette) ──────── */
+  --lcars-sunflower: #1A7A8C;       /* saturated teal — primary structural */
+  --lcars-african-violet: #2E4A6E;  /* deep navy blue — secondary bars */
+  --lcars-ice: #00B4D8;             /* bright cyan — interactive/accent */
+  --lcars-butterscotch: #E86830;    /* bright orange — active/highlight */
+  --lcars-golden-orange: #D05828;   /* deep orange — warm accent */
+  --lcars-almond-creme: #387080;    /* dark teal — tertiary bars */
+  --lcars-sky: #2A5E8A;             /* medium blue — info sections */
+  --lcars-lilac: #5E3E8A;           /* deep violet — contrast accent */
+  --lcars-moonlit-violet: #402E6A;  /* dark violet — deep accent */
+  --lcars-peach: #B84A38;           /* burnt sienna — warm variant */
+  --lcars-magenta: #6A2E5A;         /* deep magenta — purple accent */
+  --lcars-blue: #1A3E6A;            /* dark navy — deep sections */
+  --lcars-gray: #6888A0;            /* blue-gray — labels/secondary text */
+  --lcars-tanoi: #2A6A4A;           /* forest green — green accent */
+  --lcars-gold: #8A7020;            /* dark gold — warm highlight */
+  --lcars-green: #1A8A50;           /* vibrant green — success */
+  --lcars-tomato: #D03030;          /* bright red — danger */
+  --lcars-red: #A82020;             /* dark red — severe */
+  --lcars-mars: #8A3828;            /* brick red — secondary danger */
+  --lcars-space-white: #D8DEE8;     /* cool bright white */
+  --lcars-red-alert: #E82020;       /* vivid red — alert */
+
+  /* ── Semantic Mappings ────────────────────────────────────────
+     Re-derived from vibrant palette. White text on colored
+     backgrounds is the defining characteristic of this variant.
+     ──────────────────────────────────────────────────────────── */
   --lcars-text-primary: var(--lcars-space-white);
-  --lcars-text-on-color: #0A0C10;
+  --lcars-text-on-color: #D8DEE8;
   --lcars-sidebar-primary: var(--lcars-sunflower);
   --lcars-sidebar-secondary: var(--lcars-african-violet);
   --lcars-sidebar-accent: var(--lcars-butterscotch);
   --lcars-panel-border: var(--lcars-ice);
-  --lcars-interactive: var(--lcars-blue);
-  --lcars-interactive-hover: var(--lcars-lilac);
+  --lcars-interactive: var(--lcars-ice);
+  --lcars-interactive-hover: var(--lcars-butterscotch);
 
-  /* ── Deeper Backgrounds ─────────────────────────────────────── */
+  /* ── Deep Backgrounds ─────────────────────────────────────── */
   --lcars-bg: #080A0F;
   --color-base: #080A0F;
   --color-mantle: #060810;
@@ -51,24 +61,24 @@
   --color-surface-2: #1E2430;
 
   /* ── Overlay / subtle contrast ──────────────────────────────── */
-  --color-overlay-0: #343A48;
-  --color-overlay-1: #404858;
+  --color-overlay-0: #2A3848;
+  --color-overlay-1: #3A4858;
 
-  /* ── Text mapped to cooler tones ────────────────────────────── */
-  --color-text: #C8CCD4;
-  --color-subtext-0: #7A8D9A;
-  --color-subtext-1: #606E7A;
+  /* ── Text mapped to bright cool tones ─────────────────────── */
+  --color-text: #D8DEE8;
+  --color-subtext-0: #6888A0;
+  --color-subtext-1: #4A6070;
 
-  /* ── Accent color overrides ─────────────────────────────────── */
-  --color-blue: #567880;
-  --color-green: #4E6650;
-  --color-peach: #8A7468;
-  --color-red: #905050;
-  --color-mauve: #6E7188;
-  --color-yellow: #787058;
-  --color-teal: #4A6868;
-  --color-sky: #5A6580;
-  --color-lavender: #5A5070;
-  --color-flamingo: #886860;
-  --color-rosewater: #8A8078;
+  /* ── Accent color overrides (Catppuccin-mapped) ──────────── */
+  --color-blue: #00B4D8;
+  --color-green: #1A8A50;
+  --color-peach: #E86830;
+  --color-red: #D03030;
+  --color-mauve: #5E3E8A;
+  --color-yellow: #8A7020;
+  --color-teal: #1A7A8C;
+  --color-sky: #2A5E8A;
+  --color-lavender: #402E6A;
+  --color-flamingo: #B84A38;
+  --color-rosewater: #387080;
 }

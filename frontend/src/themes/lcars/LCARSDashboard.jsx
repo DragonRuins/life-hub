@@ -915,21 +915,21 @@ const SYSTEM_TILES = [
   },
 ]
 
-// Modern variant: muted grey-blue palette for system tile frames
+// Modern variant: vibrant dark palette for system tile frames
 const MODERN_TILE_COLORS = {
-  notes: '#3A4555',
-  projects: '#354050',
-  kb: '#404858',
-  infrastructure: '#3A4555',
-  astrometrics: '#354050',
-  trek: '#404858',
+  notes: '#2E4A6E',
+  projects: '#1A3E6A',
+  kb: '#2A5E8A',
+  infrastructure: '#1A7A8C',
+  astrometrics: '#402E6A',
+  trek: '#5E3E8A',
 }
 
 function SystemsStatusBoard({ stats }) {
   const { isModernLCARS } = useTheme()
 
   return (
-    <LCARSPanel title="Systems Status" color={isModernLCARS ? '#404858' : 'var(--lcars-gold)'}>
+    <LCARSPanel title="Systems Status" color={isModernLCARS ? 'var(--lcars-african-violet)' : 'var(--lcars-gold)'}>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -1016,7 +1016,7 @@ function StatusBadge({ status }) {
     <span style={{
       padding: '0.1rem 0.4rem',
       background: color,
-      color: '#000000',
+      color: 'var(--lcars-text-on-color)',
       fontFamily: "'Antonio', sans-serif",
       fontSize: '0.6rem',
       fontWeight: 600,
@@ -1076,7 +1076,7 @@ function LCARSActionButton({ onClick, color, icon, label }) {
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = color
-        e.currentTarget.style.color = '#000000'
+        e.currentTarget.style.color = 'var(--lcars-text-on-color)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(102, 102, 136, 0.2)'
@@ -1150,7 +1150,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
           }}>
             {title}
           </span>
@@ -1163,9 +1163,9 @@ function LCARSModalOverlay({ title, onClose, children }) {
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              background: 'rgba(0, 0, 0, 0.2)',
+              background: 'rgba(255, 255, 255, 0.15)',
               border: 'none',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
               cursor: 'pointer',
             }}
           >

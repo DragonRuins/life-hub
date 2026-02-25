@@ -585,7 +585,7 @@ function LCARSTimeframeSelector({ value, onChange }) {
               padding: '0.3rem 0.75rem',
               border: 'none',
               background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-              color: isActive ? '#000000' : 'var(--lcars-gray)',
+              color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
               fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
               fontSize: '0.75rem',
               fontWeight: isActive ? 600 : 400,

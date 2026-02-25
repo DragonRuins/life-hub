@@ -339,7 +339,7 @@ export default function LCARSVehicleDetail() {
                 onClick={() => setShowDeleteConfirm(false)}
                 style={{
                   height: '30px', padding: '0 1rem', borderRadius: '15px',
-                  background: 'var(--lcars-gray)', border: 'none', color: '#000',
+                  background: 'var(--lcars-gray)', border: 'none', color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
                   fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.1em',
@@ -351,7 +351,7 @@ export default function LCARSVehicleDetail() {
                 onClick={handleDeleteVehicle}
                 style={{
                   height: '30px', padding: '0 1rem', borderRadius: '15px',
-                  background: 'var(--lcars-tomato)', border: 'none', color: '#000',
+                  background: 'var(--lcars-tomato)', border: 'none', color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
                   fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
                   letterSpacing: '0.1em',
@@ -380,7 +380,7 @@ export default function LCARSVehicleDetail() {
                 padding: '0.4rem 1rem',
                 border: 'none',
                 background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: isActive ? '#000000' : 'var(--lcars-gray)',
+                color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
                 fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
                 fontSize: '0.8rem',
                 fontWeight: isActive ? 600 : 400,
@@ -534,7 +534,7 @@ export default function LCARSVehicleDetail() {
                 padding: '0.3rem 0.75rem',
                 border: 'none',
                 background: !showArchived ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: !showArchived ? '#000000' : 'var(--lcars-gray)',
+                color: !showArchived ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
                 fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.75rem',
                 fontWeight: !showArchived ? 600 : 400,
@@ -551,7 +551,7 @@ export default function LCARSVehicleDetail() {
                 padding: '0.3rem 0.75rem',
                 border: 'none',
                 background: showArchived ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: showArchived ? '#000000' : 'var(--lcars-gray)',
+                color: showArchived ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
                 fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.75rem',
                 fontWeight: showArchived ? 600 : 400,
@@ -900,7 +900,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
           }}>
             {title}
           </span>
@@ -910,7 +910,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '28px', height: '28px', borderRadius: '50%',
               background: 'rgba(0, 0, 0, 0.2)', border: 'none',
-              color: '#000000', cursor: 'pointer',
+              color: 'var(--lcars-text-on-color)', cursor: 'pointer',
             }}
           >
             <X size={16} />

@@ -4,9 +4,12 @@
  * Replaces the sidebar on mobile (< 768px). Horizontal pill-button
  * bar that sits in the footer grid area. Uses the same nav items
  * and LCARS styling as LCARSSidebar.
+ *
+ * Horizontally scrollable when there are too many items to fit
+ * on screen. Each pill has a minimum width to stay legible.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
   {
@@ -18,7 +21,7 @@ const NAV_ITEMS = [
   },
   {
     to: '/vehicles',
-    label: 'Vehicles',
+    label: 'Veh',
     icon: Car,
     color: 'var(--lcars-ice)',
     activeColor: 'var(--lcars-butterscotch)',
@@ -32,14 +35,14 @@ const NAV_ITEMS = [
   },
   {
     to: '/projects',
-    label: 'Projects',
+    label: 'Proj',
     icon: FolderKanban,
     color: 'var(--lcars-lilac)',
     activeColor: 'var(--lcars-butterscotch)',
   },
   {
     to: '/kb',
-    label: 'Library',
+    label: 'Lib',
     icon: BookOpen,
     color: 'var(--lcars-gold)',
     activeColor: 'var(--lcars-butterscotch)',
@@ -65,6 +68,13 @@ const NAV_ITEMS = [
     color: 'var(--lcars-almond-creme)',
     activeColor: 'var(--lcars-butterscotch)',
   },
+  {
+    to: '/settings',
+    label: 'Cfg',
+    icon: Settings,
+    color: 'var(--lcars-gray)',
+    activeColor: 'var(--lcars-butterscotch)',
+  },
 ]
 
 export default function LCARSMobileNav() {
@@ -76,6 +86,10 @@ export default function LCARSMobileNav() {
         height: '100%',
         background: '#000000',
         padding: '0',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
       }}
     >
       {NAV_ITEMS.map((item) => (
@@ -91,25 +105,27 @@ function MobileNavPill({ to, label, icon: Icon, color, activeColor }) {
       to={to}
       end={to === '/'}
       style={({ isActive }) => ({
-        flex: 1,
+        minWidth: '52px',
+        flex: '0 0 auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '2px',
+        padding: '0 6px',
         background: isActive ? activeColor : color,
-        color: '#000000',
+        color: 'var(--lcars-text-on-color)',
         textDecoration: 'none',
         fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-        fontSize: '0.7rem',
+        fontSize: '0.6rem',
         fontWeight: 600,
         textTransform: 'uppercase',
-        letterSpacing: '0.05em',
+        letterSpacing: '0.04em',
         opacity: isActive ? 1 : 0.75,
         transition: 'opacity 0.15s ease',
       })}
     >
-      <Icon size={18} />
+      <Icon size={16} />
       <span>{label}</span>
     </NavLink>
   )

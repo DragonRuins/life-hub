@@ -73,7 +73,7 @@ export default function LCARSTrekFavorites() {
         headerRight={
           <span style={{
             fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem',
-            color: '#000', fontWeight: 600,
+            color: 'var(--lcars-text-on-color)', fontWeight: 600,
           }}>
             {favorites.length} ENTRIES
           </span>
@@ -124,7 +124,7 @@ export default function LCARSTrekFavorites() {
                     <span style={{
                       fontFamily: "'Antonio', sans-serif", fontSize: '0.65rem',
                       padding: '0.1rem 0.4rem', borderRadius: '6px',
-                      background: 'var(--lcars-african-violet)', color: '#000',
+                      background: 'var(--lcars-african-violet)', color: 'var(--lcars-text-on-color)',
                       textTransform: 'uppercase',
                     }}>
                       {getTrekLCARSLabel(fav.entity_type)}

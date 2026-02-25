@@ -176,7 +176,7 @@ function ActionBtn({ children, onClick, title }) {
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = 'var(--lcars-sunflower)'
-        e.currentTarget.style.color = '#000000'
+        e.currentTarget.style.color = 'var(--lcars-text-on-color)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.background = 'rgba(102, 102, 136, 0.15)'

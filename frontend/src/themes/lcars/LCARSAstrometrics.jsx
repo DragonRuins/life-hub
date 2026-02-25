@@ -70,7 +70,7 @@ export default function LCARSAstrometrics() {
               background: activeTab === tab.id ? 'var(--lcars-ice)' : 'var(--lcars-gray)',
               border: 'none',
               borderRadius: '999px',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
               cursor: 'pointer',
               fontFamily: "'Antonio', sans-serif",
               fontSize: '0.85rem',

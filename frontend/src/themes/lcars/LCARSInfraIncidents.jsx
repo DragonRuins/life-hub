@@ -180,7 +180,7 @@ export default function LCARSInfraIncidents() {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
             padding: '0.4rem 0.85rem', borderRadius: '999px',
-            background: 'var(--lcars-butterscotch)', color: '#000', border: 'none',
+            background: 'var(--lcars-butterscotch)', color: 'var(--lcars-text-on-color)', border: 'none',
             fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
             fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
             cursor: 'pointer', transition: 'opacity 0.15s',
@@ -230,7 +230,7 @@ export default function LCARSInfraIncidents() {
           const isActive = filter === f.key
           // Active pill gets the butterscotch accent; inactive gets muted gray
           const pillBg = isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)'
-          const pillColor = isActive ? '#000' : 'var(--lcars-space-white)'
+          const pillColor = isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-space-white)'
 
           return (
             <button
@@ -319,7 +319,7 @@ export default function LCARSInfraIncidents() {
                     fontWeight: 600, textTransform: 'uppercase',
                     padding: '0.125rem 0.5rem', borderRadius: '999px',
                     background: SEVERITY_COLORS[incident.severity] || 'var(--lcars-gray)',
-                    color: '#000', letterSpacing: '0.04em',
+                    color: 'var(--lcars-text-on-color)', letterSpacing: '0.04em',
                   }}>
                     {incident.severity}
                   </span>
@@ -330,7 +330,7 @@ export default function LCARSInfraIncidents() {
                     fontWeight: 600, textTransform: 'uppercase',
                     padding: '0.125rem 0.5rem', borderRadius: '999px',
                     background: STATUS_COLORS[incident.status] || 'var(--lcars-gray)',
-                    color: '#000', letterSpacing: '0.04em',
+                    color: 'var(--lcars-text-on-color)', letterSpacing: '0.04em',
                   }}>
                     {incident.status}
                   </span>

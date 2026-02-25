@@ -101,7 +101,7 @@ export default function LCARSModal({
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
             }}
           >
             {title}
@@ -113,7 +113,7 @@ export default function LCARSModal({
               border: 'none',
               borderRadius: '999px',
               padding: '0.25rem 0.75rem',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
               fontFamily: "'Antonio', sans-serif",
               fontSize: '0.75rem',
               fontWeight: 600,

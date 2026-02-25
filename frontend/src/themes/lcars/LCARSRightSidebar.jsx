@@ -128,7 +128,7 @@ export default function LCARSRightSidebar() {
     fontFamily: "'JetBrains Mono', monospace",
     fontSize: '0.55rem',
     letterSpacing: '0.04em',
-    color: '#000',
+    color: 'var(--lcars-text-on-color)',
     fontWeight: 600,
   }
 
@@ -137,7 +137,7 @@ export default function LCARSRightSidebar() {
     fontSize: '0.6rem',
     textTransform: 'uppercase',
     letterSpacing: '0.06em',
-    color: '#000',
+    color: 'var(--lcars-text-on-color)',
     fontWeight: 600,
   }
 

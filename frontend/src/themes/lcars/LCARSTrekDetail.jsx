@@ -128,7 +128,7 @@ export default function LCARSTrekDetail() {
             onClick={toggleFavorite}
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
-              color: isFavorite ? 'var(--lcars-tomato)' : '#000',
+              color: isFavorite ? 'var(--lcars-tomato)' : 'var(--lcars-text-on-color)',
               display: 'flex', alignItems: 'center',
             }}
           >
@@ -271,7 +271,7 @@ function LCARSRelatedEntities({ entity, entityType }) {
                     to={getTrekRoute(relType, item.uid)}
                     style={{
                       padding: '0.25rem 0.625rem', borderRadius: '10px',
-                      background: color, textDecoration: 'none', color: '#000',
+                      background: color, textDecoration: 'none', color: 'var(--lcars-text-on-color)',
                       fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
                       fontWeight: 600, textTransform: 'uppercase',
                       letterSpacing: '0.03em', transition: 'filter 0.15s',
@@ -286,7 +286,7 @@ function LCARSRelatedEntities({ entity, entityType }) {
                     key={i}
                     style={{
                       padding: '0.25rem 0.625rem', borderRadius: '10px',
-                      background: 'var(--lcars-gray)', color: '#000',
+                      background: 'var(--lcars-gray)', color: 'var(--lcars-text-on-color)',
                       fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
                       fontWeight: 600, textTransform: 'uppercase',
                     }}

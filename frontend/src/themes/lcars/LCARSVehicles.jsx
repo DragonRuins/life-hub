@@ -190,14 +190,14 @@ function LCARSVehicleCard({ vehicle: v, onSetPrimary }) {
               gap: '0.625rem',
               minWidth: 0,
             }}>
-              <Car size={16} style={{ color: '#000000', flexShrink: 0 }} />
+              <Car size={16} style={{ color: 'var(--lcars-text-on-color)', flexShrink: 0 }} />
               <span style={{
                 fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
                 fontSize: '0.9rem',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                color: '#000000',
+                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -236,7 +236,7 @@ function LCARSVehicleCard({ vehicle: v, onSetPrimary }) {
             >
               <Star size={16} fill={v.is_primary ? 'var(--lcars-butterscotch)' : 'none'} />
             </button>
-            <ChevronRight size={16} style={{ color: '#000000', flexShrink: 0 }} />
+            <ChevronRight size={16} style={{ color: 'var(--lcars-text-on-color)', flexShrink: 0 }} />
           </div>
 
           {/* Data fields row */}

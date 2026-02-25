@@ -107,7 +107,7 @@ export default function LCARSTrekDatabase() {
               padding: '0.5rem 1rem', background: 'var(--lcars-ice)',
               border: 'none', borderRadius: '20px', cursor: 'pointer',
               fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-              fontWeight: 600, textTransform: 'uppercase', color: '#000',
+              fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
               letterSpacing: '0.05em',
             }}
           >
@@ -127,7 +127,7 @@ export default function LCARSTrekDatabase() {
               onClick={handleShuffle}
               style={{
                 background: 'transparent', border: 'none', cursor: 'pointer',
-                color: '#000', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                color: 'var(--lcars-text-on-color)', display: 'flex', alignItems: 'center', gap: '0.25rem',
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
                 textTransform: 'uppercase',
               }}
@@ -148,7 +148,7 @@ export default function LCARSTrekDatabase() {
             <span style={{
               fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
               padding: '0.125rem 0.5rem', borderRadius: '10px',
-              background: 'var(--lcars-gold)', color: '#000',
+              background: 'var(--lcars-gold)', color: 'var(--lcars-text-on-color)',
               textTransform: 'uppercase', letterSpacing: '0.05em',
             }}>
               {getTrekLCARSLabel(daily.entity_type)}
@@ -208,7 +208,7 @@ export default function LCARSTrekDatabase() {
               <span style={{
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
                 fontWeight: 600, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: '#000',
+                letterSpacing: '0.08em', color: 'var(--lcars-text-on-color)',
                 textAlign: 'center',
               }}>
                 {cat.lcarsLabel || cat.label}
@@ -233,7 +233,7 @@ export default function LCARSTrekDatabase() {
         >
           <span style={{
             fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-            fontWeight: 600, textTransform: 'uppercase', color: '#000',
+            fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
             letterSpacing: '0.08em',
           }}>
             Episode Guide
@@ -252,7 +252,7 @@ export default function LCARSTrekDatabase() {
         >
           <span style={{
             fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-            fontWeight: 600, textTransform: 'uppercase', color: '#000',
+            fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
             letterSpacing: '0.08em',
           }}>
             Vessel Registry
@@ -289,7 +289,7 @@ export default function LCARSTrekDatabase() {
               to="/trek/favorites"
               style={{
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
-                color: '#000', textDecoration: 'none', textTransform: 'uppercase',
+                color: 'var(--lcars-text-on-color)', textDecoration: 'none', textTransform: 'uppercase',
               }}
             >
               View All

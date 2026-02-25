@@ -29,22 +29,22 @@ const CASCADE_COLORS_CLASSIC = [
   '#999933', // green
 ]
 
-// Heavily desaturated modern colors for the cascade
+// Vibrant dark colors for the cascade (modern variant)
 const CASCADE_COLORS_MODERN = [
-  '#7A8D9A', // cool steel
-  '#6E7188', // slate lavender
-  '#567880', // dark teal-gray
-  '#8A7468', // warm gray-brown
-  '#887060', // taupe
-  '#8A8078', // warm stone
-  '#5A6580', // blue-gray
-  '#6E5E7A', // dusty violet
-  '#5A5070', // deep muted violet
-  '#886860', // muted mauve-brown
-  '#6E4E5E', // dusty plum
-  '#4A5E78', // navy slate
-  '#787050', // dark olive
-  '#4E6650', // sage gray
+  '#1A7A8C', // saturated teal
+  '#2E4A6E', // deep navy
+  '#00B4D8', // bright cyan
+  '#E86830', // bright orange
+  '#D05828', // deep orange
+  '#387080', // dark teal
+  '#2A5E8A', // medium blue
+  '#5E3E8A', // deep violet
+  '#402E6A', // dark violet
+  '#B84A38', // burnt sienna
+  '#6A2E5A', // deep magenta
+  '#1A3E6A', // dark navy
+  '#8A7020', // dark gold
+  '#1A8A50', // vibrant green
 ]
 
 // Generate a pseudo-random 4-character hex string

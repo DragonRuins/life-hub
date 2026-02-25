@@ -492,8 +492,8 @@
 /* ═══════════════════════════════════════════════════════════════════
    LCARS Modern Variant Overrides
    Scoped under .lcars-theme.lcars-modern — only active when Modern
-   variant is selected. Strips visual effects, thins borders, mutes
-   colors for a subdued, contemporary aesthetic.
+   variant is selected. Vibrant dark palette with white text on
+   colored backgrounds.
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── Cards: thinner, subtler borders ────────────────────────────── */
@@ -507,7 +507,7 @@
 .lcars-theme.lcars-modern .card:hover {
   border-color: var(--lcars-sunflower) !important;
   border-top-color: var(--lcars-sunflower) !important;
-  box-shadow: 0 0 8px rgba(139, 164, 181, 0.06);
+  box-shadow: 0 0 8px rgba(0, 180, 216, 0.08);
 }
 
 /* ── Disable scan-stripe animation ──────────────────────────────── */
@@ -531,8 +531,8 @@
 .lcars-theme.lcars-modern input:focus,
 .lcars-theme.lcars-modern textarea:focus,
 .lcars-theme.lcars-modern select:focus {
-  border-color: var(--lcars-sunflower) !important;
-  box-shadow: 0 0 6px rgba(139, 164, 181, 0.12);
+  border-color: var(--lcars-ice) !important;
+  box-shadow: 0 0 6px rgba(0, 180, 216, 0.2);
 }
 
 /* ── Table headers: use muted sunflower ─────────────────────────── */
@@ -545,12 +545,6 @@
 
 .lcars-theme.lcars-modern body {
   background-color: #080A0F !important;
-}
-
-/* ── Select dropdown arrow: muted color ─────────────────────────── */
-
-.lcars-theme.lcars-modern select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238BA4B5' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
 }
 
 /* ── Modern Variant Typography ──────────────────────────────────── */
@@ -583,4 +577,71 @@
     0 -1px 0 rgba(255, 255, 255, 0.06),
     0 1px 0 rgba(0, 0, 0, 0.45),
     0 2px 1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── Modern: White Text on Colored Backgrounds ─────────────────────
+   In the modern variant, structural colors are dark (teals, navies,
+   etc.), so text on colored backgrounds must be light. These rules
+   override inline `color: #000` across all LCARS components.
+   This covers buttons, badges, tags, nav pills, and structural bars
+   in the ~25+ page-specific LCARS files. ─────────────────────────── */
+
+/* Primary action buttons (on colored backgrounds) */
+.lcars-theme.lcars-modern .btn-primary {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Header structural elements: the colored bars in .lcars-header */
+.lcars-theme.lcars-modern .lcars-header > div > span,
+.lcars-theme.lcars-modern .lcars-header > div > div > button,
+.lcars-theme.lcars-modern .lcars-header > div > div > a {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Footer structural elements: colored status bar segments */
+.lcars-theme.lcars-modern .lcars-footer > div > div > span {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Sidebar nav pills */
+.lcars-theme.lcars-modern .lcars-sidebar a {
+  color: var(--lcars-text-on-color) !important;
+}
+.lcars-theme.lcars-modern .lcars-sidebar a svg {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Mobile bottom nav pills */
+.lcars-theme.lcars-modern .lcars-mobile-nav a {
+  color: var(--lcars-text-on-color) !important;
+}
+.lcars-theme.lcars-modern .lcars-mobile-nav a svg {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Hide scrollbar on mobile nav (horizontal scroll for many items) */
+.lcars-footer nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* Right sidebar elements (Modern only) */
+.lcars-theme.lcars-modern .lcars-right-sidebar span {
+  color: var(--lcars-text-on-color) !important;
+}
+
+/* Focus input glow: match vibrant cyan accent */
+.lcars-theme.lcars-modern input:focus,
+.lcars-theme.lcars-modern textarea:focus,
+.lcars-theme.lcars-modern select:focus {
+  box-shadow: 0 0 6px rgba(0, 180, 216, 0.2);
+}
+
+/* Card hover glow: cyan tint */
+.lcars-theme.lcars-modern .card:hover {
+  box-shadow: 0 0 8px rgba(0, 180, 216, 0.08);
+}
+
+/* Select dropdown arrow: bright cyan */
+.lcars-theme.lcars-modern select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300B4D8' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
 }

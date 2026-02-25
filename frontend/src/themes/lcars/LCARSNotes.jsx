@@ -456,7 +456,7 @@ function LCARSSidebarPanel({
         fontWeight: 600,
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
-        color: '#000000',
+        color: 'var(--lcars-text-on-color)',
       }}>
         Notes Database
       </div>
@@ -563,7 +563,7 @@ function LCARSSidebarPanel({
                   fontSize: '0.65rem',
                   fontFamily: "'Antonio', sans-serif",
                   textTransform: 'uppercase',
-                  color: '#000000',
+                  color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer',
                   fontWeight: 600,
                 }}
@@ -670,7 +670,7 @@ function LCARSSidebarPanel({
                   fontSize: '0.65rem',
                   fontFamily: "'Antonio', sans-serif",
                   textTransform: 'uppercase',
-                  color: '#000000',
+                  color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer',
                   fontWeight: 600,
                 }}
@@ -865,7 +865,7 @@ function LCARSNoteListPanel({
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#000000',
+                color: 'var(--lcars-text-on-color)',
                 cursor: 'pointer',
                 padding: '2px',
                 display: 'flex',
@@ -880,7 +880,7 @@ function LCARSNoteListPanel({
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
           }}>
             {title}
           </span>
@@ -949,7 +949,7 @@ function LCARSNoteListPanel({
               border: 'none',
               borderRadius: '999px',
               padding: '0.25rem 0.6rem',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
               fontFamily: "'Antonio', sans-serif",
               fontSize: '0.7rem',
               textTransform: 'uppercase',
@@ -1069,7 +1069,7 @@ function LCARSNoteListPanel({
                     border: 'none',
                     borderRadius: '999px',
                     padding: '0.15rem 0.5rem',
-                    color: '#000000',
+                    color: 'var(--lcars-text-on-color)',
                     fontFamily: "'Antonio', sans-serif",
                     fontSize: '0.65rem',
                     textTransform: 'uppercase',
@@ -1287,7 +1287,7 @@ function LCARSEditorPanel({
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#000000',
+                color: 'var(--lcars-text-on-color)',
                 cursor: 'pointer',
                 padding: '2px',
                 display: 'flex',
@@ -1302,7 +1302,7 @@ function LCARSEditorPanel({
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -1475,7 +1475,7 @@ function LCARSEditorPanel({
                     onClick={handleSetLink}
                     style={{
                       background: 'var(--lcars-sunflower)',
-                      color: '#000000',
+                      color: 'var(--lcars-text-on-color)',
                       border: 'none',
                       borderRadius: '999px',
                       padding: '0.2rem 0.5rem',
@@ -1592,7 +1592,7 @@ function LTB({ icon: Icon, onClick, active, disabled, title }) {
         color: disabled
           ? 'rgba(102, 102, 136, 0.3)'
           : active
-            ? '#000000'
+            ? 'var(--lcars-text-on-color)'
             : 'var(--lcars-space-white)',
         cursor: disabled ? 'default' : 'pointer',
         flexShrink: 0,
@@ -1632,7 +1632,7 @@ function LCARSSmallButton({ onClick, children, color, active }) {
         border: 'none',
         borderRadius: '999px',
         padding: '0.15rem 0.4rem',
-        color: active ? '#000000' : color,
+        color: active ? 'var(--lcars-text-on-color)' : color,
         fontFamily: "'Antonio', sans-serif",
         fontSize: '0.65rem',
         textTransform: 'uppercase',

@@ -249,7 +249,7 @@ export default function LCARSAISettings() {
                   borderRadius: '12px',
                   background: 'var(--lcars-tanoi)',
                   border: 'none',
-                  color: '#000000',
+                  color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer',
                   fontFamily: antonio,
                   fontSize: '0.6rem',

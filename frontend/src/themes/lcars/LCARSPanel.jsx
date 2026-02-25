@@ -95,7 +95,7 @@ export default function LCARSPanel({
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                color: '#000',
+                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -205,7 +205,7 @@ export default function LCARSPanel({
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                color: '#000',
+                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -542,7 +542,7 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: isModernLCARS ? 'var(--lcars-space-white)' : '#000',
+            color: 'var(--lcars-text-on-color)',
             whiteSpace: 'nowrap',
           }}
         >

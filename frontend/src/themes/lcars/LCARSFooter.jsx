@@ -130,7 +130,7 @@ export default function LCARSFooter() {
       >
         <span
           style={{
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: '0.75rem',
             fontWeight: 600,
@@ -216,7 +216,7 @@ function StatusSegment({ label, color, width, flex, mono }) {
     >
       <span
         style={{
-          color: '#000000',
+          color: 'var(--lcars-text-on-color)',
           fontFamily: mono
             ? "'JetBrains Mono', monospace"
             : "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",

@@ -149,7 +149,7 @@ function LCARSNavButton({ to, label, icon: Icon, color, activeColor, code }) {
         padding: isModernLCARS ? '0.35rem 1rem 0.35rem 0.75rem' : '0.5rem 1rem 0.5rem 0.75rem',
         height: isModernLCARS ? '44px' : '40px',
         background: isActive ? activeColor : color,
-        color: '#000000',
+        color: 'var(--lcars-text-on-color)',
         textDecoration: 'none',
         fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
         fontSize: '0.95rem',

@@ -72,7 +72,7 @@
    Right elbows connect the right sidebar to header/footer. */
 
 .lcars-layout.lcars-modern-layout {
-  grid-template-columns: 200px 5px 1fr 5px 140px;
+  grid-template-columns: 200px 5px 1fr 5px 60px;
   grid-template-rows: 56px 1fr 36px;
   grid-template-areas:
     "elbow-tl header    header     header    elbow-tr"

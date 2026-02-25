@@ -245,7 +245,7 @@ export default function LCARSProjectDetail() {
               </h1>
               <span style={{
                 padding: '0.1rem 0.4rem', background: statusColor,
-                color: '#000000', fontFamily: "'Antonio', sans-serif",
+                color: 'var(--lcars-text-on-color)', fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.6rem', fontWeight: 600,
                 textTransform: 'uppercase', letterSpacing: '0.06em',
                 flexShrink: 0,
@@ -374,7 +374,7 @@ export default function LCARSProjectDetail() {
                 display: 'flex', alignItems: 'center', gap: '0.375rem',
                 padding: '0.4rem 1rem', border: 'none',
                 background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: isActive ? '#000000' : 'var(--lcars-gray)',
+                color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
                 fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
                 fontSize: '0.8rem',
                 fontWeight: isActive ? 600 : 400,
@@ -1106,7 +1106,7 @@ function LCARSColorPicker({ value, onChange }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
-          {value === c.hex && <Check size={10} style={{ color: '#000' }} />}
+          {value === c.hex && <Check size={10} style={{ color: 'var(--lcars-text-on-color)' }} />}
         </button>
       ))}
     </div>

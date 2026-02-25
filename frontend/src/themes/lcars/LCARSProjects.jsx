@@ -142,7 +142,7 @@ export default function LCARSProjects() {
               style={{
                 padding: '0.3rem 0.75rem', border: 'none',
                 background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: isActive ? '#000000' : 'var(--lcars-gray)',
+                color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
                 fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.75rem', fontWeight: isActive ? 600 : 400,
                 textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -269,7 +269,7 @@ function LCARSProjectCard({ project }) {
             </div>
             <span style={{
               padding: '0.1rem 0.4rem', background: statusColor,
-              color: '#000000', fontFamily: "'Antonio', sans-serif",
+              color: 'var(--lcars-text-on-color)', fontFamily: "'Antonio', sans-serif",
               fontSize: '0.6rem', fontWeight: 600,
               textTransform: 'uppercase', letterSpacing: '0.06em',
               whiteSpace: 'nowrap', flexShrink: 0,
@@ -435,7 +435,7 @@ function LCARSProjectForm({ onSubmit, onCancel }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                {form.color === c.hex && <Check size={10} style={{ color: '#000' }} />}
+                {form.color === c.hex && <Check size={10} style={{ color: 'var(--lcars-text-on-color)' }} />}
               </button>
             ))}
           </div>
@@ -566,7 +566,7 @@ function LCARSActionButton({ onClick, color, label }) {
         textTransform: 'uppercase', letterSpacing: '0.04em',
         cursor: 'pointer', transition: 'all 0.15s ease',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = color; e.currentTarget.style.color = '#000000' }}
+      onMouseEnter={e => { e.currentTarget.style.background = color; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102, 102, 136, 0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
     >
       {label}

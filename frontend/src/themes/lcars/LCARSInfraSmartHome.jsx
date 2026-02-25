@@ -60,7 +60,7 @@ const lcarsButtonStyle = (bg) => ({
   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
   padding: '0.4rem 0.75rem', borderRadius: '999px',
   border: 'none', cursor: 'pointer',
-  background: bg, color: '#000',
+  background: bg, color: 'var(--lcars-text-on-color)',
   fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
   fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
   opacity: 0.9,
@@ -408,7 +408,7 @@ export default function LCARSInfraSmartHome() {
                 )}
                 <button
                   onClick={() => setEditingRoom(room)}
-                  style={{ background: 'none', border: 'none', color: '#000', cursor: 'pointer', padding: '2px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--lcars-text-on-color)', cursor: 'pointer', padding: '2px' }}
                 >
                   <Edit3 size={12} />
                 </button>
@@ -418,7 +418,7 @@ export default function LCARSInfraSmartHome() {
                       infrastructure.smarthome.rooms.delete(room.id).then(loadData)
                     }
                   }}
-                  style={{ background: 'none', border: 'none', color: '#000', cursor: 'pointer', padding: '2px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--lcars-text-on-color)', cursor: 'pointer', padding: '2px' }}
                 >
                   <Trash2 size={12} />
                 </button>
@@ -778,7 +778,7 @@ function LCARSRoomFormModal({ room, onSave, onClose }) {
               <button type="button" onClick={onClose} style={{
                 padding: '0.4rem 0.75rem', borderRadius: '999px',
                 border: 'none', cursor: 'pointer',
-                background: 'var(--lcars-gray)', color: '#000',
+                background: 'var(--lcars-gray)', color: 'var(--lcars-text-on-color)',
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
                 fontWeight: 600, textTransform: 'uppercase',
               }}>
@@ -788,7 +788,7 @@ function LCARSRoomFormModal({ room, onSave, onClose }) {
                 padding: '0.4rem 0.75rem', borderRadius: '999px',
                 border: 'none', cursor: 'pointer',
                 background: name.trim() ? 'var(--lcars-butterscotch)' : 'var(--lcars-gray)',
-                color: '#000',
+                color: 'var(--lcars-text-on-color)',
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
                 fontWeight: 600, textTransform: 'uppercase',
               }}>

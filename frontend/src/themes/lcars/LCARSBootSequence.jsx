@@ -22,12 +22,12 @@ const BOOT_COLORS_CLASSIC = [
   '#FF9966', // butterscotch
 ]
 
-// Heavily desaturated modern palette for the boot sequence
+// Vibrant dark palette for the boot sequence
 const BOOT_COLORS_MODERN = [
-  '#7A8D9A', // cool steel (sunflower equivalent)
-  '#6E7188', // slate lavender (african-violet equivalent)
-  '#567880', // dark teal-gray (ice equivalent)
-  '#8A7468', // warm gray-brown (butterscotch equivalent)
+  '#1A7A8C', // saturated teal (sunflower equivalent)
+  '#2E4A6E', // deep navy (african-violet equivalent)
+  '#00B4D8', // bright cyan (ice equivalent)
+  '#E86830', // bright orange (butterscotch equivalent)
 ]
 
 export default function LCARSBootSequence({ onComplete, variant = 'classic' }) {

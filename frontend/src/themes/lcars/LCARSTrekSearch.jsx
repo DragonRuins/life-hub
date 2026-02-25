@@ -81,7 +81,7 @@ export default function LCARSTrekSearch() {
               padding: '0.5rem 1rem', background: 'var(--lcars-ice)',
               border: 'none', borderRadius: '20px', cursor: 'pointer',
               fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
-              fontWeight: 600, textTransform: 'uppercase', color: '#000',
+              fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
             }}
           >
             Execute

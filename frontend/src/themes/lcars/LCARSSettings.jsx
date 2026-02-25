@@ -95,8 +95,8 @@ const LCARS_VARIANTS = [
   {
     key: 'modern',
     label: 'Modern',
-    description: 'Muted blue-gray palette — desaturated, subdued, contemporary',
-    swatches: ['#7A8D9A', '#6E7188', '#567880', '#8A7468', '#5A6580'],
+    description: 'Vibrant dark palette — saturated teals, cyans, oranges, deep navies',
+    swatches: ['#1A7A8C', '#00B4D8', '#2E4A6E', '#E86830', '#5E3E8A'],
   },
 ]
 

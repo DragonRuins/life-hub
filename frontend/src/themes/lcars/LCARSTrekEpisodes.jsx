@@ -105,7 +105,7 @@ export default function LCARSTrekEpisodes() {
             onClick={goBack}
             style={{
               background: 'transparent', border: 'none', cursor: 'pointer',
-              color: '#000', display: 'flex', alignItems: 'center', gap: '0.25rem',
+              color: 'var(--lcars-text-on-color)', display: 'flex', alignItems: 'center', gap: '0.25rem',
               fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
               textTransform: 'uppercase',
             }}
@@ -173,13 +173,13 @@ export default function LCARSTrekEpisodes() {
               >
                 <div style={{
                   fontFamily: "'JetBrains Mono', monospace", fontSize: '1.25rem',
-                  fontWeight: 700, color: '#000',
+                  fontWeight: 700, color: 'var(--lcars-text-on-color)',
                 }}>
                   {s.seasonNumber || '?'}
                 </div>
                 <div style={{
                   fontFamily: "'Antonio', sans-serif", fontSize: '0.6rem',
-                  textTransform: 'uppercase', color: '#000', opacity: 0.7,
+                  textTransform: 'uppercase', color: 'var(--lcars-text-on-color)', opacity: 0.7,
                 }}>
                   {s.numberOfEpisodes ? `${s.numberOfEpisodes} eps` : 'Season'}
                 </div>

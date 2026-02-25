@@ -384,7 +384,7 @@ export default function LCARSKnowledgeBase() {
               letterSpacing: '0.05em',
               color: 'var(--lcars-gray)',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = '#000' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
             title="Import Markdown"
           >
@@ -417,7 +417,7 @@ export default function LCARSKnowledgeBase() {
                 fontSize: '0.72rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                color: mobilePanel === panel ? '#000' : 'var(--lcars-gray)',
+                color: mobilePanel === panel ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
               }}
             >
               {panel === 'sidebar' ? 'Classifications' : 'Entries'}
@@ -445,7 +445,7 @@ export default function LCARSKnowledgeBase() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#000000',
+                  color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer',
                   padding: '0 2px',
                   display: 'flex',
@@ -873,7 +873,7 @@ function LCARSDashboardArticleList({ articles, emptyText }) {
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
-              color: '#000',
+              color: 'var(--lcars-text-on-color)',
               background: st.color,
               padding: '0.1rem 0.4rem',
               borderRadius: '999px',
@@ -944,7 +944,7 @@ function LCARSArticleList({ articles, categoryId, searchQuery = '', currentPage 
                     fontWeight: 600,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
-                    color: '#000',
+                    color: 'var(--lcars-text-on-color)',
                     background: st.color,
                     padding: '0.1rem 0.4rem',
                     borderRadius: '999px',
@@ -1200,7 +1200,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   display: 'flex', alignItems: 'center',
                   color: isBookmarked ? 'var(--lcars-gold)' : 'var(--lcars-gray)',
                 }}
-                onMouseEnter={e => { if (!isBookmarked) { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = '#000' } }}
+                onMouseEnter={e => { if (!isBookmarked) { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' } }}
                 onMouseLeave={e => { if (!isBookmarked) { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' } }}
                 title={isBookmarked ? 'Remove Bookmark' : 'Bookmark'}
               >
@@ -1217,7 +1217,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   display: 'flex', alignItems: 'center',
                   color: 'var(--lcars-gray)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = '#000' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
                 title="Export Markdown"
               >
@@ -1234,7 +1234,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   display: 'flex', alignItems: 'center',
                   color: 'var(--lcars-gray)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = '#000' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
                 title="Revision Log"
               >
@@ -1255,7 +1255,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   letterSpacing: '0.05em',
                   color: 'var(--lcars-ice)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-ice)'; e.currentTarget.style.color = '#000' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-ice)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-ice)' }}
               >
                 <Edit3 size={12} /> Modify
@@ -1271,7 +1271,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   display: 'flex', alignItems: 'center',
                   color: 'var(--lcars-gray)',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-tomato)'; e.currentTarget.style.color = '#000' }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-tomato)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
               >
                 <Trash2 size={12} />
@@ -1287,7 +1287,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
               fontFamily: "'Antonio', sans-serif",
               fontSize: '0.6rem', fontWeight: 600,
               textTransform: 'uppercase', letterSpacing: '0.06em',
-              color: '#000', background: st.color,
+              color: 'var(--lcars-text-on-color)', background: st.color,
               padding: '0.1rem 0.4rem', borderRadius: '999px',
             }}>
               {st.label}
@@ -1406,7 +1406,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
-                  color: '#000',
+                  color: 'var(--lcars-text-on-color)',
                   background: spSt.color,
                   padding: '0.1rem 0.4rem',
                   borderRadius: '999px',
@@ -1466,7 +1466,7 @@ function LCARSArticleView({ article, onEdit, onDelete, onBack, onRestore }) {
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
-                  color: '#000',
+                  color: 'var(--lcars-text-on-color)',
                   background: blSt.color,
                   padding: '0.1rem 0.4rem',
                   borderRadius: '999px',
@@ -1602,7 +1602,7 @@ function LCARSEditorView({
                 display: 'flex', alignItems: 'center',
                 color: 'var(--lcars-gray)',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = '#000' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--lcars-gold)'; e.currentTarget.style.color = 'var(--lcars-text-on-color)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(102,102,136,0.2)'; e.currentTarget.style.color = 'var(--lcars-gray)' }}
               title="Save as Template"
             >
@@ -1622,7 +1622,7 @@ function LCARSEditorView({
               fontSize: '0.8rem', fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
-              color: '#000',
+              color: 'var(--lcars-text-on-color)',
             }}
           >
             <Save size={14} /> {isNew ? 'Create Entry' : 'Save Entry'}

@@ -52,7 +52,7 @@ const pillStyle = (bg, opts = {}) => ({
   display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
   padding: '0.4rem 0.75rem', borderRadius: '999px',
   border: 'none', cursor: 'pointer',
-  background: bg, color: '#000',
+  background: bg, color: 'var(--lcars-text-on-color)',
   fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
   fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
   opacity: 0.9, transition: 'opacity 0.15s',
@@ -498,7 +498,7 @@ export default function LCARSInfraPrinter() {
                       fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
                       textTransform: 'uppercase', letterSpacing: '0.05em',
                       padding: '0.15rem 0.45rem', borderRadius: '999px',
-                      background: jobColor, color: '#000', fontWeight: 600,
+                      background: jobColor, color: 'var(--lcars-text-on-color)', fontWeight: 600,
                       flexShrink: 0,
                     }}>
                       {jobLabel}
@@ -737,7 +737,7 @@ function LCARSFanControl({ fan, onControl }) {
         position: 'absolute', top: 0, left: 0, bottom: 0, right: 0,
         zIndex: 2, display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
         padding: '0.4rem 0.75rem',
-        color: '#000',
+        color: 'var(--lcars-text-on-color)',
         clipPath: `inset(0 ${100 - displayPct}% 0 0)`,
         transition: isDraggingRef.current ? 'none' : 'clip-path 0.15s ease',
       }}>

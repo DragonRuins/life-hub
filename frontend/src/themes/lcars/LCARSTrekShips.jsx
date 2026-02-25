@@ -61,7 +61,7 @@ export default function LCARSTrekShips() {
       </PillButton>
       <span style={{
         fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
-        color: '#000', fontWeight: 600,
+        color: 'var(--lcars-text-on-color)', fontWeight: 600,
       }}>
         {page + 1}/{totalPages}
       </span>
@@ -116,7 +116,7 @@ export default function LCARSTrekShips() {
                   background: 'var(--lcars-tomato)', border: 'none',
                   cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
                   fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase',
-                  color: '#000', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  color: 'var(--lcars-text-on-color)', display: 'flex', alignItems: 'center', gap: '0.25rem',
                 }}
               >
                 <X size={10} /> Clear
@@ -131,7 +131,7 @@ export default function LCARSTrekShips() {
                   background: selectedClass?.uid === cls.uid ? 'var(--lcars-sunflower)' : 'var(--lcars-tanoi)',
                   border: 'none', cursor: 'pointer',
                   fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
-                  fontWeight: 600, textTransform: 'uppercase', color: '#000',
+                  fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
                   opacity: selectedClass?.uid === cls.uid ? 1 : 0.7,
                   transition: 'opacity 0.15s, filter 0.15s',
                 }}

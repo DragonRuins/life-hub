@@ -59,7 +59,7 @@ export default function LCARSTrekBrowse() {
       </PillButton>
       <span style={{
         fontFamily: "'JetBrains Mono', monospace", fontSize: '0.75rem',
-        color: '#000', fontWeight: 600,
+        color: 'var(--lcars-text-on-color)', fontWeight: 600,
       }}>
         {page + 1}/{totalPages}
       </span>
@@ -109,7 +109,7 @@ export default function LCARSTrekBrowse() {
               padding: '0.5rem 0.75rem', background: 'var(--lcars-tomato)',
               border: 'none', borderRadius: '20px', cursor: 'pointer',
               fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
-              fontWeight: 600, textTransform: 'uppercase', color: '#000',
+              fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
               display: 'flex', alignItems: 'center', gap: '0.25rem',
             }}
           >
@@ -122,7 +122,7 @@ export default function LCARSTrekBrowse() {
             padding: '0.5rem 1rem', background: 'var(--lcars-sunflower)',
             border: 'none', borderRadius: '20px', cursor: 'pointer',
             fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
-            fontWeight: 600, textTransform: 'uppercase', color: '#000',
+            fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
           }}
         >
           Filter
@@ -135,7 +135,7 @@ export default function LCARSTrekBrowse() {
         headerRight={
           <span style={{
             fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem',
-            color: '#000', fontWeight: 600,
+            color: 'var(--lcars-text-on-color)', fontWeight: 600,
           }}>
             {totalElements.toLocaleString()} RECORDS
           </span>

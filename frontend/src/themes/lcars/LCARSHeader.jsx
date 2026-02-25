@@ -32,6 +32,10 @@ export default function LCARSHeader({ chat }) {
     }
   }, [])
 
+  // Smaller icon buttons on mobile to prevent overflow
+  const btnSize = isMobile ? 28 : 32
+  const iconSize = isMobile ? 16 : 18
+
   return (
     <div
       style={{
@@ -63,7 +67,7 @@ export default function LCARSHeader({ chat }) {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.15em',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             paddingLeft: '0.5rem',
           }}
         >
@@ -76,7 +80,7 @@ export default function LCARSHeader({ chat }) {
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.6rem',
-              color: 'rgba(0, 0, 0, 0.35)',
+              color: 'rgba(255, 255, 255, 0.35)',
               letterSpacing: '0.05em',
               whiteSpace: 'nowrap',
             }}
@@ -104,7 +108,7 @@ export default function LCARSHeader({ chat }) {
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.55rem',
-              color: 'rgba(0, 0, 0, 0.35)',
+              color: 'rgba(255, 255, 255, 0.35)',
               letterSpacing: '0.04em',
             }}
           >
@@ -129,7 +133,7 @@ export default function LCARSHeader({ chat }) {
             style={{
               fontFamily: "'JetBrains Mono', monospace",
               fontSize: '0.55rem',
-              color: 'rgba(0, 0, 0, 0.35)',
+              color: 'rgba(255, 255, 255, 0.35)',
               letterSpacing: '0.04em',
             }}
           >
@@ -143,10 +147,11 @@ export default function LCARSHeader({ chat }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
+          gap: isMobile ? '0.25rem' : '0.5rem',
           background: 'var(--lcars-sunflower)',
-          padding: '0 0.75rem',
+          padding: isMobile ? '0 0.5rem' : '0 0.75rem',
           borderRadius: '0 30px 30px 0',
+          flexShrink: 0,
         }}
       >
         {/* Pulsing status indicator */}
@@ -175,45 +180,47 @@ export default function LCARSHeader({ chat }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
-            height: '32px',
+            width: `${btnSize}px`,
+            height: `${btnSize}px`,
             borderRadius: '50%',
-            background: chat?.isOpen ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+            background: chat?.isOpen ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
             border: 'none',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
           onMouseLeave={e => {
             if (!chat?.isOpen) e.currentTarget.style.background = 'transparent'
           }}
         >
-          <MessageSquare size={18} />
+          <MessageSquare size={iconSize} />
         </button>
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
-          title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: 'transparent',
-            border: 'none',
-            color: '#000000',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <Palette size={18} />
-        </button>
+        {/* Theme Toggle Button — hidden on mobile (available in Settings) */}
+        {!isMobile && (
+          <button
+            onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
+            title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: `${btnSize}px`,
+              height: `${btnSize}px`,
+              borderRadius: '50%',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--lcars-text-on-color)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <Palette size={iconSize} />
+          </button>
+        )}
 
         {/* Fullscreen Toggle (desktop only) */}
         {!isMobile && (
@@ -224,19 +231,19 @@ export default function LCARSHeader({ chat }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '32px',
-              height: '32px',
+              width: `${btnSize}px`,
+              height: `${btnSize}px`,
               borderRadius: '50%',
               background: 'transparent',
               border: 'none',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            {isFullscreen ? <Minimize size={iconSize} /> : <Maximize size={iconSize} />}
           </button>
         )}
 
@@ -248,17 +255,17 @@ export default function LCARSHeader({ chat }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
-            height: '32px',
+            width: `${btnSize}px`,
+            height: `${btnSize}px`,
             borderRadius: '50%',
             background: 'transparent',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             transition: 'all 0.15s ease',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-          <Settings size={18} />
+          <Settings size={iconSize} />
         </Link>
       </div>
     </div>
@@ -365,6 +372,9 @@ function LCARSNotificationBell() {
     return `${Math.floor(diff / 86400)}d ago`
   }
 
+  const bellBtnSize = isMobile ? 28 : 32
+  const bellIconSize = isMobile ? 16 : 18
+
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
       {/* Bell button - black on colored background, flashes amber on unreads */}
@@ -375,27 +385,27 @@ function LCARSNotificationBell() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '32px',
-          height: '32px',
+          width: `${bellBtnSize}px`,
+          height: `${bellBtnSize}px`,
           borderRadius: '50%',
-          background: isOpen ? 'rgba(0, 0, 0, 0.2)' : 'transparent',
+          background: isOpen ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
           border: 'none',
-          color: '#000000',
+          color: 'var(--lcars-text-on-color)',
           cursor: 'pointer',
           transition: 'all 0.15s ease',
           position: 'relative',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.15)'}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
         onMouseLeave={e => { if (!isOpen) e.currentTarget.style.background = 'transparent' }}
       >
-        <Bell size={18} />
+        <Bell size={bellIconSize} />
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute',
             top: '0px',
             right: '0px',
             background: 'var(--lcars-tomato)',
-            color: '#000000',
+            color: 'var(--lcars-text-on-color)',
             fontSize: '0.55rem',
             fontWeight: 700,
             borderRadius: '999px',
@@ -449,7 +459,7 @@ function LCARSNotificationBell() {
               fontFamily: "'Antonio', sans-serif",
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              color: '#000000',
+              color: 'var(--lcars-text-on-color)',
             }}>
               Notifications
             </span>
@@ -459,7 +469,7 @@ function LCARSNotificationBell() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#000000',
+                  color: 'var(--lcars-text-on-color)',
                   cursor: 'pointer',
                   fontSize: '0.75rem',
                   fontFamily: "'Antonio', sans-serif",

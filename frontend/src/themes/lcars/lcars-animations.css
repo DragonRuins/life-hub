@@ -255,8 +255,50 @@
   animation: lcars-comm-flash 600ms ease-out;
 }
 
+/* ── Elbow Sweep Animation ─────────────────────────────────── */
+/* A diagonal highlight sweeps across each elbow. Staggered delays
+   create a clockwise wave of light flowing around the frame.
+   The sweep ::after sits at z-index:1, below the black cutout (z-index:2)
+   so the animation is only visible on the colored elbow surface. */
+
+.lcars-elbow-animated::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 300% 300%;
+  animation: lcars-elbow-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Per-position gradient angles — sweep follows the elbow curve */
+.lcars-elbow-animated.lcars-elbow-tl::after {
+  background-image: linear-gradient(135deg, transparent 20%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.15) 55%, transparent 80%);
+  animation-delay: 0s;
+}
+
+.lcars-elbow-animated.lcars-elbow-tr::after {
+  background-image: linear-gradient(225deg, transparent 20%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.15) 55%, transparent 80%);
+  animation-delay: 1s;
+}
+
+.lcars-elbow-animated.lcars-elbow-br::after {
+  background-image: linear-gradient(315deg, transparent 20%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.15) 55%, transparent 80%);
+  animation-delay: 2s;
+}
+
+.lcars-elbow-animated.lcars-elbow-bl::after {
+  background-image: linear-gradient(45deg, transparent 20%, rgba(255,255,255,0.15) 45%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0.15) 55%, transparent 80%);
+  animation-delay: 3s;
+}
+
+@keyframes lcars-elbow-sweep {
+  0%, 100% { background-position: 100% 100%; }
+  50% { background-position: 0% 0%; }
+}
+
 /* ── LCARS Modern Variant Overrides ────────────────────────── */
-/* Slower, subtler animations for the muted Modern aesthetic */
+/* Slower, subtler animations for the vibrant Modern aesthetic */
 
 .lcars-theme.lcars-modern .lcars-cascade-inner {
   animation-duration: 16s;
@@ -338,5 +380,11 @@
   /* Chunk 6: Comm flash */
   .lcars-comm-flash {
     animation: none !important;
+  }
+
+  /* Chunk 7: Elbow sweep */
+  .lcars-elbow-animated::after {
+    animation: none !important;
+    display: none !important;
   }
 }
