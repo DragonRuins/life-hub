@@ -43,48 +43,50 @@ export default function LCARSHeader({ chat }) {
 
   return (
     <div className="lcars-row" style={{ height: '100%', gap: '3px', background: 'var(--lcars-bg, #000)' }}>
-      {/* Main header bar — uses library .lcars-bar with flex layout */}
-      <div
-        className="lcars-bar fill lcars-bg-sunflower"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          padding: '0 1rem',
-          gap: '0.75rem',
-        }}
-      >
-        {/* App title — uses library .lcars-title pattern (text on black bg) */}
-        <span
+      {/* Main header bar — hidden on mobile to give controls full width */}
+      {!isMobile && (
+        <div
+          className="lcars-bar fill lcars-bg-sunflower"
           style={{
-            flex: 1,
-            fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-            fontSize: '1.1rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.15em',
-            color: 'var(--lcars-text-on-color)',
-            paddingLeft: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            padding: '0 1rem',
+            gap: '0.75rem',
           }}
         >
-          Datacore
-        </span>
-
-        {/* Decorative system code — Modern variant only */}
-        {isModernLCARS && (
+          {/* App title — uses library .lcars-title pattern (text on black bg) */}
           <span
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.6rem',
-              color: 'rgba(255, 255, 255, 0.35)',
-              letterSpacing: '0.05em',
-              whiteSpace: 'nowrap',
+              flex: 1,
+              fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.15em',
+              color: 'var(--lcars-text-on-color)',
+              paddingLeft: '0.5rem',
             }}
           >
-            47-C
+            Datacore
           </span>
-        )}
-      </div>
+
+          {/* Decorative system code — Modern variant only */}
+          {isModernLCARS && (
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '0.6rem',
+                color: 'rgba(255, 255, 255, 0.35)',
+                letterSpacing: '0.05em',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              47-C
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Decorative colored segments — hidden on mobile via CSS */}
       <div
@@ -132,12 +134,13 @@ export default function LCARSHeader({ chat }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: isMobile ? '0.25rem' : '0.5rem',
-          padding: isMobile ? '0 0.5rem' : '0 0.75rem',
-          borderRadius: isModernLCARS ? '0' : '0 30px 30px 0',
-          flexShrink: isMobile ? 1 : 0,
+          gap: isMobile ? '0.5rem' : '0.5rem',
+          padding: isMobile ? '0 0.75rem' : '0 0.75rem',
+          borderRadius: isModernLCARS && !isMobile ? '0' : '0 30px 30px 0',
+          flex: isMobile ? 1 : 'none',
           minWidth: 0,
           width: 'auto',
+          justifyContent: isMobile ? 'flex-end' : 'initial',
         }}
       >
         {/* Pulsing status indicator */}
@@ -183,30 +186,28 @@ export default function LCARSHeader({ chat }) {
           <MessageSquare size={iconSize} />
         </button>
 
-        {/* Theme Toggle Button — hidden on mobile (available in Settings) */}
-        {!isMobile && (
-          <button
-            onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
-            title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: `${btnSize}px`,
-              height: `${btnSize}px`,
-              borderRadius: '50%',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--lcars-text-on-color)',
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <Palette size={iconSize} />
-          </button>
-        )}
+        {/* Theme Toggle Button */}
+        <button
+          onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
+          title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: `${btnSize}px`,
+            height: `${btnSize}px`,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--lcars-text-on-color)',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        >
+          <Palette size={iconSize} />
+        </button>
 
         {/* Fullscreen Toggle (desktop only) */}
         {!isMobile && (
