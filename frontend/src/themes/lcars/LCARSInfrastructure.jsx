@@ -175,20 +175,14 @@ export default function LCARSInfrastructure() {
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           {/* Auto-refresh toggle */}
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setAutoRefresh(prev => !prev)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
               background: autoRefresh ? 'var(--lcars-green)' : 'var(--lcars-tanoi)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              transition: 'background 0.2s, opacity 0.15s',
-              opacity: 0.9,
+              border: 'none', height: 'auto',
+              padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+              alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} />
             {autoRefresh ? 'Auto: On' : 'Auto: Off'}
@@ -205,36 +199,26 @@ export default function LCARSInfrastructure() {
             </span>
           )}
           <button
+            className="lcars-element button rounded auto"
             onClick={loadData}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
               background: 'var(--lcars-ice)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              border: 'none', height: 'auto',
+              padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+              alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} /> Refresh
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setShowAddHost(!showAddHost)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
               background: 'var(--lcars-butterscotch)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              border: 'none', height: 'auto',
+              padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+              alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             {showAddHost ? <X size={14} /> : <Plus size={14} />}
             {showAddHost ? 'Cancel' : 'Register Host'}
@@ -306,17 +290,12 @@ export default function LCARSInfrastructure() {
           { to: '/infrastructure/smarthome', label: 'Smart Home', icon: Thermometer, color: 'var(--lcars-gold)' },
           { to: '/infrastructure/printer', label: 'Fabrication', icon: Printer, color: 'var(--lcars-african-violet)' },
         ].map(nav => (
-          <Link key={nav.to} to={nav.to} style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-            padding: '0.4rem 0.75rem', borderRadius: '999px',
-            background: nav.color, color: 'var(--lcars-text-on-color)',
+          <Link key={nav.to} to={nav.to} className="lcars-element button rounded auto" style={{
+            background: nav.color, height: 'auto',
+            padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+            alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             textDecoration: 'none',
-            fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-            fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-            opacity: 0.85, transition: 'opacity 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
           >
             <nav.icon size={14} /> {nav.label}
           </Link>

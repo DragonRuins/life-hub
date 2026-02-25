@@ -1118,17 +1118,16 @@ function LCARSColorPicker({ value, onChange }) {
 function LCARSTextButton({ label, onClick, color = 'var(--lcars-ice)' }) {
   return (
     <button
+      className="lcars-element button auto"
       onClick={onClick}
       style={{
-        background: 'none', border: 'none', cursor: 'pointer',
-        fontFamily: "'Antonio', sans-serif",
-        fontSize: '0.72rem', fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: '0.04em',
+        background: 'none', border: 'none',
+        height: 'auto',
+        fontSize: '0.72rem',
         color, padding: '0.15rem 0.35rem',
-        transition: 'filter 0.15s',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
-      onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-      onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
     >
       {label}
     </button>

@@ -184,21 +184,24 @@ export default function LCARSSmartHomeQuickMenu() {
           zIndex: 1000,
           overflow: 'hidden',
         }}>
-          {/* Header bar - solid gold */}
-          <div style={{
-            padding: '0.5rem 1rem',
-            background: 'var(--lcars-gold)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
+          {/* Header bar — .lcars-bar for color inheritance */}
+          <div
+            className="lcars-bar"
+            style={{
+              padding: '0.5rem 1rem',
+              background: 'var(--lcars-gold)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: 'auto',
+            }}
+          >
             <span style={{
               fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
               fontSize: '0.85rem',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: 'var(--lcars-text-on-color)',
             }}>
               Environmental Controls
             </span>

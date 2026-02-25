@@ -1,16 +1,19 @@
 /**
  * LCARSPanel.jsx - LCARS C-Bracket Frame Panel System
  *
- * Redesigned panel with iconic LCARS C-bracket frame shape:
- *   - CSS Grid layout with sidebar, elbows, header/footer bars
- *   - Scan-line sweep animation on headers
- *   - Hover glow effect (no glow at rest)
- *   - Simplified mobile layout (top bar only, no sidebar/elbows)
+ * Uses the vendored LCARS library CSS classes (.lcars-bar, .lcars-element)
+ * for authentic structural styling. The C-bracket frame uses CSS Grid
+ * with a colored sidebar, elbows, header/footer bars.
+ *
+ * Library classes used:
+ *   .lcars-bar  — structural bars (header, footer, sidebar strip)
+ *                  provides: position:relative, color inheritance,
+ *                  default sunflower bg (overridden via inline color prop)
  *
  * Exports:
  *   default  LCARSPanel          - Full C-bracket frame panel
  *   named    LCARSDataRow        - Sensor readout row with accent block + segmented divider
- *   named    LCARSStat           - Large metric display (unchanged)
+ *   named    LCARSStat           - Large metric display
  *   named    LCARSSegmentedDivider - Row of short colored blocks as separator
  *   named    LCARSGauge          - Horizontal bar gauge for vehicle readouts
  *   named    LCARSMiniPanel      - Miniature C-bracket for status board tiles
@@ -72,10 +75,10 @@ export default function LCARSPanel({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Top bar with pill cap */}
+        {/* Top bar — .lcars-bar provides position:relative + color inheritance */}
         {title && (
           <div
-            className={scanClass}
+            className={`lcars-bar ${scanClass}`.trim()}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -83,7 +86,7 @@ export default function LCARSPanel({
               padding: '0.35rem 0.75rem',
               background: color,
               borderTopRightRadius: radius,
-              position: 'relative',
+              height: 'auto',
               overflow: 'hidden',
               ...glowStyle,
             }}
@@ -95,7 +98,6 @@ export default function LCARSPanel({
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -117,6 +119,7 @@ export default function LCARSPanel({
         {/* Bottom bar (footer or thin closing bar) */}
         {footer ? (
           <div
+            className="lcars-bar"
             style={{
               padding: '0.35rem 0.75rem',
               background: color,
@@ -125,6 +128,7 @@ export default function LCARSPanel({
               alignItems: 'center',
               justifyContent: 'flex-end',
               gap: '0.5rem',
+              height: 'auto',
               ...glowStyle,
             }}
           >
@@ -132,8 +136,9 @@ export default function LCARSPanel({
           </div>
         ) : (
           <div
+            className="lcars-bar"
             style={{
-              minHeight: isModernLCARS ? '3px' : '4px',
+              height: isModernLCARS ? '3px' : '4px',
               background: color,
               borderBottomRightRadius: radius,
               ...glowStyle,
@@ -146,15 +151,15 @@ export default function LCARSPanel({
 
   // ── Desktop: full C-bracket CSS Grid layout ────────────────────────
   //
-  //  ╭──╮──────────────────────────────╮
+  //  ╭──╮──────────────────────────────────╮
   //  │  │     HEADER TITLE        ████ │  <- elbow + header + pill cap
-  //  │  ╰──────────────────────────────╯
+  //  │  ╰──────────────────────────────────╯
   //  │  │
   //  │  │   Content area (black)
   //  │  │
-  //  │  ╭──────────────────────────────╮
+  //  │  ╭──────────────────────────────────╮
   //  │  │     FOOTER (or 4px bar)      │  <- bottom elbow + footer bar
-  //  ╰──╯──────────────────────────────╯
+  //  ╰──╯──────────────────────────────────╯
 
   const hasTitle = Boolean(title)
 
@@ -182,9 +187,9 @@ export default function LCARSPanel({
               ...glowStyle,
             }}
           />
-          {/* Header bar with scan-line */}
+          {/* Header bar with scan-line — .lcars-bar for position + color */}
           <div
-            className={scanClass}
+            className={`lcars-bar ${scanClass}`.trim()}
             style={{
               background: color,
               borderTopRightRadius: radius,
@@ -193,7 +198,7 @@ export default function LCARSPanel({
               justifyContent: 'space-between',
               padding: '0.35rem 0.75rem',
               gap: '0.75rem',
-              position: 'relative',
+              height: 'auto',
               overflow: 'hidden',
               ...glowStyle,
             }}
@@ -205,7 +210,6 @@ export default function LCARSPanel({
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -223,6 +227,7 @@ export default function LCARSPanel({
       {/* ── Row 2 (or Row 1 if no title): Sidebar + Content ── */}
       {/* Sidebar bar */}
       <div
+        className="lcars-bar"
         style={{
           background: color,
           ...glowStyle,
@@ -250,6 +255,7 @@ export default function LCARSPanel({
       {/* Footer bar (content or thin closing bar) */}
       {footer ? (
         <div
+          className="lcars-bar"
           style={{
             background: color,
             borderBottomRightRadius: radius,
@@ -258,6 +264,7 @@ export default function LCARSPanel({
             alignItems: 'center',
             justifyContent: 'flex-end',
             gap: '0.5rem',
+            height: 'auto',
             ...glowStyle,
           }}
         >
@@ -265,10 +272,11 @@ export default function LCARSPanel({
         </div>
       ) : (
         <div
+          className="lcars-bar"
           style={{
             background: color,
             borderBottomRightRadius: radius,
-            minHeight: isModernLCARS ? '3px' : '4px',
+            height: isModernLCARS ? '3px' : '4px',
             ...glowStyle,
           }}
         />
@@ -497,7 +505,8 @@ export function LCARSGauge({ label, value, percent = 0, color = 'var(--lcars-sun
 
 /**
  * Small C-bracket frame for status board tiles.
- * Deliberately minimal: no glow, no scan-line, no headerRight/footer.
+ * Uses .lcars-bar on header, sidebar, and footer bars for consistent
+ * LCARS structural styling and color inheritance.
  * Props:
  *   title    - Tile header text
  *   color    - Frame accent color
@@ -527,12 +536,14 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
           borderTopLeftRadius: miniRadius,
         }}
       />
-      {/* Header */}
+      {/* Header — .lcars-bar for color inheritance */}
       <div
+        className="lcars-bar"
         style={{
           background: color,
           borderTopRightRadius: miniRadius,
           padding: '0.25rem 0.5rem',
+          height: 'auto',
         }}
       >
         <span
@@ -542,7 +553,6 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: 'var(--lcars-text-on-color)',
             whiteSpace: 'nowrap',
           }}
         >
@@ -551,7 +561,7 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
       </div>
 
       {/* Sidebar */}
-      <div style={{ background: color }} />
+      <div className="lcars-bar" style={{ background: color }} />
       {/* Content */}
       <div style={{ padding: '0.5rem' }}>
         {children}
@@ -566,10 +576,11 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
       />
       {/* Bottom closing bar */}
       <div
+        className="lcars-bar"
         style={{
           background: color,
           borderBottomRightRadius: miniRadius,
-          minHeight: isModernLCARS ? '2px' : '3px',
+          height: isModernLCARS ? '2px' : '3px',
         }}
       />
     </div>

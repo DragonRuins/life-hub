@@ -336,25 +336,25 @@ export default function LCARSVehicleDetail() {
             </p>
             <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
               <button
+                className="lcars-element button rounded"
                 onClick={() => setShowDeleteConfirm(false)}
                 style={{
-                  height: '30px', padding: '0 1rem', borderRadius: '15px',
-                  background: 'var(--lcars-gray)', border: 'none', color: 'var(--lcars-text-on-color)',
-                  cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
-                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
+                  height: '30px', width: 'auto', padding: '0 1rem',
+                  background: 'var(--lcars-gray)', border: 'none',
+                  fontSize: '0.72rem',
+                  justifyContent: 'center', alignItems: 'center',
                 }}
               >
                 Cancel
               </button>
               <button
+                className="lcars-element button rounded"
                 onClick={handleDeleteVehicle}
                 style={{
-                  height: '30px', padding: '0 1rem', borderRadius: '15px',
-                  background: 'var(--lcars-tomato)', border: 'none', color: 'var(--lcars-text-on-color)',
-                  cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
-                  fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
+                  height: '30px', width: 'auto', padding: '0 1rem',
+                  background: 'var(--lcars-tomato)', border: 'none',
+                  fontSize: '0.72rem',
+                  justifyContent: 'center', alignItems: 'center',
                 }}
               >
                 Delete Vehicle
@@ -888,19 +888,23 @@ function LCARSModalOverlay({ title, onClose, children }) {
         border: '2px solid var(--lcars-butterscotch)',
         overflow: 'hidden',
       }}>
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0.5rem 1rem',
-          background: 'var(--lcars-butterscotch)',
-          flexShrink: 0,
-        }}>
+        {/* Title bar — .lcars-bar for LCARS structural styling + color inheritance */}
+        <div
+          className="lcars-bar"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0.5rem 1rem',
+            background: 'var(--lcars-butterscotch)',
+            height: 'auto',
+            flexShrink: 0,
+          }}
+        >
           <span style={{
             fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
             fontSize: '0.85rem',
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
-            color: 'var(--lcars-text-on-color)',
           }}>
             {title}
           </span>

@@ -1,0 +1,749 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   LCARS Library — Vendored Structural CSS
+   ─────────────────────────────────────────────────────────────────────
+   Extracted from joernweissenborn/lcars CSS framework (MIT License)
+   https://github.com/joernweissenborn/lcars
+
+   Adaptations for Datacore:
+   • All rules scoped under .lcars-theme to prevent global conflicts
+   • Hardcoded hex colors replaced with --lcars-* CSS variable refs
+   • Fixed dimensions removed from structural elements (elbows, bars)
+     so they adapt to our CSS Grid cell sizes
+   • Color permutation classes stripped (we use CSS variables)
+   • Grid sizing system stripped (we use CSS Grid)
+   • Range input color combos stripped
+   • Global html/body/heading resets stripped
+
+   Components provided:
+     .lcars-elbow      — L-shaped corner connectors (4 orientations)
+     .lcars-bar         — Horizontal/vertical bars with end caps
+     .lcars-element     — Pill-shaped buttons and indicators
+     .lcars-text-box    — Display text containers
+     .lcars-bracket     — Decorative grouping brackets
+     .lcars-row         — Flexbox horizontal layout
+     .lcars-column      — Flexbox vertical layout
+     .lcars-text-input  — Styled form inputs
+     table (scanning)   — Animated scan-line tables
+   ═══════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+
+.lcars-theme ::-webkit-scrollbar {
+  width: 0.75em;
+}
+.lcars-theme ::-webkit-scrollbar-track {
+  background-color: var(--lcars-bg, #000);
+}
+.lcars-theme ::-webkit-scrollbar-thumb {
+  background-color: var(--lcars-gray);
+  outline: 1px solid var(--lcars-gray);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ROW / COLUMN — Flexbox Layout Primitives
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-row {
+  display: inline-flex;
+  flex-direction: row;
+  width: 100%;
+}
+.lcars-theme .lcars-row.fill {
+  flex: 1;
+}
+.lcars-theme .lcars-row.centered {
+  justify-content: center;
+}
+.lcars-theme .lcars-row.full-centered {
+  justify-content: center;
+  align-items: center;
+}
+.lcars-theme .lcars-row.right {
+  justify-content: flex-end;
+}
+.lcars-theme .lcars-row.right-centered {
+  justify-content: flex-end;
+  align-items: center;
+}
+.lcars-theme .lcars-row.right-bottom {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.lcars-theme .lcars-row :last-child {
+  margin-right: 0;
+}
+.lcars-theme .lcars-row > * {
+  margin-right: 0.25rem;
+}
+
+.lcars-theme .lcars-column {
+  display: inline-flex;
+  flex-direction: column;
+}
+.lcars-theme .lcars-column.fill {
+  flex: 1;
+}
+.lcars-theme .lcars-column.centered {
+  justify-content: center;
+}
+.lcars-theme .lcars-column.full-centered {
+  justify-content: center;
+  align-items: center;
+}
+.lcars-theme .lcars-column.centered-right {
+  justify-content: center;
+  align-items: flex-end;
+}
+.lcars-theme .lcars-column.bottom {
+  justify-content: flex-end;
+}
+.lcars-theme .lcars-column.bottom-centered {
+  justify-content: flex-end;
+  align-items: center;
+}
+.lcars-theme .lcars-column :last-child {
+  margin-bottom: 0;
+}
+.lcars-theme .lcars-column > * {
+  margin-bottom: 0.25rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ELBOW — L-shaped Corner Connectors
+   ─────────────────────────────────────────────────────────────────────
+   Uses TWO border-radius curves: one on the outer corner of the main
+   element, and one on the ::after pseudo-element (the black cutout).
+   The cutout creates the inner L-shape.
+
+   Library naming convention:
+     left-bottom  = TL corner (sidebar connects down, header connects right)
+     left-top     = BL corner (sidebar connects up, footer connects right)
+     right-bottom = TR corner (right strip connects down, header connects left)
+     right-top    = BR corner (right strip connects up, footer connects left)
+
+   Adapted: fixed dimensions removed — fills its CSS Grid cell via
+   width: 100%; height: 100%. Cutout uses percentage-based sizing to
+   scale with the grid cell.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-elbow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--lcars-sunflower);
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Link label inside elbow (optional) */
+.lcars-theme .lcars-elbow a {
+  display: inline-block;
+  position: absolute;
+  color: var(--lcars-text-on-color);
+  bottom: 0;
+  padding: 0.25rem;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Inner cutout — creates the L-shape */
+.lcars-theme .lcars-elbow::after {
+  content: '';
+  display: block;
+  position: absolute;
+  background: var(--lcars-bg, #000);
+}
+
+/* ── Left-bottom (TL corner) ─────────────────────────────────── */
+/* Outer curve: top-left. Cutout: bottom-right with inner TL radius. */
+.lcars-theme .lcars-elbow.left-bottom {
+  border-top-left-radius: 3.5rem;
+}
+.lcars-theme .lcars-elbow.left-bottom a {
+  right: calc(50% + 0.5rem);
+}
+.lcars-theme .lcars-elbow.left-bottom::after {
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  height: 62%;
+  border-top-left-radius: 2rem;
+}
+
+/* ── Left-top (BL corner) ────────────────────────────────────── */
+/* Outer curve: bottom-left. Cutout: top-right with inner BL radius. */
+.lcars-theme .lcars-elbow.left-top {
+  border-bottom-left-radius: 2.5rem;
+}
+.lcars-theme .lcars-elbow.left-top a {
+  top: 0;
+  right: calc(50% + 0.5rem);
+}
+.lcars-theme .lcars-elbow.left-top::after {
+  right: 0;
+  top: 0;
+  width: 55%;
+  height: 56%;
+  border-bottom-left-radius: 2rem;
+}
+
+/* ── Right-bottom (TR corner) ────────────────────────────────── */
+/* Outer curve: top-right. Cutout: bottom-left with inner TR radius. */
+.lcars-theme .lcars-elbow.right-bottom {
+  border-top-right-radius: 3.5rem;
+}
+.lcars-theme .lcars-elbow.right-bottom::after {
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  height: 62%;
+  border-top-right-radius: 1.5rem;
+}
+.lcars-theme .lcars-elbow.right-bottom a {
+  left: calc(50% + 0.5rem);
+}
+
+/* ── Right-top (BR corner) ───────────────────────────────────── */
+/* Outer curve: bottom-right. Cutout: top-left with inner BR radius. */
+.lcars-theme .lcars-elbow.right-top {
+  border-bottom-right-radius: 2.5rem;
+}
+.lcars-theme .lcars-elbow.right-top a {
+  display: inline-block;
+  top: 0;
+  left: calc(50% + 0.5rem);
+}
+.lcars-theme .lcars-elbow.right-top::after {
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 56%;
+  border-bottom-right-radius: 1.5rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BAR — Horizontal and Vertical Bars
+   ─────────────────────────────────────────────────────────────────────
+   The main structural beam elements. Used for header, footer, dividers,
+   and section separators. Features:
+     .horizontal   — constrained height (1.5rem)
+     .left-end     — rounded left cap
+     .right-end    — rounded right cap
+     .decorated    — adds a thin black vertical line inside the end cap
+     .fill         — flex: 1 to fill remaining space
+     .spacer       — invisible gap between bar segments
+     .lcars-title  — embedded text label with black background
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-bar {
+  position: relative;
+  color: var(--lcars-text-on-color);
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: inline-block;
+  background-color: var(--lcars-sunflower);
+}
+.lcars-theme .lcars-bar::after {
+  content: '';
+  display: block;
+  position: absolute;
+  background: var(--lcars-bg, #000);
+}
+.lcars-theme .lcars-bar.spacer {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  width: 0.25rem;
+  min-width: 0.25rem;
+  height: 0.25rem;
+  min-height: 0.25rem;
+}
+.lcars-theme .lcars-bar.double-spacer {
+  background-color: transparent;
+  width: 0.5rem;
+  min-width: 0.5rem;
+  height: 0.5rem;
+  min-height: 0.5rem;
+}
+.lcars-theme .lcars-bar.left-space {
+  margin-left: 0.25rem;
+}
+.lcars-theme .lcars-bar.left-double-space {
+  margin-left: 0.5rem;
+}
+.lcars-theme .lcars-bar.right-space {
+  margin-right: 0.25rem;
+}
+.lcars-theme .lcars-bar.right-double-space {
+  margin-right: 0.5rem;
+}
+.lcars-theme .lcars-bar.horizontal {
+  height: 1.5rem;
+}
+.lcars-theme .lcars-bar.left-end {
+  width: 1.5rem;
+  max-width: 1.5rem;
+  min-width: 1.5rem;
+  border-top-left-radius: 0.75rem;
+  border-bottom-left-radius: 0.75rem;
+}
+.lcars-theme .lcars-bar.left-end.decorated::after {
+  right: 0.25rem;
+  width: 0.25rem;
+  height: 100%;
+}
+.lcars-theme .lcars-bar.right-end {
+  width: 1.5rem;
+  max-width: 1.5rem;
+  min-width: 1.5rem;
+  border-top-right-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+}
+.lcars-theme .lcars-bar.right-end.decorated::after {
+  left: 0.25rem;
+  width: 0.25rem;
+  height: 100%;
+}
+.lcars-theme .lcars-bar.fill {
+  flex: 1;
+}
+.lcars-theme .lcars-bar.bottom {
+  align-self: flex-end;
+}
+
+/* Title text embedded in a bar — appears as black-bg label */
+.lcars-theme .lcars-bar .lcars-title {
+  color: var(--lcars-text-primary, #fff);
+  background-color: var(--lcars-bg, #000);
+  text-transform: uppercase;
+  margin: 0;
+  margin-left: 0.83rem;
+  padding-left: 0.17rem;
+  padding-right: 0.17rem;
+  padding-bottom: 0.17rem;
+  display: inline-block;
+  font-size: 150%;
+  height: 100%;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.lcars-theme .lcars-bar .lcars-title.right {
+  float: right;
+  margin-right: 0.83rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ELEMENT — Pill-Shaped Buttons and Indicators
+   ─────────────────────────────────────────────────────────────────────
+   The basic LCARS building block — a colored rectangle that can have
+   rounded ends (pill shape), act as a button, display text, and have
+   decorative additions or detached decorator caps.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-element {
+  position: relative;
+  font-weight: bold;
+  color: var(--lcars-text-on-color);
+  text-align: right;
+  background: var(--lcars-sunflower);
+  height: 3rem;
+  width: 7.5rem;
+  box-sizing: border-box;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-end;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.lcars-theme .lcars-element * {
+  margin: 0;
+}
+.lcars-theme .lcars-element.left-rounded {
+  border-top-left-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+  padding-left: 1.5rem;
+}
+.lcars-theme .lcars-element.right-rounded {
+  border-top-right-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  padding-right: 1.5rem;
+}
+.lcars-theme .lcars-element.rounded {
+  border-radius: 1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+.lcars-theme .lcars-element.button {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.lcars-theme .lcars-element.button:hover {
+  filter: brightness(1.3);
+}
+.lcars-theme .lcars-element.button:active {
+  filter: brightness(0.8);
+}
+
+/* Addition — inline data readout on the right side of an element */
+.lcars-theme .lcars-element .lcars-element-addition {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  background-color: var(--lcars-bg, #000);
+  color: var(--lcars-text-primary, #fff);
+  font-size: 2rem;
+  margin-left: 0.25rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+/* Decorator — detached rounded cap positioned outside the element */
+.lcars-theme .lcars-element .lcars-element-decorator {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  width: 2rem;
+  left: -2.25rem;
+  height: 100%;
+  background-color: var(--lcars-sunflower);
+  border-top-left-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+}
+.lcars-theme .lcars-element .lcars-element-decorator::after {
+  content: '';
+  display: block;
+  position: absolute;
+  right: 0.25rem;
+  width: 0.25rem;
+  height: 100%;
+  background-color: var(--lcars-bg, #000);
+}
+.lcars-theme .lcars-element .lcars-element-decorator.right {
+  right: -2.25rem;
+  left: unset;
+  border-top-right-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.lcars-theme .lcars-element .lcars-element-decorator.right::after {
+  left: 0.25rem;
+  right: unset;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEXT BOX — Display Text Containers
+   ─────────────────────────────────────────────────────────────────────
+   Black-background containers for data readouts and display text.
+   Various sizes (.big, .large, .huge) and alignments.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-text-box,
+.lcars-theme a.lcars-text-box {
+  background-color: var(--lcars-bg, #000);
+  color: var(--lcars-text-primary, #fff);
+  font-weight: bold;
+  width: 7.5rem;
+  height: 3rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.lcars-theme .lcars-text-box.big,
+.lcars-theme a.lcars-text-box.big {
+  font-size: 150%;
+}
+.lcars-theme .lcars-text-box.large,
+.lcars-theme a.lcars-text-box.large {
+  font-size: 200%;
+}
+.lcars-theme .lcars-text-box.huge,
+.lcars-theme a.lcars-text-box.huge {
+  font-size: 400%;
+  height: 6rem;
+}
+.lcars-theme .lcars-text-box.centered,
+.lcars-theme a.lcars-text-box.centered {
+  justify-content: center;
+}
+.lcars-theme .lcars-text-box.right,
+.lcars-theme a.lcars-text-box.right {
+  justify-content: flex-end;
+}
+.lcars-theme .lcars-text-box.full-centered,
+.lcars-theme a.lcars-text-box.full-centered {
+  justify-content: center;
+  align-items: center;
+}
+.lcars-theme .lcars-text-box.centered-right,
+.lcars-theme a.lcars-text-box.centered-right {
+  justify-content: flex-end;
+  align-items: center;
+}
+.lcars-theme .lcars-text-box.bottom,
+.lcars-theme a.lcars-text-box.bottom {
+  align-items: flex-end;
+}
+.lcars-theme .lcars-text-box.bottom-centered,
+.lcars-theme a.lcars-text-box.bottom-centered {
+  justify-content: center;
+  align-items: flex-end;
+}
+.lcars-theme .lcars-text-box.bottom-right,
+.lcars-theme a.lcars-text-box.bottom-right {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+.lcars-theme .lcars-text-box.blink,
+.lcars-theme a.lcars-text-box.blink {
+  animation: lcars-blinker 1s linear infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BRACKET — Decorative Grouping Brackets
+   ─────────────────────────────────────────────────────────────────────
+   Rounded border elements for visually grouping content sections.
+   Use .hollow for outlined-only brackets (no fill).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-bracket {
+  background-color: var(--lcars-sunflower);
+}
+.lcars-theme .lcars-bracket.left {
+  width: 1.5rem;
+  border-top-left-radius: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+  border-width: 0.75rem 0 0.75rem 0.25rem;
+}
+.lcars-theme .lcars-bracket.right {
+  width: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-width: 0.75rem 0.25rem 0.75rem 0;
+}
+.lcars-theme .lcars-bracket.top {
+  height: 1.5rem;
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  border-width: 0.25rem 0.75rem 0 0.75rem;
+}
+.lcars-theme .lcars-bracket.bottom {
+  height: 1.5rem;
+  border-bottom-left-radius: 1.5rem;
+  border-bottom-right-radius: 1.5rem;
+  border-width: 0 0.75rem 0.25rem 0.75rem;
+}
+.lcars-theme .lcars-bracket.hollow {
+  background-color: var(--lcars-bg, #000);
+  border-style: solid;
+  border-color: var(--lcars-sunflower);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEXT INPUT — Styled Form Fields
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme input.lcars-text-input {
+  height: 1rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  color: var(--lcars-text-primary, #fff);
+  background: transparent;
+}
+
+.lcars-theme textarea.lcars-text-box,
+.lcars-theme textarea.lcars-text-input {
+  text-align: justify;
+  padding: 0;
+  padding-right: 1em;
+  margin: 0;
+  border: none;
+  color: var(--lcars-text-primary, #fff);
+  background: transparent;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+}
+
+.lcars-theme textarea.lcars-text-box.decorated,
+.lcars-theme textarea.lcars-text-input.decorated,
+.lcars-theme textarea.decorated {
+  caret-color: var(--lcars-text-primary, #fff);
+  border-left: 0.2rem solid var(--lcars-gray);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  border-right: 0.2rem solid var(--lcars-gray);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TABLE — Data Tables with Scanning Animation
+   ─────────────────────────────────────────────────────────────────────
+   Standard data tables. Add .scanning for a slow highlight sweep
+   across rows, or .scanning-fast for a quick sweep.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme table {
+  border-spacing: 0.25rem;
+}
+.lcars-theme th {
+  text-align: left;
+  vertical-align: top;
+}
+.lcars-theme table th {
+  font-weight: bolder;
+  font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lcars-text-primary, #fff);
+}
+.lcars-theme table.standard-header {
+  border-spacing: 2rem 0.25rem;
+  margin-left: -2rem;
+}
+.lcars-theme table.standard-header th {
+  border-bottom: 0.1rem solid;
+}
+
+/* Scanning row-highlight animations */
+.lcars-theme table.lcars-table.scanning tr td {
+  background: transparent;
+  animation-name: lcars-rowscan;
+  animation-duration: 8s;
+  animation-iteration-count: infinite;
+}
+.lcars-theme table.lcars-table.scanning tr:nth-child(1) td { animation-delay: 0.8s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(2) td { animation-delay: 1.6s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(3) td { animation-delay: 2.4s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(4) td { animation-delay: 3.2s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(5) td { animation-delay: 4.0s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(6) td { animation-delay: 4.8s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(7) td { animation-delay: 5.6s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(8) td { animation-delay: 6.4s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(9) td { animation-delay: 7.2s; }
+.lcars-theme table.lcars-table.scanning tr:nth-child(10) td { animation-delay: 8.0s; }
+
+.lcars-theme table.lcars-table.scanning-fast tr td {
+  background: transparent;
+  animation-name: lcars-rowscan-fast;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(1) td { animation-delay: 0.167s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(2) td { animation-delay: 0.333s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(3) td { animation-delay: 0.500s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(4) td { animation-delay: 0.667s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(5) td { animation-delay: 0.833s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(6) td { animation-delay: 1.000s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(7) td { animation-delay: 1.167s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(8) td { animation-delay: 1.333s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(9) td { animation-delay: 1.500s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(10) td { animation-delay: 1.667s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(11) td { animation-delay: 1.833s; }
+.lcars-theme table.lcars-table.scanning-fast tr:nth-child(12) td { animation-delay: 2.000s; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES — Size modifiers and flex helpers
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Auto-width: removes the fixed 7.5rem width from elements/text-boxes */
+.lcars-theme .lcars-element.auto,
+.lcars-theme .lcars-text-box.auto {
+  width: auto;
+}
+
+/* Fill: makes element/text-box flex to fill available space */
+.lcars-theme .lcars-element.fill,
+.lcars-theme .lcars-text-box.fill {
+  flex: 1;
+  width: auto;
+}
+
+/* Flush: removes all margin/gap on row/column children */
+.lcars-theme .lcars-row.flush > * {
+  margin-right: 0;
+}
+.lcars-theme .lcars-column.flush > * {
+  margin-bottom: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   KEYFRAME ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@keyframes lcars-blinker {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes lcars-rowscan {
+  0%   { filter: brightness(1); }
+  3%   { filter: brightness(1.65); }
+  10%  { filter: brightness(1.65); }
+  14%  { filter: brightness(1); }
+  100% { filter: brightness(1); }
+}
+
+@keyframes lcars-rowscan-fast {
+  0%   { filter: brightness(1); }
+  3%   { filter: brightness(1.65); }
+  10%  { filter: brightness(1.65); }
+  14%  { filter: brightness(1); }
+  100% { filter: brightness(1); }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INLINE COLOR HELPER CLASSES
+   ─────────────────────────────────────────────────────────────────────
+   Instead of the library's 32×3 duplicated color classes, we provide
+   a simple set using our CSS variables. Apply to any element/bar/etc.
+   Usage: <div class="lcars-element lcars-bg-ice">
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.lcars-theme .lcars-bg-sunflower      { background-color: var(--lcars-sunflower); }
+.lcars-theme .lcars-bg-african-violet { background-color: var(--lcars-african-violet); }
+.lcars-theme .lcars-bg-ice            { background-color: var(--lcars-ice); }
+.lcars-theme .lcars-bg-butterscotch   { background-color: var(--lcars-butterscotch); }
+.lcars-theme .lcars-bg-golden-orange  { background-color: var(--lcars-golden-orange); }
+.lcars-theme .lcars-bg-almond-creme   { background-color: var(--lcars-almond-creme); }
+.lcars-theme .lcars-bg-sky            { background-color: var(--lcars-sky); }
+.lcars-theme .lcars-bg-lilac          { background-color: var(--lcars-lilac); }
+.lcars-theme .lcars-bg-moonlit-violet { background-color: var(--lcars-moonlit-violet); }
+.lcars-theme .lcars-bg-peach          { background-color: var(--lcars-peach); }
+.lcars-theme .lcars-bg-magenta        { background-color: var(--lcars-magenta); }
+.lcars-theme .lcars-bg-blue           { background-color: var(--lcars-blue); }
+.lcars-theme .lcars-bg-gray           { background-color: var(--lcars-gray); }
+.lcars-theme .lcars-bg-red            { background-color: var(--lcars-red); }
+.lcars-theme .lcars-bg-tomato         { background-color: var(--lcars-tomato); }
+.lcars-theme .lcars-bg-gold           { background-color: var(--lcars-gold); }
+.lcars-theme .lcars-bg-green          { background-color: var(--lcars-green); }
+.lcars-theme .lcars-bg-tanoi          { background-color: var(--lcars-tanoi); }
+.lcars-theme .lcars-bg-mars           { background-color: var(--lcars-mars); }
+.lcars-theme .lcars-bg-red-alert      { background-color: var(--lcars-red-alert); }

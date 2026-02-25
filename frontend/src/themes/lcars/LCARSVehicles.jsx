@@ -175,29 +175,32 @@ function LCARSVehicleCard({ vehicle: v, onSetPrimary }) {
 
         {/* Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {/* Title row */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.625rem 1rem',
-            background: accent,
-            gap: '0.75rem',
-          }}>
+          {/* Title row — .lcars-bar for color inheritance */}
+          <div
+            className="lcars-bar"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.625rem 1rem',
+              background: accent,
+              gap: '0.75rem',
+              height: 'auto',
+            }}
+          >
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.625rem',
               minWidth: 0,
             }}>
-              <Car size={16} style={{ color: 'var(--lcars-text-on-color)', flexShrink: 0 }} />
+              <Car size={16} style={{ flexShrink: 0 }} />
               <span style={{
                 fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
                 fontSize: '0.9rem',
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                color: 'var(--lcars-text-on-color)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -236,7 +239,7 @@ function LCARSVehicleCard({ vehicle: v, onSetPrimary }) {
             >
               <Star size={16} fill={v.is_primary ? 'var(--lcars-butterscotch)' : 'none'} />
             </button>
-            <ChevronRight size={16} style={{ color: 'var(--lcars-text-on-color)', flexShrink: 0 }} />
+            <ChevronRight size={16} style={{ flexShrink: 0 }} />
           </div>
 
           {/* Data fields row */}

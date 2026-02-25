@@ -173,20 +173,18 @@ export default function LCARSInfraIncidents() {
         </h1>
 
         <button
+          className="lcars-element button rounded auto"
           onClick={() => {
             setEditingIncident(null)
             setShowForm(!showForm)
           }}
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-            padding: '0.4rem 0.85rem', borderRadius: '999px',
-            background: 'var(--lcars-butterscotch)', color: 'var(--lcars-text-on-color)', border: 'none',
-            fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-            fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-            cursor: 'pointer', transition: 'opacity 0.15s',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            height: 'auto', gap: '0.375rem',
+            padding: '0.4rem 0.85rem',
+            background: 'var(--lcars-butterscotch)', border: 'none',
+            fontSize: '0.8rem',
           }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
         >
           {showForm ? <X size={14} /> : <Plus size={14} />}
           {showForm ? 'Cancel' : 'Log Incident'}
@@ -234,18 +232,17 @@ export default function LCARSInfraIncidents() {
 
           return (
             <button
+              className="lcars-element button rounded auto"
               key={f.key}
               onClick={() => setFilter(f.key)}
               style={{
-                padding: '0.35rem 0.85rem', borderRadius: '999px',
+                padding: '0.35rem 0.85rem', height: 'auto',
+                alignItems: 'center', justifyContent: 'center',
                 background: pillBg, color: pillColor, border: 'none',
-                fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-                fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                cursor: 'pointer', transition: 'all 0.15s',
+                fontSize: '0.8rem',
+                transition: 'all 0.15s',
                 opacity: isActive ? 1 : 0.75,
               }}
-              onMouseEnter={e => { if (!isActive) e.currentTarget.style.opacity = '1' }}
-              onMouseLeave={e => { if (!isActive) e.currentTarget.style.opacity = '0.75' }}
             >
               {f.label}
             </button>

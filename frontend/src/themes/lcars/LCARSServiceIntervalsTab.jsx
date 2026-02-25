@@ -917,21 +917,24 @@ export default function LCARSServiceIntervalsTab({ vehicleId, vehicle }) {
           border: '2px solid var(--lcars-butterscotch)',
           overflow: 'hidden',
         }}>
-          {/* Modal title bar */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.5rem 1rem',
-            background: 'var(--lcars-butterscotch)',
-          }}>
+          {/* Modal title bar — .lcars-bar for structural styling + color inheritance */}
+          <div
+            className="lcars-bar"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.5rem 1rem',
+              background: 'var(--lcars-butterscotch)',
+              height: 'auto',
+            }}
+          >
             <span style={{
               fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
               fontSize: '0.85rem',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: 'var(--lcars-text-on-color)',
             }}>
               Add Maintenance Interval
             </span>

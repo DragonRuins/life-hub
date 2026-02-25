@@ -55,15 +55,11 @@ const ROOM_COLORS = [
   'var(--lcars-african-violet)',
 ]
 
-// Shared LCARS pill button style
+// Shared LCARS pill button style — use with className="lcars-element button rounded auto"
 const lcarsButtonStyle = (bg) => ({
-  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-  padding: '0.4rem 0.75rem', borderRadius: '999px',
-  border: 'none', cursor: 'pointer',
-  background: bg, color: 'var(--lcars-text-on-color)',
-  fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-  opacity: 0.9,
+  background: bg, border: 'none', height: 'auto',
+  padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+  alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
 })
 
 // Shared LCARS select dropdown style
@@ -308,45 +304,40 @@ export default function LCARSInfraSmartHome() {
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Edit Mode toggle */}
           <button
+            className="lcars-element button rounded auto"
             onClick={toggleEditMode}
             style={lcarsButtonStyle(editMode ? 'var(--lcars-african-violet)' : 'var(--lcars-lilac)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <Edit3 size={14} />
             {editMode ? 'Exit Edit' : 'Edit'}
           </button>
           {/* Auto-refresh toggle */}
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setAutoRefresh(prev => !prev)}
             style={lcarsButtonStyle(autoRefresh ? 'var(--lcars-green)' : 'var(--lcars-tanoi)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} />
             {autoRefresh ? 'Auto: On' : 'Auto: Off'}
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={handleSync}
             style={lcarsButtonStyle('var(--lcars-ice)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} /> Sync
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setShowRoomForm(true)}
             style={lcarsButtonStyle('var(--lcars-butterscotch)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <Plus size={14} /> Room
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setShowDiscovery(true)}
             style={lcarsButtonStyle('var(--lcars-sunflower)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <Search size={14} /> Discover
           </button>
@@ -397,6 +388,7 @@ export default function LCARSInfraSmartHome() {
                 {/* Select All button in edit mode */}
                 {editMode && devices.length > 0 && (
                   <button
+                    className="lcars-element button rounded auto"
                     onClick={() => selectAllInRoom(devices)}
                     style={{
                       ...lcarsButtonStyle(allRoomSelected ? 'var(--lcars-african-violet)' : 'var(--lcars-gray)'),
@@ -456,6 +448,7 @@ export default function LCARSInfraSmartHome() {
           headerRight={
             editMode && unassigned.length > 0 ? (
               <button
+                className="lcars-element button rounded auto"
                 onClick={() => selectAllInRoom(unassigned)}
                 style={{
                   ...lcarsButtonStyle(
@@ -566,28 +559,25 @@ function LCARSBulkActionBar({ selectedCount, rooms, onUpdate, onDelete, onClear 
 
         {/* Visibility toggles */}
         <button
+          className="lcars-element button rounded auto"
           onClick={() => onUpdate({ is_visible: false })}
           style={lcarsButtonStyle('var(--lcars-tanoi)')}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
         >
           <Eye size={14} /> Hide
         </button>
         <button
+          className="lcars-element button rounded auto"
           onClick={() => onUpdate({ is_visible: true })}
           style={lcarsButtonStyle('var(--lcars-ice)')}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
         >
           <Eye size={14} /> Show
         </button>
 
         {/* Delete -- pushed right */}
         <button
+          className="lcars-element button rounded auto"
           onClick={onDelete}
           style={{ ...lcarsButtonStyle('var(--lcars-tomato)'), marginLeft: 'auto' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
         >
           <Trash2 size={14} /> Delete
         </button>

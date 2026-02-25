@@ -554,18 +554,16 @@ function LCARSSidebarPanel({
                 }}
               />
               <button
+                className="lcars-element button rounded auto"
                 onClick={handleCreateFolder}
                 style={{
                   background: 'var(--lcars-african-violet)',
                   border: 'none',
-                  borderRadius: '999px',
+                  height: 'auto',
                   padding: '0.2rem 0.5rem',
                   fontSize: '0.65rem',
-                  fontFamily: "'Antonio', sans-serif",
-                  textTransform: 'uppercase',
-                  color: 'var(--lcars-text-on-color)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 Add
@@ -661,18 +659,16 @@ function LCARSSidebarPanel({
                 ))}
               </div>
               <button
+                className="lcars-element button rounded auto"
                 onClick={handleCreateTag}
                 style={{
                   background: 'var(--lcars-african-violet)',
                   border: 'none',
-                  borderRadius: '999px',
+                  height: 'auto',
                   padding: '0.2rem 0.5rem',
                   fontSize: '0.65rem',
-                  fontFamily: "'Antonio', sans-serif",
-                  textTransform: 'uppercase',
-                  color: 'var(--lcars-text-on-color)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 Create
@@ -887,21 +883,17 @@ function LCARSNoteListPanel({
         </div>
         {!isTrashView && (
           <button
+            className="lcars-element button rounded auto"
             onClick={onCreateNote}
             style={{
               background: '#000000',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
               padding: '0.2rem 0.6rem',
               color: 'var(--lcars-ice)',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.7rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              cursor: 'pointer',
-              fontWeight: 600,
-              display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '0.3rem',
             }}
           >
@@ -943,18 +935,16 @@ function LCARSNoteListPanel({
       {isTrashView && noteList.length > 0 && (
         <div style={{ padding: '0.35rem 0.5rem', borderBottom: '1px solid rgba(102, 102, 136, 0.2)' }}>
           <button
+            className="lcars-element button rounded auto"
             onClick={onEmptyTrash}
             style={{
               background: 'var(--lcars-tomato)',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
               padding: '0.25rem 0.6rem',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.7rem',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              fontWeight: 600,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Empty Trash
@@ -1062,19 +1052,17 @@ function LCARSNoteListPanel({
               {/* Restore button for trash */}
               {isTrashView && (
                 <button
+                  className="lcars-element button rounded auto"
                   onClick={(e) => { e.stopPropagation(); onRestoreNote(note.id) }}
                   style={{
                     marginTop: '0.3rem',
                     background: 'var(--lcars-green)',
                     border: 'none',
-                    borderRadius: '999px',
+                    height: 'auto',
                     padding: '0.15rem 0.5rem',
-                    color: 'var(--lcars-text-on-color)',
-                    fontFamily: "'Antonio', sans-serif",
                     fontSize: '0.65rem',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    fontWeight: 600,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
                   Restore
@@ -1472,18 +1460,16 @@ function LCARSEditorPanel({
                     }}
                   />
                   <button
+                    className="lcars-element button rounded auto"
                     onClick={handleSetLink}
                     style={{
                       background: 'var(--lcars-sunflower)',
-                      color: 'var(--lcars-text-on-color)',
                       border: 'none',
-                      borderRadius: '999px',
+                      height: 'auto',
                       padding: '0.2rem 0.5rem',
                       fontSize: '0.65rem',
-                      fontFamily: "'Antonio', sans-serif",
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      fontWeight: 600,
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     Set
@@ -1623,21 +1609,18 @@ function LTBSep() {
 function LCARSSmallButton({ onClick, children, color, active }) {
   return (
     <button
+      className="lcars-element button rounded auto"
       onClick={onClick}
       style={{
-        display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
         gap: '0.2rem',
         background: active ? color : '#000000',
         border: 'none',
-        borderRadius: '999px',
+        height: 'auto',
         padding: '0.15rem 0.4rem',
         color: active ? 'var(--lcars-text-on-color)' : color,
-        fontFamily: "'Antonio', sans-serif",
         fontSize: '0.65rem',
-        textTransform: 'uppercase',
-        cursor: 'pointer',
-        fontWeight: 600,
       }}
     >
       {children}

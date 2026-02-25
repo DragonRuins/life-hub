@@ -1,52 +1,39 @@
 /**
  * LCARSElbow.jsx - LCARS Corner Connector
  *
- * An L-shaped elbow that connects horizontal bars (header/footer)
- * to vertical bars (sidebar/right strip). Features a quarter-circle
- * cutout on the inner corner — the signature LCARS design element.
+ * Uses the vendored joernweissenborn/lcars CSS library classes for
+ * authentic LCARS elbows. The library handles the dual border-radius
+ * technique (outer curve + inner ::after cutout) via pure CSS.
  *
- * The cutout is positioned at the inner corner of each position:
- *   TL: cutout bottom-right  TR: cutout bottom-left
- *   BL: cutout top-right     BR: cutout top-left
+ * Library position class mapping:
+ *   tl → .left-bottom  (sidebar goes down, header goes right)
+ *   bl → .left-top     (sidebar goes up, footer goes right)
+ *   tr → .right-bottom (right strip goes down, header goes left)
+ *   br → .right-top    (right strip goes up, footer goes left)
  *
  * Props:
- *   color     - CSS color for the elbow (default: sunflower)
+ *   color     - CSS color for the elbow (applied via inline style override)
  *   position  - Corner position: 'tl' | 'tr' | 'bl' | 'br'
- *   className - optional additional className
+ *   label     - Optional text label displayed inside the elbow
+ *   className - Additional CSS class names
  */
-export default function LCARSElbow({ color = 'var(--lcars-sunflower)', position = 'tl', className = '' }) {
-  // Each corner needs the cutout placed at the inner corner.
-  // The border-radius curves away from the corner, creating the L-shape.
-  const cutoutMap = {
-    tl: { right: 0, bottom: 0, borderTopLeftRadius: '100%' },
-    tr: { left: 0, bottom: 0, borderTopRightRadius: '100%' },
-    bl: { right: 0, top: 0, borderBottomLeftRadius: '100%' },
-    br: { left: 0, top: 0, borderBottomRightRadius: '100%' },
+export default function LCARSElbow({ color = 'var(--lcars-sunflower)', position = 'tl', label, className = '' }) {
+  // Map our position names to the library's orientation class names
+  const positionClassMap = {
+    tl: 'left-bottom',
+    bl: 'left-top',
+    tr: 'right-bottom',
+    br: 'right-top',
   }
 
-  const cutout = cutoutMap[position] || cutoutMap.tl
+  const posClass = positionClassMap[position] || positionClassMap.tl
 
   return (
     <div
-      className={className}
-      style={{
-        width: '100%',
-        height: '100%',
-        background: color,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      className={`lcars-elbow ${posClass} ${className}`.trim()}
+      style={{ background: color }}
     >
-      {/* Inner quarter-circle cutout */}
-      <div
-        style={{
-          position: 'absolute',
-          width: '50%',
-          height: '50%',
-          background: '#000',
-          ...cutout,
-        }}
-      />
+      {label && <a>{label}</a>}
     </div>
   )
 }

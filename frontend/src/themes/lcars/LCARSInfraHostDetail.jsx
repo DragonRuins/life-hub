@@ -369,38 +369,30 @@ export default function LCARSInfraHostDetail() {
 
         <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => setEditing(!editing)}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+              padding: '0.4rem 0.75rem', height: 'auto',
+              border: 'none',
               background: 'var(--lcars-ice)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              fontSize: '0.78rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             {editing ? <X size={14} /> : <Edit3 size={14} />}
             {editing ? 'Cancel' : 'Edit'}
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={handleDelete}
             title="Delete host"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+              padding: '0.4rem 0.75rem', height: 'auto',
+              border: 'none',
               background: 'var(--lcars-tomato)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              fontSize: '0.78rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <Trash2 size={14} /> Delete
           </button>
@@ -424,19 +416,16 @@ export default function LCARSInfraHostDetail() {
           const isActive = activeTab === tab.key
           return (
             <button
+              className="lcars-element button rounded auto"
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               style={{
-                padding: '0.4rem 1rem',
+                padding: '0.4rem 1rem', height: 'auto',
+                alignItems: 'center', justifyContent: 'center',
                 border: 'none',
                 background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
-                fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
                 fontSize: '0.8rem',
                 fontWeight: isActive ? 600 : 400,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'rgba(102, 102, 136, 0.4)' }}
@@ -484,20 +473,16 @@ export default function LCARSInfraHostDetail() {
                 </div>
               </div>
               <button
+                className="lcars-element button rounded auto"
                 onClick={() => setShowDockerSetup(true)}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.4rem 0.75rem', borderRadius: '999px',
-                  border: 'none', cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+                  padding: '0.4rem 0.75rem', height: 'auto',
+                  border: 'none',
                   background: 'var(--lcars-ice)',
-                  color: 'var(--lcars-text-on-color)',
-                  fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
-                  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                  opacity: 0.9, transition: 'opacity 0.15s',
+                  fontSize: '0.78rem',
                   flexShrink: 0,
                 }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
               >
                 Set Up Docker
               </button>
@@ -523,20 +508,15 @@ export default function LCARSInfraHostDetail() {
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     {['socket', 'tcp'].map(type => (
                       <button
+                        className="lcars-element button rounded auto"
                         key={type}
                         onClick={() => setDockerConnectionType(type)}
                         style={{
-                          padding: '0.3rem 0.75rem',
-                          borderRadius: '999px',
+                          padding: '0.3rem 0.75rem', height: 'auto',
+                          alignItems: 'center', justifyContent: 'center',
                           border: 'none',
                           background: dockerConnectionType === type ? 'var(--lcars-ice)' : 'rgba(102, 102, 136, 0.25)',
-                          color: dockerConnectionType === type ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
-                          fontFamily: "'Antonio', sans-serif",
                           fontSize: '0.75rem',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
-                          cursor: 'pointer',
                         }}
                       >
                         {type === 'socket' ? 'Local Socket' : 'Remote TCP'}
@@ -596,30 +576,28 @@ export default function LCARSInfraHostDetail() {
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button
+                    className="lcars-element button rounded auto"
                     onClick={handleDockerSetup}
                     disabled={dockerSetupLoading}
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                      padding: '0.4rem 0.75rem', borderRadius: '999px',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+                      padding: '0.4rem 0.75rem', height: 'auto',
                       border: 'none', cursor: dockerSetupLoading ? 'not-allowed' : 'pointer',
                       background: dockerSetupLoading ? 'rgba(153, 204, 255, 0.4)' : 'var(--lcars-ice)',
-                      color: 'var(--lcars-text-on-color)',
-                      fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
-                      fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                      fontSize: '0.78rem',
                     }}
                   >
                     {dockerSetupLoading ? 'Connecting...' : 'Connect & Sync'}
                   </button>
                   <button
+                    className="lcars-element button rounded auto"
                     onClick={() => setShowDockerSetup(false)}
                     style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                      padding: '0.4rem 0.75rem', borderRadius: '999px',
-                      border: 'none', cursor: 'pointer',
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
+                      padding: '0.4rem 0.75rem', height: 'auto',
+                      border: 'none',
                       background: 'rgba(102, 102, 136, 0.25)',
-                      color: 'var(--lcars-gray)',
-                      fontFamily: "'Antonio', sans-serif", fontSize: '0.78rem',
-                      fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                      fontSize: '0.78rem',
                     }}
                   >
                     Cancel
@@ -649,19 +627,15 @@ export default function LCARSInfraHostDetail() {
             color="var(--lcars-ice)"
             headerRight={
               <button
+                className="lcars-element button rounded auto"
                 onClick={handleDetectHardware}
                 disabled={detectingHw}
                 style={{
-                  padding: '0.2rem 0.625rem',
-                  borderRadius: '999px',
+                  padding: '0.2rem 0.625rem', height: 'auto',
+                  alignItems: 'center', justifyContent: 'center',
                   border: 'none',
                   background: detectingHw ? 'rgba(153, 204, 255, 0.4)' : 'var(--lcars-ice)',
-                  color: 'var(--lcars-text-on-color)',
-                  fontFamily: "'Antonio', sans-serif",
                   fontSize: '0.7rem',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
                   cursor: detectingHw ? 'not-allowed' : 'pointer',
                 }}
               >
@@ -836,22 +810,17 @@ export default function LCARSInfraHostDetail() {
           {/* Sync button + result message */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <button
+              className="lcars-element button rounded auto"
               onClick={handleSync}
               disabled={syncing}
               style={{
-                padding: '0.375rem 1.25rem',
+                padding: '0.375rem 1.25rem', height: 'auto',
                 border: 'none',
-                borderRadius: '999px',
                 background: syncing ? 'rgba(255, 153, 0, 0.4)' : 'var(--lcars-tanoi)',
-                color: 'var(--lcars-text-on-color)',
-                fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.8rem',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
                 cursor: syncing ? 'not-allowed' : 'pointer',
                 display: 'inline-flex',
-                alignItems: 'center',
+                alignItems: 'center', justifyContent: 'center',
                 gap: '0.375rem',
                 transition: 'background 0.15s ease',
                 opacity: syncing ? 0.8 : 1,
@@ -923,21 +892,15 @@ export default function LCARSInfraHostDetail() {
           {/* Add Service button */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
             <button
+              className="lcars-element button rounded auto"
               onClick={() => setShowAddService(!showAddService)}
               style={{
-                padding: '0.375rem 1.25rem',
+                padding: '0.375rem 1.25rem', height: 'auto',
                 border: 'none',
-                borderRadius: '999px',
                 background: showAddService ? 'rgba(102, 102, 136, 0.25)' : 'var(--lcars-tanoi)',
-                color: showAddService ? 'var(--lcars-gray)' : 'var(--lcars-text-on-color)',
-                fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.8rem',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                cursor: 'pointer',
                 display: 'inline-flex',
-                alignItems: 'center',
+                alignItems: 'center', justifyContent: 'center',
                 gap: '0.375rem',
                 transition: 'background 0.15s ease',
               }}
@@ -1002,20 +965,16 @@ export default function LCARSInfraHostDetail() {
                 const isActive = timeRange === tr.key
                 return (
                   <button
+                    className="lcars-element button rounded auto"
                     key={tr.key}
                     onClick={() => setTimeRange(tr.key)}
                     style={{
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '999px',
+                      padding: '0.3rem 0.75rem', height: 'auto',
+                      alignItems: 'center', justifyContent: 'center',
                       border: 'none',
                       background: isActive ? 'var(--lcars-butterscotch)' : 'rgba(102, 102, 136, 0.25)',
-                      color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
-                      fontFamily: "'Antonio', sans-serif",
                       fontSize: '0.75rem',
                       fontWeight: isActive ? 600 : 400,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
                   >
@@ -1038,20 +997,16 @@ export default function LCARSInfraHostDetail() {
                 const conf = METRIC_CONFIG[name] || DEFAULT_METRIC_CONFIG
                 return (
                   <button
+                    className="lcars-element button rounded auto"
                     key={name}
                     onClick={() => setSelectedMetric(name)}
                     style={{
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '999px',
+                      padding: '0.3rem 0.75rem', height: 'auto',
+                      alignItems: 'center', justifyContent: 'center',
                       border: 'none',
                       background: isActive ? conf.color : 'rgba(102, 102, 136, 0.25)',
-                      color: isActive ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
-                      fontFamily: "'Antonio', sans-serif",
                       fontSize: '0.75rem',
                       fontWeight: isActive ? 600 : 400,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
-                      cursor: 'pointer',
                       transition: 'all 0.15s ease',
                     }}
                   >

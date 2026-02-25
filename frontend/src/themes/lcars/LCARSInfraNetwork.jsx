@@ -232,18 +232,15 @@ function NetworkDeviceForm({ initial = {}, onSubmit, onCancel }) {
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
         <button
           type="submit"
+          className="lcars-element button rounded auto"
           style={{
             padding: '0.4rem 1rem',
-            borderRadius: '999px',
             background: 'var(--lcars-lilac)',
-            color: 'var(--lcars-text-on-color)',
             border: 'none',
-            fontFamily: "'Antonio', sans-serif",
             fontSize: '0.8rem',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            cursor: 'pointer',
+            height: 'auto',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {initial.id ? 'Update Device' : 'Register Device'}
@@ -252,18 +249,15 @@ function NetworkDeviceForm({ initial = {}, onSubmit, onCancel }) {
           <button
             type="button"
             onClick={onCancel}
+            className="lcars-element button rounded auto"
             style={{
               padding: '0.4rem 1rem',
-              borderRadius: '999px',
               background: 'rgba(102, 102, 136, 0.2)',
-              color: 'var(--lcars-space-white)',
               border: '1px solid rgba(102, 102, 136, 0.3)',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.8rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              cursor: 'pointer',
+              height: 'auto',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Cancel
@@ -413,21 +407,17 @@ export default function LCARSInfraNetwork() {
         {/* Add Device button (pill-shaped, LCARS style) */}
         <button
           onClick={() => { setShowForm(!showForm); setEditing(null) }}
+          className="lcars-element button rounded auto"
           style={{
             display: 'inline-flex',
-            alignItems: 'center',
             gap: '0.375rem',
             padding: '0.4rem 0.75rem',
-            borderRadius: '999px',
             background: showForm ? 'rgba(102, 102, 136, 0.3)' : 'var(--lcars-lilac)',
-            color: showForm ? 'var(--lcars-space-white)' : 'var(--lcars-text-on-color)',
             border: 'none',
-            fontFamily: "'Antonio', sans-serif",
             fontSize: '0.8rem',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            cursor: 'pointer',
+            height: 'auto',
+            alignItems: 'center',
+            justifyContent: 'center',
             transition: 'opacity 0.15s',
           }}
         >

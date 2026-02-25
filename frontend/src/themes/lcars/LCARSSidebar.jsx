@@ -1,7 +1,8 @@
 /**
  * LCARSSidebar.jsx - LCARS Pill-Button Navigation
  *
- * Replaces the default sidebar with LCARS-style pill-shaped buttons.
+ * Uses the vendored LCARS library CSS classes (.lcars-column, .lcars-element)
+ * for authentic LCARS-style pill-shaped navigation buttons.
  * Each nav item has a fixed color assignment for consistency.
  * Active route is highlighted with a distinct accent color.
  */
@@ -16,15 +17,15 @@ const NAV_ITEMS = [
     to: '/',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    color: 'var(--lcars-sunflower)',      // #FFCC99
-    activeColor: 'var(--lcars-butterscotch)', // #FF9966
+    color: 'var(--lcars-sunflower)',
+    activeColor: 'var(--lcars-butterscotch)',
     code: '01-4774',
   },
   {
     to: '/vehicles',
     label: 'Vehicles',
     icon: Car,
-    color: 'var(--lcars-ice)',            // #99CCFF
+    color: 'var(--lcars-ice)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '02-1138',
   },
@@ -32,7 +33,7 @@ const NAV_ITEMS = [
     to: '/notes',
     label: 'Notes',
     icon: StickyNote,
-    color: 'var(--lcars-african-violet)', // #CC99FF
+    color: 'var(--lcars-african-violet)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '03-7294',
   },
@@ -40,7 +41,7 @@ const NAV_ITEMS = [
     to: '/projects',
     label: 'Projects',
     icon: FolderKanban,
-    color: 'var(--lcars-lilac)',          // #CC99CC
+    color: 'var(--lcars-lilac)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '04-5031',
   },
@@ -48,7 +49,7 @@ const NAV_ITEMS = [
     to: '/kb',
     label: 'Library Computer',
     icon: BookOpen,
-    color: 'var(--lcars-gold)',           // #FFAA00
+    color: 'var(--lcars-gold)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '05-8816',
   },
@@ -56,7 +57,7 @@ const NAV_ITEMS = [
     to: '/infrastructure',
     label: 'Engineering',
     icon: Server,
-    color: 'var(--lcars-tanoi)',          // #FFCC66
+    color: 'var(--lcars-tanoi)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '06-2447',
   },
@@ -64,7 +65,7 @@ const NAV_ITEMS = [
     to: '/astrometrics',
     label: 'Astrometrics',
     icon: Telescope,
-    color: 'var(--lcars-ice)',            // #99CCFF
+    color: 'var(--lcars-ice)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '07-9163',
   },
@@ -72,7 +73,7 @@ const NAV_ITEMS = [
     to: '/trek',
     label: 'Database',
     icon: Library,
-    color: 'var(--lcars-almond-creme)',   // #FFBBAA
+    color: 'var(--lcars-almond-creme)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '08-3350',
   },
@@ -81,13 +82,12 @@ const NAV_ITEMS = [
 export default function LCARSSidebar() {
   return (
     <nav
+      className="lcars-column flush"
       style={{
-        display: 'flex',
-        flexDirection: 'column',
         gap: '4px',
         padding: '4px 0',
         height: '100%',
-        background: '#000000',
+        background: 'var(--lcars-bg, #000)',
         overflow: 'hidden',
       }}
     >
@@ -97,11 +97,11 @@ export default function LCARSSidebar() {
 
       {/* Fill remaining space with a decorative block — slowly cycles LCARS colors */}
       <div
-        className="lcars-idle-block-1"
+        className="lcars-element left-rounded lcars-idle-block-1"
         style={{
           flex: 1,
           marginTop: '4px',
-          borderRadius: '0 30px 30px 0',
+          width: '100%',
           minHeight: '40px',
           opacity: 0.4,
         }}
@@ -109,18 +109,18 @@ export default function LCARSSidebar() {
 
       {/* Bottom decorative blocks — each cycles independently */}
       <div
-        className="lcars-idle-block-2"
+        className="lcars-element left-rounded lcars-idle-block-2"
         style={{
           height: '24px',
-          borderRadius: '0 30px 30px 0',
+          width: '100%',
           opacity: 0.6,
         }}
       />
       <div
-        className="lcars-idle-block-3"
+        className="lcars-element left-rounded lcars-idle-block-3"
         style={{
           height: '16px',
-          borderRadius: '0 30px 30px 0',
+          width: '100%',
           opacity: 0.5,
         }}
       />
@@ -131,7 +131,8 @@ export default function LCARSSidebar() {
 
 /**
  * Individual LCARS pill-shaped navigation button.
- * Uses NavLink for route matching and active state detection.
+ * Uses library .lcars-element.button.left-rounded for the pill shape,
+ * with NavLink for route matching and active state detection.
  * In Modern variant, shows a decorative alphanumeric code below the label.
  */
 function LCARSNavButton({ to, label, icon: Icon, color, activeColor, code }) {
@@ -141,25 +142,23 @@ function LCARSNavButton({ to, label, icon: Icon, color, activeColor, code }) {
     <NavLink
       to={to}
       end={to === '/'}
+      className="lcars-element button left-rounded"
       style={({ isActive }) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
         gap: '0.5rem',
-        padding: isModernLCARS ? '0.35rem 1rem 0.35rem 0.75rem' : '0.5rem 1rem 0.5rem 0.75rem',
+        padding: isModernLCARS ? '0.35rem 1rem 0.35rem 1.5rem' : '0.5rem 1rem 0.5rem 1.5rem',
         height: isModernLCARS ? '44px' : '40px',
+        width: '100%',
         background: isActive ? activeColor : color,
         color: 'var(--lcars-text-on-color)',
         textDecoration: 'none',
-        fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
         fontSize: '0.95rem',
-        fontWeight: 600,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        // Pill shape: rounded on left side, flat on right (abuts the elbow column)
-        borderRadius: '30px 0 0 30px',
+        // Pill shape: rounded on left, flat on right (abuts the cascade column)
+        borderTopRightRadius: 0,
+        borderBottomRightRadius: 0,
         opacity: isActive ? 1 : 0.75,
-        transition: 'filter 0.15s ease, opacity 0.15s ease',
         cursor: 'pointer',
         whiteSpace: 'nowrap',
         overflow: 'hidden',
@@ -170,8 +169,6 @@ function LCARSNavButton({ to, label, icon: Icon, color, activeColor, code }) {
       }}
       onMouseLeave={e => {
         e.currentTarget.style.filter = 'brightness(1)'
-        // Reset opacity only if not active (we can't easily check isActive here,
-        // so we let CSS handle the re-render on route change)
       }}
     >
       <Icon size={16} />

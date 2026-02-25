@@ -1,12 +1,9 @@
 /**
- * LCARSModal.jsx - LCARS-Styled Modal with Elbow Accents
+ * LCARSModal.jsx - LCARS-Styled Modal with Library Components
  *
- * A modal wrapper component with LCARS visual treatment:
- *   - Dark overlay (black, 0.75 opacity)
- *   - Black panel with colored border
- *   - Small decorative elbow accents at corners
- *   - Colored title bar
- *   - Pill-shaped close button
+ * Uses vendored LCARS library CSS classes for authentic styling:
+ *   .lcars-bar              — title bar (position, color inheritance)
+ *   .lcars-element.button.rounded — close button (pill shape, hover/active effects)
  *
  * Props:
  *   isOpen    - boolean controlling visibility
@@ -83,14 +80,16 @@ export default function LCARSModal({
         <CornerAccent position="bottom-left" color={color} />
         <CornerAccent position="bottom-right" color={color} />
 
-        {/* Title bar */}
+        {/* Title bar — .lcars-bar for LCARS structural styling + color inheritance */}
         <div
+          className="lcars-bar"
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.625rem 1rem 0.625rem 1.5rem',
             background: color,
+            height: 'auto',
             flexShrink: 0,
           }}
         >
@@ -101,29 +100,24 @@ export default function LCARSModal({
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: 'var(--lcars-text-on-color)',
             }}
           >
             {title}
           </span>
+          {/* Close button — .lcars-element.button.rounded for pill shape + CSS hover/active */}
           <button
+            className="lcars-element button rounded"
             onClick={onClose}
             style={{
               background: 'var(--lcars-red)',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
+              width: 'auto',
               padding: '0.25rem 0.75rem',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.75rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              cursor: 'pointer',
-              transition: 'filter 0.15s',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
-            onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-            onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
           >
             Close
           </button>

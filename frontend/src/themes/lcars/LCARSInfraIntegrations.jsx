@@ -289,36 +289,26 @@ export default function LCARSInfraIntegrations() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
+            className="lcars-element button rounded auto"
             onClick={loadData}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
               background: 'var(--lcars-ice)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              border: 'none', height: 'auto',
+              padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+              alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} /> Refresh
           </button>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => showForm ? resetForm() : handleAdd()}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-              padding: '0.4rem 0.75rem', borderRadius: '999px',
-              border: 'none', cursor: 'pointer',
               background: 'var(--lcars-butterscotch)',
-              color: 'var(--lcars-text-on-color)',
-              fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-              fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-              opacity: 0.9, transition: 'opacity 0.15s',
+              border: 'none', height: 'auto',
+              padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+              alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
             }}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             {showForm ? <X size={14} /> : <Plus size={14} />}
             {showForm ? 'Cancel' : 'Add Integration'}
@@ -504,37 +494,27 @@ export default function LCARSInfraIntegrations() {
             {/* Submit row */}
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
               <button
+                className="lcars-element button rounded auto"
                 type="button"
                 onClick={resetForm}
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.4rem 0.75rem', borderRadius: '999px',
-                  border: 'none', cursor: 'pointer',
                   background: 'var(--lcars-gray)',
-                  color: 'var(--lcars-text-on-color)',
-                  fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-                  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                  opacity: 0.9, transition: 'opacity 0.15s',
+                  border: 'none', height: 'auto',
+                  padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+                  alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
                 }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
               >
                 Cancel
               </button>
               <button
+                className="lcars-element button rounded auto"
                 type="submit"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  padding: '0.4rem 0.75rem', borderRadius: '999px',
-                  border: 'none', cursor: 'pointer',
                   background: 'var(--lcars-butterscotch)',
-                  color: 'var(--lcars-text-on-color)',
-                  fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-                  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                  opacity: 0.9, transition: 'opacity 0.15s',
+                  border: 'none', height: 'auto',
+                  padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+                  alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
                 }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
               >
                 {editingId ? 'Update Integration' : 'Create Integration'}
               </button>

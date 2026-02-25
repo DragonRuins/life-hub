@@ -405,19 +405,18 @@ export default function LCARSKnowledgeBase() {
         <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.75rem' }}>
           {['sidebar', 'list'].map(panel => (
             <button
+              className="lcars-element button rounded auto"
               key={panel}
               onClick={() => setMobilePanel(panel)}
               style={{
                 background: mobilePanel === panel ? 'var(--lcars-gold)' : 'rgba(102,102,136,0.2)',
                 border: 'none',
-                borderRadius: '999px',
+                height: 'auto',
                 padding: '0.35rem 0.75rem',
-                cursor: 'pointer',
-                fontFamily: "'Antonio', sans-serif",
                 fontSize: '0.72rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
                 color: mobilePanel === panel ? 'var(--lcars-text-on-color)' : 'var(--lcars-gray)',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               {panel === 'sidebar' ? 'Classifications' : 'Entries'}
@@ -562,6 +561,7 @@ export default function LCARSKnowledgeBase() {
                     const isActive = selectedTagId === tag.id
                     return (
                       <button
+                        className="lcars-element button rounded auto"
                         key={tag.id}
                         onClick={() => setSelectedTagId(isActive ? null : tag.id)}
                         style={{
@@ -574,13 +574,11 @@ export default function LCARSKnowledgeBase() {
                           border: isActive
                             ? '1px solid var(--lcars-gold)'
                             : '1px solid transparent',
-                          borderRadius: '999px',
+                          height: 'auto',
                           padding: '0.15rem 0.5rem',
                           fontSize: '0.68rem',
-                          fontFamily: "'Antonio', sans-serif",
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.04em',
-                          cursor: 'pointer',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           whiteSpace: 'nowrap',
                         }}
                       >
@@ -996,20 +994,19 @@ function LCARSArticleList({ articles, categoryId, searchQuery = '', currentPage 
           borderTop: '1px solid rgba(102,102,136,0.15)',
         }}>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1}
             style={{
               background: currentPage <= 1 ? 'rgba(102,102,136,0.1)' : 'rgba(255,170,0,0.15)',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
               padding: '0.3rem 0.75rem',
-              cursor: currentPage <= 1 ? 'default' : 'pointer',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.72rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
               color: currentPage <= 1 ? 'var(--lcars-gray)' : 'var(--lcars-gold)',
               opacity: currentPage <= 1 ? 0.5 : 1,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Prev
@@ -1022,20 +1019,19 @@ function LCARSArticleList({ articles, categoryId, searchQuery = '', currentPage 
             {currentPage} / {totalPages}
           </span>
           <button
+            className="lcars-element button rounded auto"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage >= totalPages}
             style={{
               background: currentPage >= totalPages ? 'rgba(102,102,136,0.1)' : 'rgba(255,170,0,0.15)',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
               padding: '0.3rem 0.75rem',
-              cursor: currentPage >= totalPages ? 'default' : 'pointer',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.72rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
               color: currentPage >= totalPages ? 'var(--lcars-gray)' : 'var(--lcars-gold)',
               opacity: currentPage >= totalPages ? 0.5 : 1,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Next
@@ -1610,19 +1606,17 @@ function LCARSEditorView({
             </button>
           )}
           <button
+            className="lcars-element button rounded auto"
             onClick={onSave}
             style={{
               background: 'var(--lcars-gold)',
               border: 'none',
-              borderRadius: '999px',
+              height: 'auto',
               padding: '0.4rem 1rem',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '0.375rem',
-              fontFamily: "'Antonio', sans-serif",
-              fontSize: '0.8rem', fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              color: 'var(--lcars-text-on-color)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.375rem',
+              fontSize: '0.8rem',
             }}
           >
             <Save size={14} /> {isNew ? 'Create Entry' : 'Save Entry'}

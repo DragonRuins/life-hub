@@ -47,15 +47,11 @@ const STATUS_LABELS = {
   error: 'MALFUNCTION',
 }
 
-// LCARS pill button style generator
+// LCARS pill button style generator — use with className="lcars-element button rounded auto"
 const pillStyle = (bg, opts = {}) => ({
-  display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-  padding: '0.4rem 0.75rem', borderRadius: '999px',
-  border: 'none', cursor: 'pointer',
-  background: bg, color: 'var(--lcars-text-on-color)',
-  fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
-  fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-  opacity: 0.9, transition: 'opacity 0.15s',
+  background: bg, border: 'none', height: 'auto',
+  padding: '0.4rem 0.75rem', fontSize: '0.8rem',
+  alignItems: 'center', justifyContent: 'center', gap: '0.375rem',
   ...opts,
 })
 
@@ -201,10 +197,8 @@ export default function LCARSInfraPrinter() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button onClick={() => setAutoRefresh(prev => !prev)}
+          <button className="lcars-element button rounded auto" onClick={() => setAutoRefresh(prev => !prev)}
             style={pillStyle(autoRefresh ? 'var(--lcars-green)' : 'var(--lcars-tanoi)')}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
           >
             <RefreshCw size={14} />
             {autoRefresh ? 'Auto: On' : 'Auto: Off'}
@@ -216,7 +210,7 @@ export default function LCARSInfraPrinter() {
       {printers.length > 1 && (
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
           {printers.map(p => (
-            <button key={p.id} onClick={() => setSelectedPrinter(p.id)}
+            <button className="lcars-element button rounded auto" key={p.id} onClick={() => setSelectedPrinter(p.id)}
               style={pillStyle(selectedPrinter === p.id ? 'var(--lcars-african-violet)' : 'var(--lcars-gray)')}>
               <Printer size={14} /> {(p.friendly_name || p.entity_id).toUpperCase()}
             </button>
@@ -329,10 +323,8 @@ export default function LCARSInfraPrinter() {
             }}>
               {/* Light */}
               {controls.light && (
-                <button onClick={() => handleControl(controls.light.id, { action: 'toggle' })}
+                <button className="lcars-element button rounded auto" onClick={() => handleControl(controls.light.id, { action: 'toggle' })}
                   style={pillStyle(controls.light.state === 'on' ? 'var(--lcars-gold)' : 'var(--lcars-gray)')}
-                  onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
                 >
                   <Lightbulb size={14} /> Light: {controls.light.state === 'on' ? 'On' : 'Off'}
                 </button>
@@ -356,11 +348,9 @@ export default function LCARSInfraPrinter() {
                 }[btn.role] || { bg: 'var(--lcars-gray)', icon: <Activity size={14} />, label: btn.role }
 
                 return (
-                  <button key={btn.id}
+                  <button className="lcars-element button rounded auto" key={btn.id}
                     onClick={() => handleControl(btn.id, { action: 'press' })}
                     style={pillStyle(cfg.bg)}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
                   >
                     {cfg.icon} {cfg.label}
                   </button>

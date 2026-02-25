@@ -207,18 +207,15 @@ function ServiceForm({ initial = {}, hosts = [], onSubmit, onCancel }) {
       <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
         <button
           type="submit"
+          className="lcars-element button rounded auto"
           style={{
             padding: '0.4rem 1rem',
-            borderRadius: '999px',
             background: 'var(--lcars-tanoi)',
-            color: 'var(--lcars-text-on-color)',
             border: 'none',
-            cursor: 'pointer',
-            fontFamily: "'Antonio', sans-serif",
             fontSize: '0.8rem',
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
+            height: 'auto',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {initial.id ? 'Save Changes' : 'Add Service'}
@@ -227,18 +224,15 @@ function ServiceForm({ initial = {}, hosts = [], onSubmit, onCancel }) {
           <button
             type="button"
             onClick={onCancel}
+            className="lcars-element button rounded auto"
             style={{
               padding: '0.4rem 1rem',
-              borderRadius: '999px',
               background: 'var(--lcars-gray)',
-              color: 'var(--lcars-text-on-color)',
               border: 'none',
-              cursor: 'pointer',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.8rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              height: 'auto',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             Cancel
@@ -395,42 +389,34 @@ export default function LCARSInfraServices() {
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={loadData}
+            className="lcars-element button rounded auto"
             style={{
               display: 'inline-flex',
-              alignItems: 'center',
               gap: '0.375rem',
               padding: '0.4rem 0.75rem',
-              borderRadius: '999px',
               background: 'var(--lcars-gray)',
-              color: 'var(--lcars-text-on-color)',
               border: 'none',
-              cursor: 'pointer',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.8rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              height: 'auto',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             <RefreshCw size={14} /> Refresh
           </button>
           <button
             onClick={() => { setShowForm(!showForm); setEditing(null) }}
+            className="lcars-element button rounded auto"
             style={{
               display: 'inline-flex',
-              alignItems: 'center',
               gap: '0.375rem',
               padding: '0.4rem 0.75rem',
-              borderRadius: '999px',
               background: 'var(--lcars-tanoi)',
-              color: 'var(--lcars-text-on-color)',
               border: 'none',
-              cursor: 'pointer',
-              fontFamily: "'Antonio', sans-serif",
               fontSize: '0.8rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
+              height: 'auto',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             {showForm ? <X size={14} /> : <Plus size={14} />}

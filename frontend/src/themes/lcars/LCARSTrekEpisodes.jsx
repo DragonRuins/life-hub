@@ -161,15 +161,14 @@ export default function LCARSTrekEpisodes() {
           }}>
             {seasons.map(s => (
               <button
+                className="lcars-element button auto"
                 key={s.uid}
                 onClick={() => selectSeason(s)}
                 style={{
                   padding: '0.75rem 0.5rem', background: 'var(--lcars-butterscotch)',
-                  border: 'none', borderRadius: '8px', cursor: 'pointer',
-                  textAlign: 'center', transition: 'filter 0.15s',
+                  border: 'none', borderRadius: '8px', height: 'auto',
+                  textAlign: 'center',
                 }}
-                onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-                onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
               >
                 <div style={{
                   fontFamily: "'JetBrains Mono', monospace", fontSize: '1.25rem',

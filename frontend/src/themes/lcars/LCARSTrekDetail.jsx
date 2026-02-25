@@ -267,17 +267,15 @@ function LCARSRelatedEntities({ entity, entityType }) {
                 const itemName = item.name || item.title || 'Unknown'
                 return item.uid ? (
                   <Link
+                    className="lcars-element button auto"
                     key={item.uid || i}
                     to={getTrekRoute(relType, item.uid)}
                     style={{
                       padding: '0.25rem 0.625rem', borderRadius: '10px',
-                      background: color, textDecoration: 'none', color: 'var(--lcars-text-on-color)',
-                      fontFamily: "'Antonio', sans-serif", fontSize: '0.75rem',
-                      fontWeight: 600, textTransform: 'uppercase',
-                      letterSpacing: '0.03em', transition: 'filter 0.15s',
+                      background: color, textDecoration: 'none',
+                      height: 'auto', fontSize: '0.75rem',
+                      alignItems: 'center', justifyContent: 'center',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-                    onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
                   >
                     {itemName}
                   </Link>

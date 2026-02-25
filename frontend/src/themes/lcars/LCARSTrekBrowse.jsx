@@ -208,15 +208,16 @@ export default function LCARSTrekBrowse() {
 function PillButton({ onClick, disabled, children }) {
   return (
     <button
+      className="lcars-element button auto"
       onClick={onClick}
       disabled={disabled}
       style={{
         padding: '0.2rem 0.75rem', borderRadius: '10px',
         background: disabled ? 'var(--lcars-gray)' : '#000',
-        border: 'none', cursor: disabled ? 'default' : 'pointer',
-        fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
-        fontWeight: 600, textTransform: 'uppercase', color: disabled ? '#666' : 'var(--lcars-sunflower)',
-        letterSpacing: '0.05em', opacity: disabled ? 0.5 : 1,
+        border: 'none', height: 'auto', fontSize: '0.7rem',
+        color: disabled ? '#666' : 'var(--lcars-sunflower)',
+        opacity: disabled ? 0.5 : 1,
+        alignItems: 'center', justifyContent: 'center',
       }}
     >
       {children}

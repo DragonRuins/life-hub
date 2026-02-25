@@ -1,9 +1,14 @@
 /**
  * LCARSHeader.jsx - LCARS Top Horizontal Bar
  *
- * The top bar connects to the sidebar via the top-left elbow.
- * Contains: app title, decorative pills, pulsing status dot,
- * notification bell, theme toggle button, and settings link.
+ * Uses the vendored LCARS library CSS classes (.lcars-bar, .lcars-element)
+ * for authentic bar segments. The header consists of:
+ *   - Main bar with "Datacore" title (lcars-bar)
+ *   - Decorative colored segments (lcars-bar)
+ *   - Controls section with notification bell, theme toggle, settings
+ *
+ * In Modern variant, the controls area has a flat right edge to meet
+ * the TR elbow. In Classic, it has a rounded pill end-cap.
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Bell, Settings, Palette, Check, ExternalLink, Maximize, Minimize, MessageSquare } from 'lucide-react'
@@ -37,20 +42,11 @@ export default function LCARSHeader({ chat }) {
   const iconSize = isMobile ? 16 : 18
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'stretch',
-        height: '100%',
-        background: '#000000',
-        gap: '3px',
-      }}
-    >
-      {/* Main header bar (sunflower color) */}
+    <div className="lcars-row" style={{ height: '100%', gap: '3px', background: 'var(--lcars-bg, #000)' }}>
+      {/* Main header bar — uses library .lcars-bar with flex layout */}
       <div
+        className="lcars-bar fill lcars-bg-sunflower"
         style={{
-          flex: 1,
-          background: 'var(--lcars-sunflower)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end',
@@ -58,7 +54,7 @@ export default function LCARSHeader({ chat }) {
           gap: '0.75rem',
         }}
       >
-        {/* App title */}
+        {/* App title — uses library .lcars-title pattern (text on black bg) */}
         <span
           style={{
             flex: 1,
@@ -74,7 +70,7 @@ export default function LCARSHeader({ chat }) {
           Datacore
         </span>
 
-        {/* Decorative system code on main bar — Modern variant only */}
+        {/* Decorative system code — Modern variant only */}
         {isModernLCARS && (
           <span
             style={{
@@ -90,68 +86,58 @@ export default function LCARSHeader({ chat }) {
         )}
       </div>
 
-      {/* Decorative colored segments (hidden on mobile) */}
+      {/* Decorative colored segments — hidden on mobile via CSS */}
       <div
-        className="lcars-header-decor"
+        className="lcars-bar lcars-bg-african-violet lcars-header-decor"
         style={{
           width: '60px',
-          background: 'var(--lcars-african-violet)',
-          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        {/* Segment code overlay — Modern only */}
         {isModernLCARS && (
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.55rem',
-              color: 'rgba(255, 255, 255, 0.35)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            09
-          </span>
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.55rem',
+            color: 'rgba(255, 255, 255, 0.35)',
+            letterSpacing: '0.04em',
+          }}>09</span>
         )}
       </div>
       <div
-        className="lcars-header-decor"
+        className="lcars-bar lcars-bg-ice lcars-header-decor"
         style={{
           width: '40px',
-          background: 'var(--lcars-ice)',
-          position: 'relative',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        {/* Segment code overlay — Modern only */}
         {isModernLCARS && (
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.55rem',
-              color: 'rgba(255, 255, 255, 0.35)',
-              letterSpacing: '0.04em',
-            }}
-          >
-            17
-          </span>
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '0.55rem',
+            color: 'rgba(255, 255, 255, 0.35)',
+            letterSpacing: '0.04em',
+          }}>17</span>
         )}
       </div>
 
-      {/* Controls area (notification + theme toggle + settings) on colored bar */}
+      {/* Controls area — notification bell, theme toggle, settings
+          In Modern: flat right edge (meets TR elbow)
+          In Classic: rounded right end-cap (pill shape) */}
       <div
+        className="lcars-bar lcars-bg-sunflower"
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: isMobile ? '0.25rem' : '0.5rem',
-          background: 'var(--lcars-sunflower)',
           padding: isMobile ? '0 0.5rem' : '0 0.75rem',
-          borderRadius: '0 30px 30px 0',
-          flexShrink: 0,
+          borderRadius: isModernLCARS ? '0' : '0 30px 30px 0',
+          flexShrink: isMobile ? 1 : 0,
+          minWidth: 0,
+          width: 'auto',
         }}
       >
         {/* Pulsing status indicator */}
@@ -247,7 +233,7 @@ export default function LCARSHeader({ chat }) {
           </button>
         )}
 
-        {/* Settings Link (direct navigation, no dropdown) */}
+        {/* Settings Link */}
         <Link
           to="/settings"
           title="Settings"
@@ -275,9 +261,7 @@ export default function LCARSHeader({ chat }) {
 
 /**
  * LCARS-styled notification bell for the header bar.
- * Built specifically for the colored header background (black icon on colored bar).
- * Replicates the notification functionality from NotificationBell but with
- * LCARS-appropriate styling.
+ * Built specifically for the colored header background.
  */
 function LCARSNotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0)
@@ -308,7 +292,6 @@ function LCARSNotificationBell() {
       }, 600)
     }
 
-    // Flash once immediately, then every 10 seconds
     triggerFlash()
     const flashTimer = setInterval(triggerFlash, 10000)
     return () => clearInterval(flashTimer)
@@ -334,7 +317,6 @@ function LCARSNotificationBell() {
 
   async function toggleDropdown() {
     if (!isOpen) {
-      // Compute position for mobile fixed dropdown before opening
       if (isMobile && dropdownRef.current) {
         const rect = dropdownRef.current.getBoundingClientRect()
         setDropdownTop(rect.bottom + 8)
@@ -377,7 +359,6 @@ function LCARSNotificationBell() {
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative' }}>
-      {/* Bell button - black on colored background, flashes amber on unreads */}
       <button
         ref={bellRef}
         onClick={toggleDropdown}
@@ -421,7 +402,7 @@ function LCARSNotificationBell() {
         )}
       </button>
 
-      {/* Dropdown - LCARS styled on black background */}
+      {/* Dropdown — LCARS styled */}
       {isOpen && (
         <div style={{
           ...(isMobile ? {
@@ -437,7 +418,7 @@ function LCARSNotificationBell() {
             marginTop: '8px',
             width: 'min(360px, calc(100vw - 1rem))',
           }),
-          background: '#000000',
+          background: 'var(--lcars-bg, #000)',
           border: '2px solid var(--lcars-sunflower)',
           borderRadius: '4px',
           boxShadow: '0 4px 24px rgba(255, 204, 153, 0.15)',
@@ -445,13 +426,13 @@ function LCARSNotificationBell() {
           overflow: 'hidden',
         }}>
           {/* Header */}
-          <div style={{
+          <div className="lcars-bar lcars-bg-sunflower" style={{
             padding: '0.625rem 1rem',
             borderBottom: '1px solid var(--lcars-gray)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: 'var(--lcars-sunflower)',
+            height: 'auto',
           }}>
             <span style={{
               fontWeight: 600,

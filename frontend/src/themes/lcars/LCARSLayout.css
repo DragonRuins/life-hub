@@ -92,6 +92,17 @@
   grid-area: right-strip;
   min-height: 0;
   overflow: hidden;
+  /* Layout styles moved from inline to CSS so mobile display:none works */
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 0;
+  background: #000;
+}
+
+.lcars-right-strip-pill {
+  border-radius: 0 16px 16px 0;
+  opacity: 0.7;
 }
 
 .lcars-elbow-br {
@@ -158,7 +169,7 @@
   .lcars-elbow-tr,
   .lcars-right-strip,
   .lcars-elbow-br {
-    display: none;
+    display: none !important;
   }
 
   /* Force modern variant to single column on mobile */
@@ -172,10 +183,16 @@
   }
 
   .lcars-header-decor {
-    display: none;
+    display: none !important;
+  }
+
+  /* Prevent any horizontal overflow on mobile */
+  .lcars-header {
+    overflow: hidden;
   }
 
   .lcars-content {
     padding: 1rem;
+    max-width: 100vw;
   }
 }

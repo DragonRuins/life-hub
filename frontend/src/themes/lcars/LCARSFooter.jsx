@@ -12,6 +12,7 @@
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { dashboard, notifications, infrastructure } from '../../api/client'
+import { useTheme } from './ThemeProvider'
 
 /**
  * Calculate a Star Trek-style stardate from a UTC date.
@@ -34,6 +35,7 @@ function formatUTC(date = new Date()) {
 }
 
 export default function LCARSFooter() {
+  const { isModernLCARS } = useTheme()
   const [utc, setUtc] = useState(formatUTC())
   const [stardate, setStardate] = useState(calculateStardate())
   const [unreadCount, setUnreadCount] = useState(0)
@@ -107,20 +109,11 @@ export default function LCARSFooter() {
   }, [fetchData])
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'stretch',
-        height: '100%',
-        background: '#000000',
-        gap: '3px',
-      }}
-    >
+    <div className="lcars-row" style={{ height: '100%', gap: '3px', background: 'var(--lcars-bg, #000)' }}>
       {/* Stardate + UTC time segment with digit roll on time changes */}
       <div
+        className="lcars-bar fill lcars-bg-african-violet"
         style={{
-          flex: 1,
-          background: 'var(--lcars-african-violet)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -183,12 +176,12 @@ export default function LCARSFooter() {
         width="110px"
       />
 
-      {/* Decorative end cap (rounded right side) */}
+      {/* Decorative end cap — rounded in Classic, flat in Modern (meets BR elbow) */}
       <div
+        className="lcars-bar lcars-bg-african-violet"
         style={{
           width: '80px',
-          background: 'var(--lcars-african-violet)',
-          borderRadius: '0 30px 30px 0',
+          borderRadius: isModernLCARS ? '0' : '0 30px 30px 0',
         }}
       />
     </div>
@@ -203,6 +196,7 @@ export default function LCARSFooter() {
 function StatusSegment({ label, color, width, flex, mono }) {
   return (
     <div
+      className="lcars-bar"
       style={{
         width: width || 'auto',
         flex: flex || 'none',

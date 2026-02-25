@@ -63,27 +63,19 @@ export default function LCARSAstrometrics() {
       }}>
         {TABS.map(tab => (
           <button
+            className="lcars-element button rounded auto"
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
               padding: '0.4rem 1rem',
               background: activeTab === tab.id ? 'var(--lcars-ice)' : 'var(--lcars-gray)',
               border: 'none',
-              borderRadius: '999px',
-              color: 'var(--lcars-text-on-color)',
-              cursor: 'pointer',
-              fontFamily: "'Antonio', sans-serif",
+              height: 'auto',
               fontSize: '0.85rem',
-              fontWeight: 400,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
               opacity: activeTab === tab.id ? 1 : 0.7,
-              transition: 'all 0.15s ease',
               whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '1' }}
-            onMouseLeave={e => {
-              if (activeTab !== tab.id) e.currentTarget.style.opacity = '0.7'
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
             {tab.label}

@@ -193,17 +193,15 @@ export default function LCARSTrekDatabase() {
         }}>
           {Object.entries(ENTITY_CATEGORIES).map(([key, cat]) => (
             <Link
+              className="lcars-element button auto"
               key={key}
               to={`/trek/${cat.types[0]}`}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0.75rem 0.5rem',
+                padding: '0.75rem 0.5rem', height: 'auto',
                 background: LCARS_CAT_COLORS[key] || 'var(--lcars-sunflower)',
                 borderRadius: '8px', textDecoration: 'none',
-                transition: 'filter 0.15s',
               }}
-              onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-              onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
             >
               <span style={{
                 fontFamily: "'Antonio', sans-serif", fontSize: '0.8rem',
@@ -221,15 +219,14 @@ export default function LCARSTrekDatabase() {
       {/* Quick Links */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
         <Link
+          className="lcars-element button auto"
           to="/trek/episodes"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '0.75rem', background: 'var(--lcars-butterscotch)',
+            padding: '0.75rem', height: 'auto',
+            background: 'var(--lcars-butterscotch)',
             borderRadius: '20px 4px 4px 20px', textDecoration: 'none',
-            transition: 'filter 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-          onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
         >
           <span style={{
             fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',
@@ -240,15 +237,14 @@ export default function LCARSTrekDatabase() {
           </span>
         </Link>
         <Link
+          className="lcars-element button auto"
           to="/trek/ships"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '0.75rem', background: 'var(--lcars-sunflower)',
+            padding: '0.75rem', height: 'auto',
+            background: 'var(--lcars-sunflower)',
             borderRadius: '4px 20px 20px 4px', textDecoration: 'none',
-            transition: 'filter 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.3)'}
-          onMouseLeave={e => e.currentTarget.style.filter = 'brightness(1)'}
         >
           <span style={{
             fontFamily: "'Antonio', sans-serif", fontSize: '0.85rem',

@@ -194,13 +194,17 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
           borderRadius: '4px',
         }}
       >
-        {/* Header bar */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '0.625rem 1rem',
-          background: 'var(--lcars-gold)',
-          flexShrink: 0,
-        }}>
+        {/* Header bar — .lcars-bar for color inheritance */}
+        <div
+          className="lcars-bar"
+          style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '0.625rem 1rem',
+            background: 'var(--lcars-gold)',
+            height: 'auto',
+            flexShrink: 0,
+          }}
+        >
           <div>
             <span style={{
               fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
@@ -208,7 +212,6 @@ export default function LCARSSmartHomeDiscovery({ rooms, onImported, onClose }) 
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.12em',
-              color: 'var(--lcars-text-on-color)',
             }}>
               Entity Discovery
             </span>

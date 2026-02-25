@@ -25,6 +25,7 @@ import { dashboard } from '../../api/client'
 // Import all LCARS CSS files so they're available when the theme is active
 import './lcars-variables.css'
 import './lcars-modern-variables.css'
+import './lcars-library.css'      // Vendored joernweissenborn/lcars structural CSS
 import './lcars-components.css'
 import './lcars-animations.css'
 

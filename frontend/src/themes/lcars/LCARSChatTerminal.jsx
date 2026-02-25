@@ -97,15 +97,19 @@ export default function LCARSChatTerminal({ chat }) {
           overflow: 'hidden',
         }}
       >
-        {/* ── Header Bar ────────────────────────────────────── */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0',
-          background: 'var(--lcars-butterscotch)',
-          flexShrink: 0,
-          minHeight: '36px',
-        }}>
+        {/* ── Header Bar — .lcars-bar for color inheritance ── */}
+        <div
+          className="lcars-bar"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0',
+            background: 'var(--lcars-butterscotch)',
+            flexShrink: 0,
+            minHeight: '36px',
+            height: 'auto',
+          }}
+        >
           {/* Small decorative elbow */}
           <div style={{
             width: '12px',
@@ -122,7 +126,6 @@ export default function LCARSChatTerminal({ chat }) {
             fontWeight: 700,
             textTransform: 'uppercase',
             letterSpacing: '0.15em',
-            color: 'var(--lcars-text-on-color)',
             padding: '0 0.5rem',
             overflow: 'hidden',
             textOverflow: 'ellipsis',

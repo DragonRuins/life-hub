@@ -110,13 +110,13 @@ export default function LCARSTrekShips() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
             {selectedClass && (
               <button
+                className="lcars-element button auto"
                 onClick={() => filterByClass(null)}
                 style={{
                   padding: '0.25rem 0.625rem', borderRadius: '10px',
                   background: 'var(--lcars-tomato)', border: 'none',
-                  cursor: 'pointer', fontFamily: "'Antonio', sans-serif",
-                  fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase',
-                  color: 'var(--lcars-text-on-color)', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  height: 'auto', fontSize: '0.7rem',
+                  alignItems: 'center', justifyContent: 'center', gap: '0.25rem',
                 }}
               >
                 <X size={10} /> Clear
@@ -124,19 +124,16 @@ export default function LCARSTrekShips() {
             )}
             {classes.slice(0, 30).map(cls => (
               <button
+                className="lcars-element button auto"
                 key={cls.uid}
                 onClick={() => filterByClass(cls)}
                 style={{
                   padding: '0.25rem 0.625rem', borderRadius: '10px',
                   background: selectedClass?.uid === cls.uid ? 'var(--lcars-sunflower)' : 'var(--lcars-tanoi)',
-                  border: 'none', cursor: 'pointer',
-                  fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
-                  fontWeight: 600, textTransform: 'uppercase', color: 'var(--lcars-text-on-color)',
+                  border: 'none', height: 'auto', fontSize: '0.7rem',
                   opacity: selectedClass?.uid === cls.uid ? 1 : 0.7,
-                  transition: 'opacity 0.15s, filter 0.15s',
+                  alignItems: 'center', justifyContent: 'center',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.filter = 'brightness(1.2)' }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = selectedClass?.uid === cls.uid ? '1' : '0.7'; e.currentTarget.style.filter = 'brightness(1)' }}
               >
                 {cls.name}
               </button>
@@ -212,16 +209,17 @@ export default function LCARSTrekShips() {
 function PillButton({ onClick, disabled, children }) {
   return (
     <button
+      className="lcars-element button auto"
       onClick={onClick}
       disabled={disabled}
       style={{
         padding: '0.2rem 0.75rem', borderRadius: '10px',
         background: disabled ? 'var(--lcars-gray)' : '#000',
-        border: 'none', cursor: disabled ? 'default' : 'pointer',
-        fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem',
-        fontWeight: 600, textTransform: 'uppercase',
+        border: 'none', height: 'auto',
+        fontSize: '0.7rem',
         color: disabled ? '#666' : 'var(--lcars-sunflower)',
         opacity: disabled ? 0.5 : 1,
+        alignItems: 'center', justifyContent: 'center',
       }}
     >
       {children}

@@ -82,7 +82,7 @@ export default function LCARSLayout({ children, chat }) {
     <div className={`lcars-layout ${alertClass} ${modernClass}`.trim()}>
       {/* Top-left elbow connecting sidebar to header */}
       <div className="lcars-elbow-tl">
-        <LCARSElbow color="var(--lcars-sunflower)" position="tl" />
+        <LCARSElbow color="var(--lcars-sunflower)" position="tl" label="LCARS 47" />
       </div>
 
       {/* Top header bar */}
@@ -113,25 +113,17 @@ export default function LCARSLayout({ children, chat }) {
             <LCARSElbow color="var(--lcars-ice)" position="tr" />
           </div>
 
-          {/* Right decorative strip — colored pill segments */}
-          <div
-            className="lcars-right-strip"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '3px',
-              padding: '3px 0',
-              background: '#000',
-            }}
-          >
+          {/* Right decorative strip — colored pill segments
+              NOTE: display is set in CSS, NOT inline, so the mobile
+              media query's display:none !important can take effect. */}
+          <div className="lcars-right-strip">
             {RIGHT_STRIP_COLORS.map((color, i) => (
               <div
                 key={i}
+                className="lcars-right-strip-pill"
                 style={{
                   flex: i === 0 || i === RIGHT_STRIP_COLORS.length - 1 ? 2 : 1,
                   background: color,
-                  borderRadius: '0 16px 16px 0',
-                  opacity: 0.7,
                 }}
               />
             ))}
