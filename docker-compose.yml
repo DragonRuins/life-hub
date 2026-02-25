@@ -58,7 +58,7 @@ services:
     environment:
       - VITE_API_URL=http://localhost:5000/api
     volumes:
-      - ./frontend:/app           # Hot-reload for development
+      - ./frontend:/app:delegated  # Hot-reload for development (delegated for macOS perf)
       - /app/node_modules          # Don't overwrite container's node_modules
     ports:
       - "3000:3000"

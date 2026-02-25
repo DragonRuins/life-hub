@@ -344,13 +344,12 @@ export default function GlassDashboard() {
           gap: '0.75rem',
         }}>
           {[
-            { label: 'Vehicles', value: systemStats?.vehicles ?? 0, icon: Car, color: '#0A84FF', to: '/vehicles' },
             { label: 'Notes', value: systemStats?.notes?.count ?? 0, icon: StickyNote, color: '#BF5AF2', to: '/notes' },
-            { label: 'Projects', value: systemStats?.projects ?? 0, icon: FolderKanban, color: '#30D158', to: '/projects' },
-            { label: 'Knowledge', value: systemStats?.knowledge_articles ?? 0, icon: BookOpen, color: '#FF9F0A', to: '/kb' },
-            { label: 'Hosts', value: systemStats?.hosts ?? 0, icon: Server, color: '#64D2FF', to: '/infrastructure' },
-            { label: 'Objects', value: systemStats?.celestial_objects ?? 0, icon: Telescope, color: '#FFD60A', to: '/astrometrics' },
-            { label: 'Database', value: systemStats?.trek_favorites ?? 0, icon: Library, color: '#FF375F', to: '/trek' },
+            { label: 'Projects', value: systemStats?.projects?.active ?? 0, icon: FolderKanban, color: '#30D158', to: '/projects' },
+            { label: 'Knowledge', value: systemStats?.kb?.total ?? 0, icon: BookOpen, color: '#FF9F0A', to: '/kb' },
+            { label: 'Hosts', value: systemStats?.infrastructure?.hosts ?? 0, icon: Server, color: '#64D2FF', to: '/infrastructure' },
+            { label: 'Space', value: systemStats?.astrometrics?.crew_in_space ?? 0, icon: Telescope, color: '#FFD60A', to: '/astrometrics' },
+            { label: 'Database', value: systemStats?.trek?.cached_entities ?? 0, icon: Library, color: '#FF375F', to: '/trek' },
           ].map(stat => (
             <Link
               key={stat.label}

@@ -1,5 +1,33 @@
 # Datacore - CLAUDE.md
 
+## Multi-Project Setup: Web App + Native iOS App
+
+Datacore has TWO codebases that share the same Flask backend API:
+
+| Project | Path | Tech | Purpose |
+|---------|------|------|---------|
+| **Web App** | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL | The main web dashboard (this repo) |
+| **iOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/` | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
+
+**How to direct Claude to the right project:**
+- Default context is the **web app** (this repo). Web app work follows the triple-theme requirement below.
+- To work on the **iOS app**, say "work on the Apple app" or "switch to the Xcode project" or reference the `Datacore-Apple` path. iOS work does NOT follow the triple-theme requirement — it uses native iOS 26 Liquid Glass via SwiftUI.
+- The iOS app is a **read-only API client** — it consumes the Flask REST API as-is. No backend changes are needed for iOS features.
+- When exploring iOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/Datacore/`.
+- The iOS project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
+- To type-check iOS code without a simulator: use `swiftc -typecheck -sdk ...iPhoneSimulator.sdk -target arm64-apple-ios26.0-simulator`.
+
+**iOS App Architecture (quick reference):**
+- `Datacore/Network/` — `APIClient` (actor, async/await), `Endpoint` enum (all API routes), `APIError`
+- `Datacore/Models/` — Codable structs matching Flask `to_dict()` output (snake_case auto-converted)
+- `Datacore/ViewModels/` — `@Observable @MainActor` classes, one per module
+- `Datacore/Views/` — SwiftUI views organized by module (Dashboard, Vehicles, Notes, etc.)
+- `Datacore/Views/Shared/` — Reusable components: `GlassCard`, `StatCard`, `LoadingView`, `ErrorView`, `EmptyStateView`
+- `Datacore/Config/ServerConfig.swift` — UserDefaults-backed server address
+- Navigation: `TabView` (iPhone) / `NavigationSplitView` (iPad), both get native Liquid Glass on iOS 26
+
+---
+
 ## Important Notes for Agents
 
 **IMPORTANT: Triple-Theme Requirement (ALL THREE themes must have parity)**
