@@ -1,0 +1,251 @@
+/* ── Liquid Glass Component Overrides ──────────────────────────────
+   Overrides .card, .btn, input, etc. with glass effects when
+   .glass-theme is active on <html>. Uses three-layer glass
+   architecture: base element + ::before (inner glow) + ::after (depth).
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Typography ───────────────────────────────────────────────── */
+
+.glass-theme body {
+  font-family: var(--glass-font);
+  font-weight: var(--glass-font-weight-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #000000;
+  color: var(--color-text);
+}
+
+.glass-theme code,
+.glass-theme .mono {
+  font-family: var(--glass-font-mono);
+}
+
+.glass-theme label {
+  font-weight: var(--glass-font-weight-label);
+  color: var(--color-subtext-1);
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.8125rem;
+}
+
+/* ── Cards (Three-Layer Glass) ────────────────────────────────── */
+
+.glass-theme .card {
+  position: relative;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border: var(--glass-border);
+  border-radius: var(--glass-radius-lg);
+  box-shadow: var(--glass-shadow);
+  padding: 1.5rem;
+  transition: var(--glass-transition);
+  overflow: hidden;
+}
+
+/* Inner glow layer */
+.glass-theme .card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: var(--glass-inner-glow), var(--glass-inner-glow-strong);
+  pointer-events: none;
+}
+
+.glass-theme .card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--glass-bg-hover);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+
+.glass-theme .btn {
+  font-family: var(--glass-font);
+  font-weight: var(--glass-font-weight-label);
+  border-radius: 980px; /* capsule */
+  padding: 0.5rem 1.25rem;
+  transition: var(--glass-transition-fast);
+  position: relative;
+  backdrop-filter: var(--glass-blur-subtle) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur-subtle) var(--glass-saturate);
+}
+
+.glass-theme .btn-primary {
+  background: var(--glass-system-blue);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 0 16px rgba(10, 132, 255, 0.25);
+}
+
+.glass-theme .btn-primary:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(10, 132, 255, 0.35);
+}
+
+.glass-theme .btn-ghost {
+  background: var(--glass-bg);
+  color: var(--color-text);
+  border: var(--glass-border);
+}
+
+.glass-theme .btn-ghost:hover {
+  background: var(--glass-bg-hover);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.glass-theme .btn-danger {
+  background: transparent;
+  color: var(--glass-system-red);
+  border: 1px solid transparent;
+}
+
+.glass-theme .btn-danger:hover {
+  background: rgba(255, 69, 58, 0.12);
+}
+
+/* ── Form Inputs ──────────────────────────────────────────────── */
+
+.glass-theme input,
+.glass-theme textarea,
+.glass-theme select {
+  font-family: var(--glass-font);
+  font-weight: var(--glass-font-weight-body);
+  background: rgba(255, 255, 255, 0.05);
+  border: var(--glass-border);
+  border-radius: var(--glass-radius-sm);
+  color: var(--color-text);
+  transition: var(--glass-transition-fast);
+}
+
+.glass-theme input:focus,
+.glass-theme textarea:focus,
+.glass-theme select:focus {
+  outline: none;
+  border-color: var(--glass-system-blue);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15), var(--glass-shadow-sm);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.glass-theme input::placeholder,
+.glass-theme textarea::placeholder {
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.glass-theme select option {
+  background: #1a1a2e;
+  color: #ffffff;
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+
+.glass-theme table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.glass-theme th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-subtext-1);
+  font-weight: var(--glass-font-weight-label);
+  border-bottom: var(--glass-border);
+}
+
+.glass-theme td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-theme tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+
+.glass-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.glass-theme ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.glass-theme ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.glass-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Tooltips ─────────────────────────────────────────────────── */
+
+.glass-theme [data-tooltip]::after {
+  background: rgba(30, 30, 40, 0.95);
+  backdrop-filter: var(--glass-blur-subtle);
+  border: var(--glass-border);
+  border-radius: var(--glass-radius-xs);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+/* ── Responsive Grid Overrides ────────────────────────────────── */
+
+.glass-theme .form-grid-2col {
+  gap: 1.25rem;
+}
+
+.glass-theme .form-grid-3col {
+  gap: 1.25rem;
+}
+
+/* ── Links ────────────────────────────────────────────────────── */
+
+.glass-theme a {
+  transition: var(--glass-transition-fast);
+}
+
+/* ── Fallback for browsers without backdrop-filter ────────────── */
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-theme .card {
+    background: rgba(20, 20, 30, 0.92);
+    backdrop-filter: none;
+  }
+
+  .glass-theme .btn {
+    backdrop-filter: none;
+  }
+
+  .glass-theme input,
+  .glass-theme textarea,
+  .glass-theme select {
+    background: rgba(20, 20, 30, 0.85);
+  }
+}
+
+/* ── Reduced Transparency ─────────────────────────────────────── */
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-theme .card {
+    background: rgba(20, 20, 30, 0.95);
+    backdrop-filter: none;
+  }
+}
+
+/* ── Mobile Overrides ─────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .glass-theme .card {
+    backdrop-filter: var(--glass-blur-mobile) var(--glass-saturate);
+    -webkit-backdrop-filter: var(--glass-blur-mobile) var(--glass-saturate);
+    padding: 1rem;
+    border-radius: var(--glass-radius);
+  }
+
+  .glass-theme .btn {
+    backdrop-filter: none;
+  }
+}

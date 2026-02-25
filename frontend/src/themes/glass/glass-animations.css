@@ -1,0 +1,157 @@
+/* ── Liquid Glass Animations ───────────────────────────────────────
+   Subtle entrance animations, glow effects, and shimmer for the
+   glass theme. All animations respect prefers-reduced-motion.
+   ─────────────────────────────────────────────────────────────── */
+
+/* ── Card Entrance (fade + subtle rise) ───────────────────────── */
+
+@keyframes glass-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-theme .glass-animate-in {
+  animation: glass-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Staggered entrance for card grids */
+.glass-theme .glass-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.glass-theme .glass-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.glass-theme .glass-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.glass-theme .glass-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.glass-theme .glass-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.glass-theme .glass-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.glass-theme .glass-stagger > *:nth-child(7) { animation-delay: 300ms; }
+.glass-theme .glass-stagger > *:nth-child(8) { animation-delay: 350ms; }
+
+/* ── Focus Glow Pulse ─────────────────────────────────────────── */
+
+@keyframes glass-focus-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.25);
+  }
+}
+
+.glass-theme input:focus,
+.glass-theme textarea:focus,
+.glass-theme select:focus {
+  animation: glass-focus-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ── Border Shimmer (very subtle iridescence) ─────────────────── */
+
+@keyframes glass-shimmer {
+  0% {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  100% {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.glass-theme .glass-shimmer {
+  animation: glass-shimmer 8s ease-in-out infinite;
+}
+
+/* ── Page Transition ──────────────────────────────────────────── */
+
+@keyframes glass-page-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.glass-theme .glass-page-enter {
+  animation: glass-page-enter 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.glass-theme .glass-page-exit {
+  opacity: 0;
+  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Modal Entrance ───────────────────────────────────────────── */
+
+@keyframes glass-modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glass-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.glass-theme .glass-modal-animate {
+  animation: glass-modal-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.glass-theme .glass-backdrop-animate {
+  animation: glass-backdrop-enter 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Sidebar Slide ────────────────────────────────────────────── */
+
+@keyframes glass-slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.glass-theme .glass-slide-in {
+  animation: glass-slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Reduced Motion ───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-theme .glass-animate-in,
+  .glass-theme .glass-stagger > *,
+  .glass-theme .glass-shimmer,
+  .glass-theme .glass-page-enter,
+  .glass-theme .glass-modal-animate,
+  .glass-theme .glass-backdrop-animate,
+  .glass-theme .glass-slide-in {
+    animation: none !important;
+  }
+
+  .glass-theme input:focus,
+  .glass-theme textarea:focus,
+  .glass-theme select:focus {
+    animation: none !important;
+  }
+
+  .glass-theme .glass-page-exit {
+    transition: none !important;
+  }
+}

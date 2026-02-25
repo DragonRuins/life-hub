@@ -1,0 +1,116 @@
+/* ── Liquid Glass Theme Variables ──────────────────────────────────
+   Apple-inspired Liquid Glass design language.
+   All glass effects and color overrides scoped under .glass-theme.
+   This file overrides the Catppuccin --color-* variables so that
+   inline styles using var(--color-*) automatically transform.
+   ─────────────────────────────────────────────────────────────── */
+
+.glass-theme {
+  /* ── Apple System Colors (Dark Mode) ────────────────────────── */
+  --glass-system-blue: #0A84FF;
+  --glass-system-green: #30D158;
+  --glass-system-orange: #FF9F0A;
+  --glass-system-red: #FF453A;
+  --glass-system-purple: #BF5AF2;
+  --glass-system-yellow: #FFD60A;
+  --glass-system-cyan: #64D2FF;
+  --glass-system-indigo: #5E5CE6;
+  --glass-system-pink: #FF375F;
+  --glass-system-mint: #66D4CF;
+  --glass-system-teal: #30B0C7;
+
+  /* ── Catppuccin Variable Overrides ──────────────────────────
+     Maps --color-* to Apple system colors so existing components
+     get glass treatment automatically. */
+
+  /* Base backgrounds — deep black for maximum glass contrast */
+  --color-base: #111118;
+  --color-mantle: #0a0a0f;
+  --color-crust: #000000;
+
+  /* Surfaces — translucent glass layers (ascending opacity) */
+  --color-surface-0: rgba(255, 255, 255, 0.06);
+  --color-surface-1: rgba(255, 255, 255, 0.10);
+  --color-surface-2: rgba(255, 255, 255, 0.14);
+
+  /* Overlays */
+  --color-overlay-0: rgba(255, 255, 255, 0.30);
+  --color-overlay-1: rgba(255, 255, 255, 0.40);
+
+  /* Text — bright white with slight warmth */
+  --color-text: rgba(255, 255, 255, 0.92);
+  --color-subtext-0: rgba(255, 255, 255, 0.55);
+  --color-subtext-1: rgba(255, 255, 255, 0.70);
+
+  /* Accent colors — Apple system palette */
+  --color-blue: #0A84FF;
+  --color-green: #30D158;
+  --color-peach: #FF9F0A;
+  --color-red: #FF453A;
+  --color-mauve: #BF5AF2;
+  --color-yellow: #FFD60A;
+  --color-teal: #64D2FF;
+  --color-sky: #66D4CF;
+  --color-lavender: #5E5CE6;
+  --color-flamingo: #FF375F;
+  --color-rosewater: #FF6482;
+
+  /* ── Glass Effect Variables ─────────────────────────────────── */
+
+  /* Blur intensities */
+  --glass-blur: blur(20px);
+  --glass-blur-heavy: blur(40px);
+  --glass-blur-subtle: blur(10px);
+  --glass-blur-mobile: blur(10px);
+
+  /* Glass backgrounds (dark mode — light values on dark base) */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-hover: rgba(255, 255, 255, 0.12);
+  --glass-bg-active: rgba(255, 255, 255, 0.16);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.10);
+  --glass-bg-sidebar: rgba(255, 255, 255, 0.05);
+
+  /* Glass borders */
+  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+  --glass-border-hover: 1px solid rgba(255, 255, 255, 0.18);
+  --glass-border-focus: 1px solid var(--glass-system-blue);
+  --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+  --glass-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
+  --glass-shadow-glow: 0 0 20px rgba(10, 132, 255, 0.15);
+
+  /* Inner glow (for ::before pseudo-element) */
+  --glass-inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  --glass-inner-glow-strong: inset 0 0 20px -5px rgba(255, 255, 255, 0.06);
+
+  /* Corner radii */
+  --glass-radius: 16px;
+  --glass-radius-lg: 20px;
+  --glass-radius-sm: 10px;
+  --glass-radius-xs: 8px;
+  /* Capsule: border-radius = half of element height (applied in CSS) */
+
+  /* Saturation boost */
+  --glass-saturate: saturate(180%);
+
+  /* Transition easing — Apple standard */
+  --glass-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography */
+  --glass-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Outfit', sans-serif;
+  --glass-font-mono: 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --glass-font-weight-body: 500;
+  --glass-font-weight-label: 600;
+  --glass-font-weight-heading: 700;
+
+  /* Layout sizes */
+  --glass-sidebar-width: 240px;
+  --glass-sidebar-collapsed: 68px;
+  --glass-header-height: 52px;
+  --glass-mobile-nav-height: 68px;
+}

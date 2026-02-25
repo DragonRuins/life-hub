@@ -11,15 +11,16 @@
  * the TR elbow. In Classic, it has a rounded pill end-cap.
  */
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Bell, Settings, Palette, Check, ExternalLink, Maximize, Minimize, MessageSquare } from 'lucide-react'
+import { Bell, Settings, Check, ExternalLink, Maximize, Minimize, MessageSquare } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from './ThemeProvider'
 import { notifications } from '../../api/client'
 import useIsMobile from '../../hooks/useIsMobile'
 import LCARSSmartHomeQuickMenu from './LCARSSmartHomeQuickMenu'
+import ThemeSwitcher from '../../components/ThemeSwitcher'
 
 export default function LCARSHeader({ chat }) {
-  const { setTheme, isLCARS, isModernLCARS } = useTheme()
+  const { isLCARS, isModernLCARS } = useTheme()
   const isMobile = useIsMobile()
   const [isFullscreen, setIsFullscreen] = useState(!!document.fullscreenElement)
 
@@ -206,28 +207,8 @@ export default function LCARSHeader({ chat }) {
           <MessageSquare size={iconSize} />
         </button>
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={() => setTheme(isLCARS ? 'catppuccin' : 'lcars')}
-          title={`Switch to ${isLCARS ? 'Catppuccin' : 'LCARS'} theme`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: `${btnSize}px`,
-            height: `${btnSize}px`,
-            borderRadius: '50%',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--lcars-text-on-color)',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <Palette size={iconSize} />
-        </button>
+        {/* Theme Switcher Dropdown */}
+        <ThemeSwitcher />
 
         {/* Fullscreen Toggle (desktop only) */}
         {!isMobile && (

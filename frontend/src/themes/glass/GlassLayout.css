@@ -1,0 +1,138 @@
+/* ── Glass Layout Grid ─────────────────────────────────────────────
+   CSS Grid shell for the Liquid Glass theme.
+   Desktop: sidebar (240px) | main content (1fr)
+   Mobile: single column, sidebar hidden, bottom nav visible.
+   ─────────────────────────────────────────────────────────────── */
+
+.glass-layout {
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000000;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────── */
+
+.glass-sidebar {
+  width: var(--glass-sidebar-width);
+  background: var(--glass-bg-sidebar);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.glass-sidebar.collapsed {
+  width: var(--glass-sidebar-collapsed);
+}
+
+/* ── Main Content ─────────────────────────────────────────────── */
+
+.glass-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: #000000;
+  min-width: 0;
+}
+
+.glass-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+
+.glass-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.5rem;
+  min-height: var(--glass-header-height);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* ── Mobile Drawer Overlay ────────────────────────────────────── */
+
+.glass-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+}
+
+.glass-drawer {
+  width: 280px;
+  height: 100%;
+  background: rgba(10, 10, 15, 0.95);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  animation: glass-slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes glass-slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── Bottom Mobile Nav ────────────────────────────────────────── */
+
+.glass-mobile-nav {
+  display: none;
+}
+
+/* ── Mobile Overrides ─────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .glass-sidebar {
+    display: none;
+  }
+
+  .glass-header {
+    padding: 0.5rem 1rem;
+    padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  }
+
+  .glass-content {
+    padding: 1rem;
+    /* Leave space for bottom nav */
+    padding-bottom: calc(1rem + var(--glass-mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .glass-mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

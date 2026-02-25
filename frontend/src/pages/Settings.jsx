@@ -143,7 +143,8 @@ const MODULE_CARDS = [
 ]
 
 export default function Settings() {
-  const { isLCARS, colorScheme, setColorScheme } = useTheme()
+  const { isLCARS, isGlass, colorScheme, setColorScheme } = useTheme()
+  const themeOverrideActive = isLCARS || isGlass
 
   return (
     <div style={{ maxWidth: '900px' }}>
@@ -166,9 +167,9 @@ export default function Settings() {
         </div>
         <p style={{ color: 'var(--color-subtext-0)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
           Select a color palette for the standard theme. Changes apply immediately.
-          {isLCARS && (
+          {themeOverrideActive && (
             <span style={{ display: 'block', marginTop: '0.5rem', color: 'var(--color-yellow)' }}>
-              Color scheme selection is disabled while LCARS theme is active.
+              Color scheme selection is disabled while {isLCARS ? 'LCARS' : 'Liquid Glass'} theme is active.
             </span>
           )}
         </p>
@@ -191,7 +192,7 @@ export default function Settings() {
                   key={scheme.key}
                   scheme={scheme}
                   isActive={colorScheme === scheme.key}
-                  disabled={isLCARS}
+                  disabled={themeOverrideActive}
                   onSelect={() => setColorScheme(scheme.key)}
                 />
               ))}
