@@ -13,6 +13,181 @@
   font-family: 'Outfit', sans-serif;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   LCARS Typography Enhancement System
+   ─────────────────────────────────────────────────────────────────
+   Addresses readability issues with Antonio (narrow display font)
+   on dark backgrounds by adjusting font rendering, weight, size,
+   spacing, and adding depth via text-shadow.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Root Font Size Scaling ────────────────────────────────────────
+   All LCARS components use `rem` units for font-size. By setting a
+   slightly larger root font-size on .lcars-theme (which lives on
+   <html>), every rem value across all 43+ LCARS files scales up
+   proportionally. 17px = ~6% increase over the 16px browser default.
+   This is the cleanest way to improve readability globally without
+   touching inline styles. */
+
+.lcars-theme {
+  font-size: 17px;
+}
+
+/* ── Font Rendering Pipeline ──────────────────────────────────────
+   1. Switch to `auto` font-smoothing: the global `antialiased` makes
+      text THINNER on dark backgrounds (macOS WebKit quirk). Letting
+      the browser choose gives heavier, more legible strokes.
+   2. `optimizeLegibility` enables contextual kerning and ligatures.
+   3. `font-optical-sizing: auto` adjusts variable-font optical axes
+      for the rendered size (Antonio supports this).
+   4. `font-feature-settings` enables OpenType features for cleaner
+      number/letter spacing in both Antonio and JetBrains Mono. */
+
+.lcars-theme,
+.lcars-theme body,
+.lcars-theme * {
+  -webkit-font-smoothing: auto !important;
+  -moz-osx-font-smoothing: auto !important;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+}
+
+/* ── Antonio Display Font Enhancements ─────────────────────────── */
+/* Antonio is narrow and light at small sizes on dark backgrounds.
+   Bump the minimum weight and widen letter-spacing for readability.
+   The `font-synthesis: weight` allows the browser to synthesize
+   bolder strokes when needed. */
+
+.lcars-theme [style*="'Antonio'"],
+.lcars-theme [style*="Antonio"],
+.lcars-theme h1,
+.lcars-theme h2,
+.lcars-theme h3,
+.lcars-theme label,
+.lcars-theme th,
+.lcars-theme .btn {
+  font-synthesis: weight;
+}
+
+/* ── Text Depth & Glow System ──────────────────────────────────── */
+/* Two-layer shadow approach:
+     Layer 1: dark lift shadow (pushes text forward from black bg)
+     Layer 2: colored glow matching the text's own color (emissive)
+   The `color-mix()` function derives the glow from currentColor,
+   so it automatically adapts to any text color without hard-coding. */
+
+/* Headings: prominent glow + lift — these are the main readability
+   anchors on LCARS screens */
+.lcars-theme h1 {
+  text-shadow:
+    0 0 20px color-mix(in srgb, currentColor 18%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.7) !important;
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+}
+
+.lcars-theme h2 {
+  text-shadow:
+    0 0 16px color-mix(in srgb, currentColor 15%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.6) !important;
+  font-size: 1.3rem !important;
+  font-weight: 600 !important;
+}
+
+.lcars-theme h3 {
+  text-shadow:
+    0 0 12px color-mix(in srgb, currentColor 12%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.5) !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+
+/* Labels: subtle glow for form/field labels */
+.lcars-theme label {
+  text-shadow:
+    0 0 8px color-mix(in srgb, currentColor 12%, transparent) !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+}
+
+/* Table headers: match label treatment */
+.lcars-theme th {
+  text-shadow:
+    0 0 8px color-mix(in srgb, currentColor 12%, transparent) !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+}
+
+/* Body text inside LCARS frame: soft lift shadow for readability */
+.lcars-theme .lcars-content {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Data values: subtle depth for monospace readout text */
+.lcars-theme .lcars-content [style*="JetBrains"],
+.lcars-theme .lcars-content [style*="monospace"],
+.lcars-theme code,
+.lcars-theme .mono {
+  text-shadow:
+    0 0 6px color-mix(in srgb, currentColor 8%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Table cell text: needs separation from dark rows */
+.lcars-theme td {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  font-size: 0.88rem !important;
+}
+
+/* Links: glow on hover for better interactive affordance */
+.lcars-theme a:hover {
+  text-shadow: 0 0 10px color-mix(in srgb, currentColor 20%, transparent);
+}
+
+/* Buttons: slight lift for text on colored backgrounds */
+.lcars-theme .btn {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* Form input text: ensure readable size */
+.lcars-theme input,
+.lcars-theme textarea,
+.lcars-theme select {
+  font-size: 0.88rem !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Panel Header Title Enhancement ─────────────────────────────── */
+/* Panel headers (Antonio on colored backgrounds) are set inline.
+   These selectors target the colored bar title text specifically. */
+
+.lcars-theme .lcars-scan-stripe span,
+.lcars-theme [style*="borderTopRightRadius"] > span:first-child {
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Ghost / Transparent Text Enhancement ───────────────────────── */
+/* Text on transparent/dark backgrounds needs stronger lift */
+
+.lcars-theme .btn-ghost {
+  text-shadow:
+    0 0 8px color-mix(in srgb, currentColor 15%, transparent),
+    0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ── Placeholder Text ───────────────────────────────────────────── */
+.lcars-theme input::placeholder,
+.lcars-theme textarea::placeholder {
+  text-shadow: none !important;
+  font-size: 0.85rem !important;
+}
+
 /* ── Cards → LCARS Data Panels ─────────────────────────────── */
 /* Cards become terminal-style data readout panels with a colored
    top accent bar (like LCARS window headers) */
@@ -179,21 +354,21 @@
 .lcars-theme h1 {
   font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.1em !important;
+  letter-spacing: 0.14em !important;
   color: var(--lcars-space-white) !important;
 }
 
 .lcars-theme h2 {
   font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.1em !important;
   color: var(--lcars-sunflower) !important;
 }
 
 .lcars-theme h3 {
   font-family: 'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.08em !important;
   color: var(--lcars-ice) !important;
 }
 
@@ -355,4 +530,30 @@
 
 .lcars-theme.lcars-modern select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238BA4B5' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+}
+
+/* ── Modern Variant Typography ──────────────────────────────────── */
+/* The deeper backgrounds (#080A0F) and desaturated text colors need
+   slightly stronger glow/lift to maintain readability. */
+
+.lcars-theme.lcars-modern .lcars-content {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.lcars-theme.lcars-modern h1 {
+  text-shadow:
+    0 0 24px color-mix(in srgb, currentColor 22%, transparent),
+    0 1px 4px rgba(0, 0, 0, 0.8) !important;
+}
+
+.lcars-theme.lcars-modern h2 {
+  text-shadow:
+    0 0 18px color-mix(in srgb, currentColor 18%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.7) !important;
+}
+
+.lcars-theme.lcars-modern h3 {
+  text-shadow:
+    0 0 14px color-mix(in srgb, currentColor 15%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.6) !important;
 }
