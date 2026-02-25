@@ -1,6 +1,6 @@
 /* ── Liquid Glass Animations ───────────────────────────────────────
-   Subtle entrance animations, glow effects, and shimmer for the
-   glass theme. All animations respect prefers-reduced-motion.
+   Spring physics, material illumination, and shimmer effects for
+   the Liquid Glass theme. All animations respect prefers-reduced-motion.
    ─────────────────────────────────────────────────────────────── */
 
 /* ── Card Entrance (fade + subtle rise) ───────────────────────── */
@@ -17,7 +17,7 @@
 }
 
 .glass-theme .glass-animate-in {
-  animation: glass-fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: glass-fade-in 0.4s var(--glass-ease) both;
 }
 
 /* Staggered entrance for card grids */
@@ -29,6 +29,30 @@
 .glass-theme .glass-stagger > *:nth-child(6) { animation-delay: 250ms; }
 .glass-theme .glass-stagger > *:nth-child(7) { animation-delay: 300ms; }
 .glass-theme .glass-stagger > *:nth-child(8) { animation-delay: 350ms; }
+.glass-theme .glass-stagger > *:nth-child(9) { animation-delay: 400ms; }
+.glass-theme .glass-stagger > *:nth-child(10) { animation-delay: 450ms; }
+.glass-theme .glass-stagger > *:nth-child(11) { animation-delay: 500ms; }
+.glass-theme .glass-stagger > *:nth-child(12) { animation-delay: 550ms; }
+
+/* ── Spring Entrance (bounce overshoot) ───────────────────────── */
+
+@keyframes glass-spring-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  60% {
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.glass-theme .glass-spring-in {
+  animation: glass-spring-in 0.5s var(--glass-ease-spring) both;
+}
 
 /* ── Focus Glow Pulse ─────────────────────────────────────────── */
 
@@ -44,25 +68,41 @@
 .glass-theme input:focus,
 .glass-theme textarea:focus,
 .glass-theme select:focus {
-  animation: glass-focus-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: glass-focus-pulse 2s var(--glass-ease) infinite;
 }
 
-/* ── Border Shimmer (very subtle iridescence) ─────────────────── */
+/* ── Border Shimmer (subtle iridescence) ──────────────────────── */
 
 @keyframes glass-shimmer {
   0% {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.10);
   }
   50% {
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.16);
   }
   100% {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.10);
   }
 }
 
 .glass-theme .glass-shimmer {
   animation: glass-shimmer 8s ease-in-out infinite;
+}
+
+/* ── Material Illumination ────────────────────────────────────── */
+/* Simulates light concentration when hovering over glass material */
+
+@keyframes glass-illuminate {
+  from {
+    box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+  to {
+    box-shadow: inset 0 0 40px -10px rgba(255, 255, 255, 0.06);
+  }
+}
+
+.glass-theme .glass-panel:hover {
+  animation: glass-illuminate 0.3s var(--glass-ease) forwards;
 }
 
 /* ── Page Transition ──────────────────────────────────────────── */
@@ -77,20 +117,23 @@
 }
 
 .glass-theme .glass-page-enter {
-  animation: glass-page-enter 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: glass-page-enter 0.25s var(--glass-ease) both;
 }
 
 .glass-theme .glass-page-exit {
   opacity: 0;
-  transition: opacity 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.1s var(--glass-ease);
 }
 
-/* ── Modal Entrance ───────────────────────────────────────────── */
+/* ── Modal Entrance (spring scale) ───────────────────────────── */
 
 @keyframes glass-modal-enter {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.92);
+  }
+  60% {
+    transform: scale(1.01);
   }
   to {
     opacity: 1;
@@ -108,14 +151,14 @@
 }
 
 .glass-theme .glass-modal-animate {
-  animation: glass-modal-enter 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: glass-modal-enter 0.35s var(--glass-ease-spring) both;
 }
 
 .glass-theme .glass-backdrop-animate {
-  animation: glass-backdrop-enter 0.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: glass-backdrop-enter 0.2s var(--glass-ease) both;
 }
 
-/* ── Sidebar Slide ────────────────────────────────────────────── */
+/* ── Sidebar Slide (drawer on mobile) ────────────────────────── */
 
 @keyframes glass-slide-in-left {
   from {
@@ -129,19 +172,67 @@
 }
 
 .glass-theme .glass-slide-in {
-  animation: glass-slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: glass-slide-in-left 0.3s var(--glass-ease) both;
+}
+
+/* ── Bento Grid Item Entrance ─────────────────────────────────── */
+
+@keyframes glass-bento-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.glass-theme .glass-bento-item {
+  animation: glass-bento-in 0.4s var(--glass-ease) both;
+}
+
+/* ── Capsule Tab Active Indicator ─────────────────────────────── */
+
+@keyframes glass-tab-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(10, 132, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(10, 132, 255, 0.3);
+  }
+}
+
+/* ── Stat Card Number Count-Up (optional via JS) ──────────────── */
+
+@keyframes glass-count-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-theme .glass-count-animate {
+  animation: glass-count-up 0.5s var(--glass-ease-spring) both;
 }
 
 /* ── Reduced Motion ───────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .glass-theme .glass-animate-in,
+  .glass-theme .glass-spring-in,
   .glass-theme .glass-stagger > *,
   .glass-theme .glass-shimmer,
   .glass-theme .glass-page-enter,
   .glass-theme .glass-modal-animate,
   .glass-theme .glass-backdrop-animate,
-  .glass-theme .glass-slide-in {
+  .glass-theme .glass-slide-in,
+  .glass-theme .glass-bento-item,
+  .glass-theme .glass-count-animate {
     animation: none !important;
   }
 
@@ -153,5 +244,9 @@
 
   .glass-theme .glass-page-exit {
     transition: none !important;
+  }
+
+  .glass-theme .glass-panel:hover {
+    animation: none !important;
   }
 }

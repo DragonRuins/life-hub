@@ -1,12 +1,20 @@
 /**
- * GlassSidebar.jsx - Glass Theme Sidebar Navigation
+ * GlassSidebar.jsx - Floating Inset Glass Sidebar
  *
- * Translucent glass sidebar with Apple-style nav items.
- * Collapsible (icon-only mode) with smooth width transition.
- * Active item has system blue tint background.
+ * Floats with inset margins from viewport edges.
+ * Apple Liquid Glass material: translucent, blurred, with inner glow.
+ * Nav items illuminate on hover (material responds to interaction).
+ * Collapsible to icon-only mode with smooth width transition.
+ *
+ * The sidebar CSS (.glass-sidebar) is in GlassLayout.css — it handles
+ * the floating position, glass material, and border-radius.
+ * This component only renders the nav content inside it.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library, ChevronLeft, ChevronRight, Settings } from 'lucide-react'
+import {
+  LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen,
+  Server, Telescope, Library, ChevronLeft, ChevronRight, Settings
+} from 'lucide-react'
 
 export const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -25,31 +33,35 @@ export default function GlassSidebar({ collapsed, onToggle }) {
       {/* Logo / Brand */}
       <div
         style={{
-          padding: collapsed ? '1.25rem 0' : '1.25rem 1.25rem',
+          padding: collapsed ? '1.25rem 0' : '1.25rem 1rem',
           borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
           gap: '0.625rem',
-          minHeight: '64px',
+          minHeight: '60px',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <img
           src="/icon.svg"
           alt="Datacore"
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '10px',
+            width: '30px',
+            height: '30px',
+            borderRadius: '8px',
             flexShrink: 0,
           }}
         />
         {!collapsed && (
           <span style={{
-            fontWeight: 600,
-            fontSize: '1.05rem',
-            letterSpacing: '-0.01em',
+            fontWeight: 700,
+            fontSize: '1rem',
+            letterSpacing: '-0.02em',
             color: 'rgba(255, 255, 255, 0.92)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
           }}>
             Datacore
           </span>
@@ -58,34 +70,40 @@ export default function GlassSidebar({ collapsed, onToggle }) {
 
       {/* Nav Links */}
       <div style={{
-        padding: '0.75rem 0.625rem',
+        padding: '0.75rem 0.5rem',
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: '2px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        position: 'relative',
+        zIndex: 1,
       }}>
         {NAV_ITEMS.map(item => (
           <GlassNavLink key={item.to} {...item} collapsed={collapsed} />
         ))}
       </div>
 
-      {/* Bottom: Settings + Collapse */}
+      {/* Bottom: Settings + Collapse toggle */}
       <div style={{
-        padding: '0.5rem 0.625rem',
+        padding: '0.5rem',
         borderTop: '1px solid rgba(255, 255, 255, 0.06)',
         display: 'flex',
         flexDirection: 'column',
         gap: '2px',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <GlassNavLink to="/settings" icon={Settings} label="Settings" collapsed={collapsed} />
 
         <button
           onClick={onToggle}
           style={{
-            padding: '0.625rem',
+            padding: '0.5rem',
             background: 'none',
             border: 'none',
-            color: 'rgba(255, 255, 255, 0.30)',
+            color: 'rgba(255, 255, 255, 0.25)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
@@ -98,40 +116,48 @@ export default function GlassSidebar({ collapsed, onToggle }) {
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.30)'
+            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.25)'
             e.currentTarget.style.background = 'none'
           }}
         >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
     </nav>
   )
 }
 
-/** Individual nav link with Apple-style hover/active states */
+/**
+ * Individual nav link with Apple-style hover illumination.
+ * Active: system blue tint background + blue text.
+ * Hover: subtle material illumination (white glow from within).
+ */
 export function GlassNavLink({ to, icon: Icon, label, collapsed, onClick }) {
   return (
     <NavLink
       to={to}
       end={to === '/'}
       onClick={onClick}
+      className="glass-nav-link"
       style={({ isActive }) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: collapsed ? 'center' : 'flex-start',
         gap: '0.75rem',
-        padding: collapsed ? '0.625rem' : '0.625rem 0.875rem',
+        padding: collapsed ? '0.625rem' : '0.5rem 0.75rem',
         borderRadius: '10px',
         textDecoration: 'none',
-        fontSize: '0.875rem',
+        fontSize: '0.85rem',
         fontWeight: isActive ? 600 : 500,
         color: isActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.55)',
         background: isActive ? 'rgba(10, 132, 255, 0.12)' : 'transparent',
-        transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        position: 'relative',
       })}
     >
-      <Icon size={20} />
+      <Icon size={20} style={{ flexShrink: 0 }} />
       {!collapsed && label}
     </NavLink>
   )

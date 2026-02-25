@@ -1,9 +1,12 @@
 /**
- * GlassLayout.jsx - Glass Theme App Shell
+ * GlassLayout.jsx - Liquid Glass App Shell
  *
- * CSS Grid shell for the Liquid Glass theme.
- * Desktop: GlassSidebar + GlassHeader + scrollable content area
- * Mobile: GlassHeader (with hamburger) + content + GlassMobileNav (bottom)
+ * Floating inset sidebar with content flowing behind it.
+ * Apple Liquid Glass depth paradigm:
+ * - Sidebar floats with 12px inset from viewport edges
+ * - Content area spans full viewport, padded to avoid sidebar
+ * - Minimal header with floating controls
+ * - Mobile: drawer overlay + capsule bottom nav bar
  *
  * Replaces AppShell when the glass theme is active.
  */
@@ -47,7 +50,7 @@ export default function GlassLayout({ children, chat }) {
 
   return (
     <div className="glass-layout">
-      {/* Desktop sidebar */}
+      {/* Floating inset sidebar (desktop only) */}
       {!isMobile && (
         <GlassSidebar
           collapsed={sidebarCollapsed}
@@ -113,6 +116,7 @@ export default function GlassLayout({ children, chat }) {
               display: 'flex',
               flexDirection: 'column',
               gap: '2px',
+              overflowY: 'auto',
             }}>
               {NAV_ITEMS.map(item => (
                 <GlassNavLink key={item.to} {...item} collapsed={false} onClick={() => setDrawerOpen(false)} />
@@ -128,22 +132,26 @@ export default function GlassLayout({ children, chat }) {
         </div>
       )}
 
-      {/* Main content area */}
+      {/* Main content area (spans full viewport, padded for sidebar) */}
       <main className="glass-main">
-        <GlassHeader
-          isMobile={isMobile}
-          onMenuClick={() => setDrawerOpen(true)}
-          chat={chat}
-        />
+        {/* Minimal header bar */}
+        <div className={`glass-header-bar ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <GlassHeader
+            isMobile={isMobile}
+            onMenuClick={() => setDrawerOpen(true)}
+            chat={chat}
+          />
+        </div>
 
+        {/* Page content */}
         <div
-          className={`glass-content ${pageOut ? 'glass-page-exit' : 'glass-page-enter'}`}
+          className={`glass-content ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${pageOut ? 'glass-page-exit' : 'glass-page-enter'}`}
         >
           {children}
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Floating capsule bottom nav (mobile only) */}
       {isMobile && <GlassMobileNav />}
     </div>
   )

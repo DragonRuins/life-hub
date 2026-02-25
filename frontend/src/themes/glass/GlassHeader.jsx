@@ -1,9 +1,12 @@
 /**
- * GlassHeader.jsx - Glass Theme Top Bar
+ * GlassHeader.jsx - Minimal Floating Header Controls
  *
- * Glass-blurred header bar across the top of the content area.
- * Right side: NotificationBell, SmartHome, chat toggle, theme switcher, fullscreen, settings.
- * Mobile: hamburger menu button on the left.
+ * Content-first philosophy: no solid header bar. Controls float
+ * in the top-right (desktop) or spread across top (mobile).
+ * The parent GlassLayout positions this inside .glass-header-bar.
+ *
+ * Desktop: right-aligned controls (notification, chat, theme, fullscreen, settings)
+ * Mobile: hamburger left, controls right
  */
 import { useState, useEffect, useCallback } from 'react'
 import { Menu, Maximize, Minimize, MessageSquare, Settings } from 'lucide-react'
@@ -33,14 +36,14 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '36px',
-    height: '36px',
+    width: '34px',
+    height: '34px',
     borderRadius: '10px',
     background: 'transparent',
     border: 'none',
-    color: 'rgba(255, 255, 255, 0.45)',
+    color: 'rgba(255, 255, 255, 0.40)',
     cursor: 'pointer',
-    transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   }
 
   const handleHover = (e) => {
@@ -50,14 +53,14 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
 
   const handleLeave = (e) => {
     e.currentTarget.style.background = 'transparent'
-    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.45)'
+    e.currentTarget.style.color = 'rgba(255, 255, 255, 0.40)'
   }
 
   return (
-    <div className="glass-header">
+    <>
       {/* Left side: hamburger on mobile */}
       {isMobile ? (
-        <button onClick={onMenuClick} style={btnStyle}>
+        <button onClick={onMenuClick} style={btnStyle} onMouseEnter={handleHover} onMouseLeave={handleLeave}>
           <Menu size={22} />
         </button>
       ) : (
@@ -65,7 +68,7 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
       )}
 
       {/* Right side controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
         <NotificationBell />
         <SmartHomeQuickMenu />
 
@@ -76,14 +79,14 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
           style={{
             ...btnStyle,
             background: chat?.isOpen ? 'rgba(10, 132, 255, 0.12)' : 'transparent',
-            color: chat?.isOpen ? '#0A84FF' : 'rgba(255, 255, 255, 0.45)',
+            color: chat?.isOpen ? '#0A84FF' : 'rgba(255, 255, 255, 0.40)',
           }}
           onMouseEnter={handleHover}
           onMouseLeave={e => {
             if (!chat?.isOpen) handleLeave(e)
           }}
         >
-          <MessageSquare size={18} />
+          <MessageSquare size={17} />
         </button>
 
         <ThemeSwitcher />
@@ -97,7 +100,7 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
             onMouseEnter={handleHover}
             onMouseLeave={handleLeave}
           >
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            {isFullscreen ? <Minimize size={17} /> : <Maximize size={17} />}
           </button>
         )}
 
@@ -105,16 +108,13 @@ export default function GlassHeader({ isMobile, onMenuClick, chat }) {
         <Link
           to="/settings"
           title="Settings"
-          style={{
-            ...btnStyle,
-            textDecoration: 'none',
-          }}
+          style={{ ...btnStyle, textDecoration: 'none' }}
           onMouseEnter={handleHover}
           onMouseLeave={handleLeave}
         >
-          <Settings size={18} />
+          <Settings size={17} />
         </Link>
       </div>
-    </div>
+    </>
   )
 }

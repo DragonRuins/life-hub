@@ -1,8 +1,16 @@
 /* ── Liquid Glass Theme Variables ──────────────────────────────────
-   Apple-inspired Liquid Glass design language.
+   Apple-inspired Liquid Glass design language (WWDC 2025).
    All glass effects and color overrides scoped under .glass-theme.
    This file overrides the Catppuccin --color-* variables so that
    inline styles using var(--color-*) automatically transform.
+
+   Design principles:
+   - Lensing: glass bends/concentrates light dynamically
+   - Material responds to interaction (illumination on hover/touch)
+   - Spatial hierarchy through depth (floating panels above content)
+   - Content-first: UI chrome recedes, glass controls defer to content
+   - Concentric shapes: inner radius = outer radius - padding
+   - Capsule shapes for all interactive elements
    ─────────────────────────────────────────────────────────────── */
 
 .glass-theme {
@@ -57,30 +65,34 @@
 
   /* ── Glass Effect Variables ─────────────────────────────────── */
 
-  /* Blur intensities */
+  /* Blur intensities (size-adaptive: thicker material for larger panels) */
   --glass-blur: blur(20px);
   --glass-blur-heavy: blur(40px);
   --glass-blur-subtle: blur(10px);
   --glass-blur-mobile: blur(10px);
+  --glass-blur-sidebar: blur(30px);
 
   /* Glass backgrounds (dark mode — light values on dark base) */
-  --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-bg-hover: rgba(255, 255, 255, 0.12);
-  --glass-bg-active: rgba(255, 255, 255, 0.16);
-  --glass-bg-elevated: rgba(255, 255, 255, 0.10);
-  --glass-bg-sidebar: rgba(255, 255, 255, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-hover: rgba(255, 255, 255, 0.10);
+  --glass-bg-active: rgba(255, 255, 255, 0.14);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.08);
+  --glass-bg-sidebar: rgba(255, 255, 255, 0.04);
+  --glass-bg-nav-active: rgba(10, 132, 255, 0.12);
 
   /* Glass borders */
-  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.10);
   --glass-border-hover: 1px solid rgba(255, 255, 255, 0.18);
   --glass-border-focus: 1px solid var(--glass-system-blue);
   --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+  --glass-border-sidebar: 1px solid rgba(255, 255, 255, 0.08);
 
   /* Shadows */
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
   --glass-shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
   --glass-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
   --glass-shadow-glow: 0 0 20px rgba(10, 132, 255, 0.15);
+  --glass-shadow-sidebar: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
 
   /* Inner glow (for ::before pseudo-element) */
   --glass-inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
@@ -89,17 +101,21 @@
   /* Corner radii */
   --glass-radius: 16px;
   --glass-radius-lg: 20px;
+  --glass-radius-xl: 24px;
   --glass-radius-sm: 10px;
   --glass-radius-xs: 8px;
-  /* Capsule: border-radius = half of element height (applied in CSS) */
+  /* Capsule: border-radius: 980px (applied directly in CSS) */
 
   /* Saturation boost */
   --glass-saturate: saturate(180%);
 
   /* Transition easing — Apple standard */
   --glass-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --glass-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
   --glass-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --glass-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
   /* Typography */
   --glass-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Outfit', sans-serif;
@@ -108,9 +124,23 @@
   --glass-font-weight-label: 600;
   --glass-font-weight-heading: 700;
 
-  /* Layout sizes */
+  /* ── Floating Inset Layout ──────────────────────────────────── */
   --glass-sidebar-width: 240px;
   --glass-sidebar-collapsed: 68px;
+  --glass-sidebar-inset: 12px;          /* margin from viewport edges */
+  --glass-sidebar-radius: 20px;         /* border-radius for floating sidebar */
   --glass-header-height: 52px;
-  --glass-mobile-nav-height: 68px;
+  --glass-mobile-nav-height: 64px;
+  --glass-mobile-nav-inset: 12px;       /* margin from viewport edges on mobile */
+  --glass-content-padding: 2rem;
+  --glass-content-padding-mobile: 1rem;
+
+  /* ── Material Illumination ──────────────────────────────────── */
+  --glass-illumination: rgba(255, 255, 255, 0.04);
+  --glass-illumination-hover: rgba(255, 255, 255, 0.08);
+  --glass-illumination-active: rgba(255, 255, 255, 0.12);
+
+  /* ── Bento Grid ─────────────────────────────────────────────── */
+  --glass-bento-gap: 1rem;
+  --glass-bento-gap-lg: 1.25rem;
 }

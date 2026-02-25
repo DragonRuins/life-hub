@@ -345,7 +345,7 @@ export default function GlassDashboard() {
         }}>
           {[
             { label: 'Vehicles', value: systemStats?.vehicles ?? 0, icon: Car, color: '#0A84FF', to: '/vehicles' },
-            { label: 'Notes', value: systemStats?.notes ?? 0, icon: StickyNote, color: '#BF5AF2', to: '/notes' },
+            { label: 'Notes', value: systemStats?.notes?.count ?? 0, icon: StickyNote, color: '#BF5AF2', to: '/notes' },
             { label: 'Projects', value: systemStats?.projects ?? 0, icon: FolderKanban, color: '#30D158', to: '/projects' },
             { label: 'Knowledge', value: systemStats?.knowledge_articles ?? 0, icon: BookOpen, color: '#FF9F0A', to: '/kb' },
             { label: 'Hosts', value: systemStats?.hosts ?? 0, icon: Server, color: '#64D2FF', to: '/infrastructure' },

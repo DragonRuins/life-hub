@@ -1,14 +1,21 @@
 /**
- * GlassMobileNav.jsx - Bottom Tab Bar for Mobile
+ * GlassMobileNav.jsx - iOS 26 Floating Capsule Tab Bar
  *
- * Fixed bottom navigation bar with glass blur for the glass theme.
- * Apple-style tab bar: 5 primary tabs with "More" for overflow.
- * Active tab shows system blue icon + label.
- * Respects safe-area-inset-bottom for iPhone home indicator.
+ * Floating capsule-shaped bottom navigation bar.
+ * Inset from viewport edges with full border-radius (pill shape).
+ * Glass material with blur + translucent background.
+ *
+ * 5 primary tabs + "More" overflow button that opens an action sheet.
+ * Active tab: system blue icon + label. Inactive: muted icon only.
+ *
+ * CSS for the capsule container is in GlassLayout.css (.glass-mobile-nav).
  */
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, BookOpen, MoreHorizontal, Server, FolderKanban, Telescope, Library, Settings, X } from 'lucide-react'
+import {
+  LayoutDashboard, Car, StickyNote, BookOpen, MoreHorizontal,
+  Server, FolderKanban, Telescope, Library, Settings, X
+} from 'lucide-react'
 
 const PRIMARY_TABS = [
   { to: '/', icon: LayoutDashboard, label: 'Home' },
@@ -53,7 +60,7 @@ export default function GlassMobileNav() {
 
   return (
     <>
-      {/* More action sheet */}
+      {/* More action sheet — floating above the capsule nav */}
       {moreOpen && (
         <div
           style={{
@@ -66,7 +73,7 @@ export default function GlassMobileNav() {
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            padding: '0 0.5rem',
+            padding: '0 var(--glass-mobile-nav-inset)',
           }}
         >
           <div
@@ -75,11 +82,11 @@ export default function GlassMobileNav() {
             style={{
               width: '100%',
               maxWidth: '400px',
-              marginBottom: `calc(var(--glass-mobile-nav-height) + env(safe-area-inset-bottom, 0px) + 0.5rem)`,
-              background: 'rgba(30, 30, 40, 0.92)',
+              marginBottom: `calc(var(--glass-mobile-nav-height) + var(--glass-mobile-nav-inset) * 2 + env(safe-area-inset-bottom, 0px) + 8px)`,
+              background: 'rgba(20, 20, 30, 0.90)',
               backdropFilter: 'blur(40px) saturate(180%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
               borderRadius: '16px',
               padding: '6px',
               boxShadow: '0 12px 48px rgba(0, 0, 0, 0.5)',
@@ -106,9 +113,10 @@ export default function GlassMobileNav() {
                     background: isActive ? 'rgba(10, 132, 255, 0.12)' : 'transparent',
                     color: isActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.80)',
                     cursor: 'pointer',
-                    fontSize: '0.9rem',
+                    fontSize: '0.88rem',
                     fontWeight: isActive ? 600 : 500,
                     textAlign: 'left',
+                    transition: 'background 0.15s ease',
                   }}
                 >
                   <Icon size={20} />
@@ -120,17 +128,18 @@ export default function GlassMobileNav() {
         </div>
       )}
 
-      {/* Bottom tab bar */}
+      {/* Capsule tab bar — CSS positioned via .glass-mobile-nav */}
       <div className="glass-mobile-nav">
         <nav style={{
           display: 'flex',
           justifyContent: 'space-around',
           alignItems: 'center',
-          height: 'var(--glass-mobile-nav-height)',
-          padding: '0 4px',
+          width: '100%',
+          height: '100%',
+          padding: '0 8px',
         }}>
           {PRIMARY_TABS.map(tab => (
-            <TabItem key={tab.to} {...tab} />
+            <CapsuleTab key={tab.to} {...tab} />
           ))}
           {/* More button */}
           <button
@@ -140,13 +149,13 @@ export default function GlassMobileNav() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '3px',
-              padding: '6px 12px',
+              gap: '2px',
+              padding: '6px 14px',
               background: 'none',
               border: 'none',
-              color: moreOpen || moreActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.40)',
+              color: moreOpen || moreActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.35)',
               cursor: 'pointer',
-              fontSize: '0.625rem',
+              fontSize: '0.6rem',
               fontWeight: 500,
               letterSpacing: '0.02em',
               transition: 'color 0.15s ease',
@@ -161,7 +170,11 @@ export default function GlassMobileNav() {
   )
 }
 
-function TabItem({ to, icon: Icon, label }) {
+/**
+ * Individual capsule tab — active shows icon + label in blue,
+ * inactive shows muted icon with tiny label.
+ */
+function CapsuleTab({ to, icon: Icon, label }) {
   return (
     <NavLink
       to={to}
@@ -171,11 +184,11 @@ function TabItem({ to, icon: Icon, label }) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '3px',
-        padding: '6px 12px',
+        gap: '2px',
+        padding: '6px 14px',
         textDecoration: 'none',
-        color: isActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.40)',
-        fontSize: '0.625rem',
+        color: isActive ? '#0A84FF' : 'rgba(255, 255, 255, 0.35)',
+        fontSize: '0.6rem',
         fontWeight: isActive ? 600 : 500,
         letterSpacing: '0.02em',
         transition: 'color 0.15s ease',
