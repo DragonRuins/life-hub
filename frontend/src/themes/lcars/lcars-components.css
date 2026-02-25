@@ -624,8 +624,8 @@
   display: none;
 }
 
-/* Right sidebar elements (Modern only) */
-.lcars-theme.lcars-modern .lcars-right-sidebar span {
+/* Right strip elements (Modern only) */
+.lcars-theme.lcars-modern .lcars-right-strip div {
   color: var(--lcars-text-on-color) !important;
 }
 

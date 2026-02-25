@@ -67,17 +67,20 @@
   grid-area: footer;
 }
 
-/* ── Modern Variant: 5-column grid with right sidebar ────────── */
-/* Adds a right-side cascade strip + right sidebar column.
-   Right elbows connect the right sidebar to header/footer. */
+/* ── Modern Variant: 4-corner elbow frame ────────────────────── */
+/* Replaces right sidebar with a decorative right strip framed
+   by TR and BR elbows. Creates a complete frame around the
+   content area.
+   Grid: sidebar | cascade | content | right-strip
+   Elbows sit in all four corners. */
 
 .lcars-layout.lcars-modern-layout {
-  grid-template-columns: 200px 5px 1fr 5px 60px;
+  grid-template-columns: 200px 5px 1fr 48px;
   grid-template-rows: 56px 1fr 36px;
   grid-template-areas:
-    "elbow-tl header    header     header    elbow-tr"
-    "sidebar  cascade   content    cascade-r right-sidebar"
-    "elbow-bl footer    footer     footer    elbow-br";
+    "elbow-tl header  header  elbow-tr"
+    "sidebar  cascade content right-strip"
+    "elbow-bl footer  footer  elbow-br";
 }
 
 /* Right-side grid areas */
@@ -85,14 +88,8 @@
   grid-area: elbow-tr;
 }
 
-.lcars-cascade-r {
-  grid-area: cascade-r;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.lcars-right-sidebar {
-  grid-area: right-sidebar;
+.lcars-right-strip {
+  grid-area: right-strip;
   min-height: 0;
   overflow: hidden;
 }
@@ -105,12 +102,16 @@
 /* Red Alert: elbows pulse red, header/footer bars get red glow */
 
 .lcars-alert-red .lcars-elbow-tl,
-.lcars-alert-red .lcars-elbow-bl {
+.lcars-alert-red .lcars-elbow-bl,
+.lcars-alert-red .lcars-elbow-tr,
+.lcars-alert-red .lcars-elbow-br {
   position: relative;
 }
 
 .lcars-alert-red .lcars-elbow-tl::after,
-.lcars-alert-red .lcars-elbow-bl::after {
+.lcars-alert-red .lcars-elbow-bl::after,
+.lcars-alert-red .lcars-elbow-tr::after,
+.lcars-alert-red .lcars-elbow-br::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -155,13 +156,12 @@
   .lcars-elbow-tl,
   .lcars-elbow-bl,
   .lcars-elbow-tr,
-  .lcars-cascade-r,
-  .lcars-right-sidebar,
+  .lcars-right-strip,
   .lcars-elbow-br {
     display: none;
   }
 
-  /* Force classic 3-column back to single column on mobile even for Modern */
+  /* Force modern variant to single column on mobile */
   .lcars-layout.lcars-modern-layout {
     grid-template-columns: 1fr;
     grid-template-rows: 48px 1fr 56px;

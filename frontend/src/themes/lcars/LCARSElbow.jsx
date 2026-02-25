@@ -1,44 +1,34 @@
 /**
- * LCARSElbow.jsx - LCARS Corner Connector with Rounded Cutout
+ * LCARSElbow.jsx - LCARS Corner Connector
  *
- * A solid colored block with a quarter-circle black cutout that creates
- * the distinctive LCARS rounded corner. Connects horizontal bars
- * (header/footer) to vertical bars (sidebars).
+ * An L-shaped elbow that connects horizontal bars (header/footer)
+ * to vertical bars (sidebar/right strip). Features a quarter-circle
+ * cutout on the inner corner — the signature LCARS design element.
  *
- * The cutout sits in the "inner" corner of the elbow — the corner
- * that faces the content area:
- *   TL → cutout at bottom-right
- *   TR → cutout at bottom-left
- *   BL → cutout at top-right
- *   BR → cutout at top-left
+ * The cutout is positioned at the inner corner of each position:
+ *   TL: cutout bottom-right  TR: cutout bottom-left
+ *   BL: cutout top-right     BR: cutout top-left
  *
  * Props:
  *   color     - CSS color for the elbow (default: sunflower)
- *   position  - 'tl' | 'tr' | 'bl' | 'br' (determines cutout corner)
- *   radius    - Cutout radius in pixels (default: 40)
- *   animated  - Enable looping sweep animation (modern variant only)
+ *   position  - Corner position: 'tl' | 'tr' | 'bl' | 'br'
  *   className - optional additional className
  */
-export default function LCARSElbow({
-  color = 'var(--lcars-sunflower)',
-  position = 'tl',
-  radius = 40,
-  animated = false,
-  className = '',
-}) {
-  // Map position to cutout placement + which border-radius corner to curve
+export default function LCARSElbow({ color = 'var(--lcars-sunflower)', position = 'tl', className = '' }) {
+  // Each corner needs the cutout placed at the inner corner.
+  // The border-radius curves away from the corner, creating the L-shape.
   const cutoutMap = {
-    tl: { bottom: 0, right: 0, borderTopLeftRadius: `${radius}px` },
-    tr: { bottom: 0, left: 0, borderTopRightRadius: `${radius}px` },
-    bl: { top: 0, right: 0, borderBottomLeftRadius: `${radius}px` },
-    br: { top: 0, left: 0, borderBottomRightRadius: `${radius}px` },
+    tl: { right: 0, bottom: 0, borderTopLeftRadius: '100%' },
+    tr: { left: 0, bottom: 0, borderTopRightRadius: '100%' },
+    bl: { right: 0, top: 0, borderBottomLeftRadius: '100%' },
+    br: { left: 0, top: 0, borderBottomRightRadius: '100%' },
   }
 
-  const cutoutStyle = cutoutMap[position] || cutoutMap.tl
+  const cutout = cutoutMap[position] || cutoutMap.tl
 
   return (
     <div
-      className={`lcars-elbow lcars-elbow-${position} ${animated ? 'lcars-elbow-animated' : ''} ${className}`.trim()}
+      className={className}
       style={{
         width: '100%',
         height: '100%',
@@ -47,15 +37,14 @@ export default function LCARSElbow({
         overflow: 'hidden',
       }}
     >
-      {/* Quarter-circle black cutout — sits above the sweep animation */}
+      {/* Inner quarter-circle cutout */}
       <div
         style={{
           position: 'absolute',
-          width: `${radius}px`,
-          height: `${radius}px`,
-          background: '#000000',
-          zIndex: 2,
-          ...cutoutStyle,
+          width: '50%',
+          height: '50%',
+          background: '#000',
+          ...cutout,
         }}
       />
     </div>

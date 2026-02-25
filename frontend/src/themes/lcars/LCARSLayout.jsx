@@ -7,7 +7,7 @@
  *
  * This replaces AppShell when the LCARS theme is active.
  *
- * Classic grid (3-column):
+ * Classic grid (3 columns, 2 elbows):
  *   ┌──────────────┬───┬────────────────────────────┐
  *   │  ELBOW (TL)  │   │     HEADER BAR             │
  *   ├──────────────┤ C ├────────────────────────────┤
@@ -18,16 +18,16 @@
  *   │  ELBOW (BL)  │ E │     FOOTER / STATUS BAR    │
  *   └──────────────┴───┴────────────────────────────┘
  *
- * Modern grid (5-column, 4-corner elbows):
- *   ┌──────────────┬───┬───────────────────┬───┬────────┐
- *   │  ELBOW (TL)  │        HEADER BAR         │ ELB TR │
- *   ├──────────────┤ C ├───────────────────┤ C ├────────┤
- *   │              │ A │                   │ A │ RIGHT  │
- *   │   SIDEBAR    │ S │     CONTENT       │ S │  BAR   │
- *   │              │ C │                   │ C │        │
- *   ├──────────────┤ D ├───────────────────┤ D ├────────┤
- *   │  ELBOW (BL)  │ E │     FOOTER BAR        │ ELB BR │
- *   └──────────────┴───┴───────────────────┴───┴────────┘
+ * Modern grid (4 columns, 4 elbows):
+ *   ┌──────────────┬───┬──────────────────────┬─────┐
+ *   │  ELBOW (TL)  │   │     HEADER BAR       │ TR  │
+ *   ├──────────────┤ C ├──────────────────────┤─────┤
+ *   │              │ A │                      │RIGHT│
+ *   │   SIDEBAR    │ S │     CONTENT          │STRIP│
+ *   │              │ C │                      │     │
+ *   ├──────────────┤ D ├──────────────────────┤─────┤
+ *   │  ELBOW (BL)  │ E │     FOOTER BAR       │ BR  │
+ *   └──────────────┴───┴──────────────────────┴─────┘
  */
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -41,16 +41,14 @@ import LCARSMobileNav from './LCARSMobileNav'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useTheme } from './ThemeProvider'
 
-// Colors for the decorative right bar pills (uses CSS variables)
-const RIGHT_BAR_BLOCKS = [
-  { color: 'var(--lcars-ice)', height: 28 },
-  { color: 'var(--lcars-african-violet)', height: 22 },
-  { color: 'var(--lcars-butterscotch)', height: 32 },
-  { color: 'var(--lcars-sky)', height: 18 },
-  { color: 'var(--lcars-lilac)', height: 26 },
-  { color: 'var(--lcars-sunflower)', height: 20 },
-  { color: 'var(--lcars-almond-creme)', height: 24 },
-  { color: 'var(--lcars-moonlit-violet)', height: 30 },
+/** Decorative right strip colors — cycles through LCARS palette */
+const RIGHT_STRIP_COLORS = [
+  'var(--lcars-ice)',
+  'var(--lcars-african-violet)',
+  'var(--lcars-sunflower)',
+  'var(--lcars-butterscotch)',
+  'var(--lcars-lilac)',
+  'var(--lcars-sky)',
 ]
 
 export default function LCARSLayout({ children, chat }) {
@@ -84,12 +82,7 @@ export default function LCARSLayout({ children, chat }) {
     <div className={`lcars-layout ${alertClass} ${modernClass}`.trim()}>
       {/* Top-left elbow connecting sidebar to header */}
       <div className="lcars-elbow-tl">
-        <LCARSElbow
-          color="var(--lcars-sunflower)"
-          position="tl"
-          radius={40}
-          animated={isModernLCARS}
-        />
+        <LCARSElbow color="var(--lcars-sunflower)" position="tl" />
       </div>
 
       {/* Top header bar */}
@@ -115,74 +108,45 @@ export default function LCARSLayout({ children, chat }) {
       {/* ── Right-side elements (Modern variant only) ── */}
       {isModernLCARS && (
         <>
-          {/* Top-right elbow connecting header to right bar */}
+          {/* Top-right elbow */}
           <div className="lcars-elbow-tr">
-            <LCARSElbow
-              color="var(--lcars-ice)"
-              position="tr"
-              radius={40}
-              animated
-            />
+            <LCARSElbow color="var(--lcars-ice)" position="tr" />
           </div>
 
-          {/* Right-side data cascade strip */}
-          <div className="lcars-cascade-r">
-            <LCARSDataCascade />
-          </div>
-
-          {/* Decorative right bar — simple colored pills mirroring left sidebar */}
-          <div className="lcars-right-sidebar">
-            <div style={{
+          {/* Right decorative strip — colored pill segments */}
+          <div
+            className="lcars-right-strip"
+            style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '3px',
-              padding: '4px 0',
-              height: '100%',
-              overflow: 'hidden',
-            }}>
-              {RIGHT_BAR_BLOCKS.map((block, i) => (
-                <div
-                  key={i}
-                  style={{
-                    background: block.color,
-                    borderRadius: '16px 0 0 16px',
-                    height: `${block.height}px`,
-                    flexShrink: 0,
-                    opacity: 0.7,
-                  }}
-                />
-              ))}
-              {/* Flexible spacer block fills remaining space */}
-              <div style={{
-                flex: 1,
-                background: 'var(--lcars-sky)',
-                borderRadius: '16px 0 0 16px',
-                opacity: 0.3,
-                minHeight: '20px',
-              }} />
-            </div>
+              padding: '3px 0',
+              background: '#000',
+            }}
+          >
+            {RIGHT_STRIP_COLORS.map((color, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: i === 0 || i === RIGHT_STRIP_COLORS.length - 1 ? 2 : 1,
+                  background: color,
+                  borderRadius: '0 16px 16px 0',
+                  opacity: 0.7,
+                }}
+              />
+            ))}
           </div>
 
-          {/* Bottom-right elbow connecting footer to right bar */}
+          {/* Bottom-right elbow */}
           <div className="lcars-elbow-br">
-            <LCARSElbow
-              color="var(--lcars-butterscotch)"
-              position="br"
-              radius={24}
-              animated
-            />
+            <LCARSElbow color="var(--lcars-butterscotch)" position="br" />
           </div>
         </>
       )}
 
       {/* Bottom-left elbow connecting sidebar to footer */}
       <div className="lcars-elbow-bl">
-        <LCARSElbow
-          color="var(--lcars-african-violet)"
-          position="bl"
-          radius={24}
-          animated={isModernLCARS}
-        />
+        <LCARSElbow color="var(--lcars-african-violet)" position="bl" />
       </div>
 
       {/* Bottom: status bar on desktop, navigation on mobile */}
