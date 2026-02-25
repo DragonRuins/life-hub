@@ -110,40 +110,14 @@
 }
 
 /* ── Alert State Classes (Frame-Level) ────────────────────── */
-/* Red Alert: elbows pulse red, header/footer bars get red glow */
-
-.lcars-alert-red .lcars-elbow-tl,
-.lcars-alert-red .lcars-elbow-bl,
-.lcars-alert-red .lcars-elbow-tr,
-.lcars-alert-red .lcars-elbow-br {
-  position: relative;
-}
-
-.lcars-alert-red .lcars-elbow-tl::after,
-.lcars-alert-red .lcars-elbow-bl::after,
-.lcars-alert-red .lcars-elbow-tr::after,
-.lcars-alert-red .lcars-elbow-br::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--lcars-tomato);
-  border-radius: inherit;
-  animation: lcars-red-alert-pulse 2s ease-in-out infinite;
-  pointer-events: none;
-}
+/* Red Alert: header/footer bars get red glow */
 
 .lcars-alert-red .lcars-header > div,
 .lcars-alert-red .lcars-footer > div {
   animation: lcars-red-alert-glow 2s ease-in-out infinite;
 }
 
-/* Yellow Alert: elbows shift to amber, header/footer get warm glow (static) */
-
-.lcars-alert-yellow .lcars-elbow-tl svg *,
-.lcars-alert-yellow .lcars-elbow-bl svg * {
-  fill: var(--lcars-butterscotch);
-  transition: fill 0.5s ease;
-}
+/* Yellow Alert: header/footer get warm glow (static) */
 
 .lcars-alert-yellow .lcars-header > div,
 .lcars-alert-yellow .lcars-footer > div {
