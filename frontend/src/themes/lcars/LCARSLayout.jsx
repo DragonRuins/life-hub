@@ -41,15 +41,6 @@ import LCARSMobileNav from './LCARSMobileNav'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useTheme } from './ThemeProvider'
 
-/** Decorative right strip colors — cycles through LCARS palette */
-const RIGHT_STRIP_COLORS = [
-  'var(--lcars-ice)',
-  'var(--lcars-african-violet)',
-  'var(--lcars-sunflower)',
-  'var(--lcars-butterscotch)',
-  'var(--lcars-lilac)',
-  'var(--lcars-sky)',
-]
 
 export default function LCARSLayout({ children, chat }) {
   const isMobile = useIsMobile()
@@ -113,20 +104,12 @@ export default function LCARSLayout({ children, chat }) {
             <LCARSElbow color="var(--lcars-ice)" position="tr" />
           </div>
 
-          {/* Right decorative strip — colored pill segments
+          {/* Right decorative strip — animated data cascade
+              Uses seedOffset so the blocks differ from the left cascade.
               NOTE: display is set in CSS, NOT inline, so the mobile
               media query's display:none !important can take effect. */}
           <div className="lcars-right-strip">
-            {RIGHT_STRIP_COLORS.map((color, i) => (
-              <div
-                key={i}
-                className="lcars-right-strip-pill"
-                style={{
-                  flex: i === 0 || i === RIGHT_STRIP_COLORS.length - 1 ? 2 : 1,
-                  background: color,
-                }}
-              />
-            ))}
+            <LCARSDataCascade seedOffset={37} />
           </div>
 
           {/* Bottom-right elbow */}

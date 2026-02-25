@@ -58,28 +58,30 @@ function randomHex(seed) {
   }).join('')
 }
 
-export default function LCARSDataCascade() {
+export default function LCARSDataCascade({ seedOffset = 0 }) {
   const { isModernLCARS } = useTheme()
   const CASCADE_COLORS = isModernLCARS ? CASCADE_COLORS_MODERN : CASCADE_COLORS_CLASSIC
 
   // Generate a fixed set of blocks on mount (memoized so they don't re-randomize)
   // Re-generate when variant changes so colors update
+  // seedOffset shifts the pseudo-random sequence so multiple cascades look distinct
   const blocks = useMemo(() => {
     const result = []
     // Generate enough blocks to fill ~2x the viewport height
     for (let i = 0; i < 60; i++) {
-      const height = 8 + ((i * 7) % 12) // pseudo-random heights between 8-19px
+      const j = i + seedOffset
+      const height = 8 + ((j * 7) % 12) // pseudo-random heights between 8-19px
       // ~20% of blocks tall enough (>=12px) get a hex code overlay
-      const hasText = height >= 12 && ((i * 13) % 5 === 0)
+      const hasText = height >= 12 && ((j * 13) % 5 === 0)
       result.push({
-        color: CASCADE_COLORS[i % CASCADE_COLORS.length],
+        color: CASCADE_COLORS[j % CASCADE_COLORS.length],
         height,
-        gap: 2 + ((i * 3) % 4),     // pseudo-random gaps between 2-5px
-        text: hasText ? randomHex(i * 997 + 42) : null,
+        gap: 2 + ((j * 3) % 4),     // pseudo-random gaps between 2-5px
+        text: hasText ? randomHex(j * 997 + 42) : null,
       })
     }
     return result
-  }, [CASCADE_COLORS])
+  }, [CASCADE_COLORS, seedOffset])
 
   return (
     <div

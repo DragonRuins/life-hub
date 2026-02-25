@@ -134,26 +134,46 @@ export default function LCARSHeader({ chat }) {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: isMobile ? '0.5rem' : '0.5rem',
-          padding: isMobile ? '0 0.75rem' : '0 0.75rem',
+          gap: isMobile ? '0.35rem' : '0.5rem',
+          padding: isMobile ? '0 0.5rem' : '0 0.75rem',
           borderRadius: isModernLCARS && !isMobile ? '0' : '0 30px 30px 0',
           flex: isMobile ? 1 : 'none',
           minWidth: 0,
           width: 'auto',
-          justifyContent: isMobile ? 'flex-end' : 'initial',
+          overflow: 'visible',
         }}
       >
-        {/* Pulsing status indicator */}
-        <div
-          className="lcars-status-dot"
-          style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            background: 'var(--lcars-green)',
-            flexShrink: 0,
-          }}
-        />
+        {/* Mobile title — replaces the hidden main bar on small screens */}
+        {isMobile && (
+          <span
+            style={{
+              fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
+              fontSize: '0.95rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: 'var(--lcars-text-on-color)',
+              whiteSpace: 'nowrap',
+              marginRight: 'auto',
+            }}
+          >
+            Datacore
+          </span>
+        )}
+
+        {/* Pulsing status indicator — desktop only to save mobile space */}
+        {!isMobile && (
+          <div
+            className="lcars-status-dot"
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: 'var(--lcars-green)',
+              flexShrink: 0,
+            }}
+          />
+        )}
 
         {/* Custom LCARS notification bell */}
         <LCARSNotificationBell />
