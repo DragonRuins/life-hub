@@ -18,16 +18,16 @@
  *   │  ELBOW (BL)  │ E │     FOOTER / STATUS BAR    │
  *   └──────────────┴───┴────────────────────────────┘
  *
- * Modern grid (4 columns, 4 elbows):
- *   ┌──────────────┬───┬──────────────────────┬─────┐
- *   │  ELBOW (TL)  │   │     HEADER BAR       │ TR  │
- *   ├──────────────┤ C ├──────────────────────┤─────┤
- *   │              │ A │                      │RIGHT│
- *   │   SIDEBAR    │ S │     CONTENT          │STRIP│
- *   │              │ C │                      │     │
- *   ├──────────────┤ D ├──────────────────────┤─────┤
- *   │  ELBOW (BL)  │ E │     FOOTER BAR       │ BR  │
- *   └──────────────┴───┴──────────────────────┴─────┘
+ * Modern grid (5 columns, 4 elbows):
+ *   ┌──────────────┬───┬──────────────────────┬───┬─────┐
+ *   │  ELBOW (TL)  │   │     HEADER BAR       │   │ TR  │
+ *   ├──────────────┤ C ├──────────────────────┤ R ┤─────┤
+ *   │              │ A │                      │ C │RIGHT│
+ *   │   SIDEBAR    │ S │     CONTENT          │ A │STRIP│
+ *   │              │ C │                      │ S │     │
+ *   ├──────────────┤ D ├──────────────────────┤ C ┤─────┤
+ *   │  ELBOW (BL)  │ E │     FOOTER BAR       │   │ BR  │
+ *   └──────────────┴───┴──────────────────────┴───┴─────┘
  */
 import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -41,6 +41,15 @@ import LCARSMobileNav from './LCARSMobileNav'
 import useIsMobile from '../../hooks/useIsMobile'
 import { useTheme } from './ThemeProvider'
 
+/** Decorative right strip colors — cycles through LCARS palette */
+const RIGHT_STRIP_COLORS = [
+  'var(--lcars-ice)',
+  'var(--lcars-african-violet)',
+  'var(--lcars-sunflower)',
+  'var(--lcars-butterscotch)',
+  'var(--lcars-lilac)',
+  'var(--lcars-sky)',
+]
 
 export default function LCARSLayout({ children, chat }) {
   const isMobile = useIsMobile()
@@ -104,12 +113,23 @@ export default function LCARSLayout({ children, chat }) {
             <LCARSElbow color="var(--lcars-ice)" position="tr" />
           </div>
 
-          {/* Right decorative strip — animated data cascade
-              Uses seedOffset so the blocks differ from the left cascade.
-              NOTE: display is set in CSS, NOT inline, so the mobile
-              media query's display:none !important can take effect. */}
-          <div className="lcars-right-strip">
+          {/* Right data cascade — mirrors the left cascade strip */}
+          <div className="lcars-right-cascade">
             <LCARSDataCascade seedOffset={37} />
+          </div>
+
+          {/* Right decorative strip — static colored pill segments */}
+          <div className="lcars-right-strip">
+            {RIGHT_STRIP_COLORS.map((color, i) => (
+              <div
+                key={i}
+                className="lcars-right-strip-pill"
+                style={{
+                  flex: i === 0 || i === RIGHT_STRIP_COLORS.length - 1 ? 2 : 1,
+                  background: color,
+                }}
+              />
+            ))}
           </div>
 
           {/* Bottom-right elbow */}

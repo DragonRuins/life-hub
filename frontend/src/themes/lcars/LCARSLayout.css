@@ -75,12 +75,12 @@
    Elbows sit in all four corners. */
 
 .lcars-layout.lcars-modern-layout {
-  grid-template-columns: 200px 5px 1fr 48px;
+  grid-template-columns: 200px 5px 1fr 5px 48px;
   grid-template-rows: 56px 1fr 36px;
   grid-template-areas:
-    "elbow-tl header  header  elbow-tr"
-    "sidebar  cascade content right-strip"
-    "elbow-bl footer  footer  elbow-br";
+    "elbow-tl header  header  header         elbow-tr"
+    "sidebar  cascade content right-cascade  right-strip"
+    "elbow-bl footer  footer  footer         elbow-br";
 }
 
 /* Right-side grid areas */
@@ -88,11 +88,26 @@
   grid-area: elbow-tr;
 }
 
+.lcars-right-cascade {
+  grid-area: right-cascade;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .lcars-right-strip {
   grid-area: right-strip;
   min-height: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 0;
   background: #000;
+}
+
+.lcars-right-strip-pill {
+  border-radius: 0 16px 16px 0;
+  opacity: 0.7;
 }
 
 .lcars-elbow-br {
@@ -143,6 +158,7 @@
   .lcars-elbow-tl,
   .lcars-elbow-bl,
   .lcars-elbow-tr,
+  .lcars-right-cascade,
   .lcars-right-strip,
   .lcars-elbow-br {
     display: none !important;
