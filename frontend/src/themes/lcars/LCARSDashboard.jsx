@@ -24,6 +24,7 @@ import { getWeatherInfo, getDayName } from '../../components/weatherCodes'
 import MaintenanceForm from '../../components/MaintenanceForm'
 import FuelForm from '../../components/FuelForm'
 import LCARSPanel, { LCARSDataRow, LCARSGauge, LCARSMiniPanel } from './LCARSPanel'
+import { useTheme } from './ThemeProvider'
 
 
 // ── Status color mapping ────────────────────────────────────────────────
@@ -914,9 +915,21 @@ const SYSTEM_TILES = [
   },
 ]
 
+// Modern variant: muted grey-blue palette for system tile frames
+const MODERN_TILE_COLORS = {
+  notes: '#3A4555',
+  projects: '#354050',
+  kb: '#404858',
+  infrastructure: '#3A4555',
+  astrometrics: '#354050',
+  trek: '#404858',
+}
+
 function SystemsStatusBoard({ stats }) {
+  const { isModernLCARS } = useTheme()
+
   return (
-    <LCARSPanel title="Systems Status" color="var(--lcars-gold)">
+    <LCARSPanel title="Systems Status" color={isModernLCARS ? '#404858' : 'var(--lcars-gold)'}>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -928,6 +941,10 @@ function SystemsStatusBoard({ stats }) {
           const unit = tile.getUnit(stats)
           const secondary = tile.getSecondary?.(stats)
           const alertColor = tile.getAlertColor?.(stats)
+          // Modern: use muted grey-blue frame colors (alerts still override)
+          const frameColor = alertColor || (isModernLCARS ? MODERN_TILE_COLORS[tile.key] : tile.color)
+          // Modern: icons stay white to match text; Classic: use tile accent color
+          const iconColor = alertColor || (isModernLCARS ? 'var(--lcars-space-white)' : tile.color)
 
           return (
             <Link
@@ -935,10 +952,10 @@ function SystemsStatusBoard({ stats }) {
               to={tile.link}
               style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}
             >
-              <LCARSMiniPanel title={tile.label} color={alertColor || tile.color} style={{ height: '100%' }}>
+              <LCARSMiniPanel title={tile.label} color={frameColor} style={{ height: '100%' }}>
                 {/* Icon + main value row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.25rem' }}>
-                  <Icon size={13} style={{ color: alertColor || tile.color, flexShrink: 0 }} />
+                  <Icon size={14} style={{ color: iconColor, flexShrink: 0 }} />
                   <span style={{
                     fontFamily: tile.isTextValue ? "'Antonio', sans-serif" : "'JetBrains Mono', monospace",
                     fontSize: tile.isTextValue ? '1.1rem' : '1.5rem',
@@ -954,10 +971,10 @@ function SystemsStatusBoard({ stats }) {
                 {/* Unit */}
                 <div style={{
                   fontFamily: "'Antonio', sans-serif",
-                  fontSize: '0.62rem',
+                  fontSize: '0.72rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
-                  color: 'var(--lcars-gray)',
+                  color: isModernLCARS ? 'rgba(245, 246, 250, 0.55)' : 'var(--lcars-gray)',
                 }}>
                   {unit}
                 </div>
@@ -966,8 +983,8 @@ function SystemsStatusBoard({ stats }) {
                 {secondary && (
                   <div style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: '0.62rem',
-                    color: alertColor || 'var(--lcars-gray)',
+                    fontSize: '0.72rem',
+                    color: alertColor || (isModernLCARS ? 'rgba(245, 246, 250, 0.5)' : 'var(--lcars-gray)'),
                     marginTop: '0.25rem',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',

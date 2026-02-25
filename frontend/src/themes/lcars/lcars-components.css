@@ -72,40 +72,45 @@
 /* ── Text Depth & Glow System ──────────────────────────────────── */
 /* Two-layer shadow approach:
      Layer 1: dark lift shadow (pushes text forward from black bg)
-     Layer 2: colored glow matching the text's own color (emissive)
-   The `color-mix()` function derives the glow from currentColor,
-   so it automatically adapts to any text color without hard-coding. */
+     Layer 2: directional depth shadows (extruded/embossed)
+   Uses stacked zero/low-blur offset shadows for a crisp raised
+   letterform effect, plus a subtle top-edge highlight for emboss.
+   No broad glow — keeps text sharp and readable. */
 
-/* Headings: prominent glow + lift — these are the main readability
-   anchors on LCARS screens */
+/* Headings: pronounced extrusion + emboss — main readability anchors */
 .lcars-theme h1 {
   text-shadow:
-    0 0 20px color-mix(in srgb, currentColor 18%, transparent),
-    0 1px 3px rgba(0, 0, 0, 0.7) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 2px 0 rgba(0, 0, 0, 0.3),
+    0 3px 2px rgba(0, 0, 0, 0.25) !important;
   font-size: 1.75rem !important;
   font-weight: 700 !important;
 }
 
 .lcars-theme h2 {
   text-shadow:
-    0 0 16px color-mix(in srgb, currentColor 15%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.6) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 2px 1px rgba(0, 0, 0, 0.2) !important;
   font-size: 1.3rem !important;
   font-weight: 600 !important;
 }
 
 .lcars-theme h3 {
   text-shadow:
-    0 0 12px color-mix(in srgb, currentColor 12%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 2px 1px rgba(0, 0, 0, 0.15) !important;
   font-size: 1.1rem !important;
   font-weight: 600 !important;
 }
 
-/* Labels: subtle glow for form/field labels */
+/* Labels: subtle emboss for form/field labels */
 .lcars-theme label {
   text-shadow:
-    0 0 8px color-mix(in srgb, currentColor 12%, transparent) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.35) !important;
   font-size: 0.82rem !important;
   font-weight: 600 !important;
 }
@@ -113,40 +118,51 @@
 /* Table headers: match label treatment */
 .lcars-theme th {
   text-shadow:
-    0 0 8px color-mix(in srgb, currentColor 12%, transparent) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.35) !important;
   font-size: 0.88rem !important;
   font-weight: 600 !important;
 }
 
-/* Body text inside LCARS frame: soft lift shadow for readability */
+/* Body text inside LCARS frame: subtle directional depth */
 .lcars-theme .lcars-content {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.03),
+    0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
-/* Data values: subtle depth for monospace readout text */
+/* Data values: crisp depth for monospace readout text */
 .lcars-theme .lcars-content [style*="JetBrains"],
 .lcars-theme .lcars-content [style*="monospace"],
 .lcars-theme code,
 .lcars-theme .mono {
   text-shadow:
-    0 0 6px color-mix(in srgb, currentColor 8%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.5);
+    0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 2px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* Table cell text: needs separation from dark rows */
 .lcars-theme td {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.03),
+    0 1px 0 rgba(0, 0, 0, 0.3) !important;
   font-size: 0.88rem !important;
 }
 
-/* Links: glow on hover for better interactive affordance */
+/* Links: crisp lift on hover */
 .lcars-theme a:hover {
-  text-shadow: 0 0 10px color-mix(in srgb, currentColor 20%, transparent);
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 2px 1px rgba(0, 0, 0, 0.2);
 }
 
-/* Buttons: slight lift for text on colored backgrounds */
+/* Buttons: slight emboss for text on colored backgrounds */
 .lcars-theme .btn {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.25) !important;
   font-size: 0.88rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.06em !important;
@@ -157,7 +173,9 @@
 .lcars-theme textarea,
 .lcars-theme select {
   font-size: 0.88rem !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.03),
+    0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 /* ── Panel Header Title Enhancement ─────────────────────────────── */
@@ -169,16 +187,19 @@
   font-size: 0.9rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.12em !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* ── Ghost / Transparent Text Enhancement ───────────────────────── */
-/* Text on transparent/dark backgrounds needs stronger lift */
+/* Text on transparent/dark backgrounds needs stronger depth */
 
 .lcars-theme .btn-ghost {
   text-shadow:
-    0 0 8px color-mix(in srgb, currentColor 15%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 2px 1px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* ── Placeholder Text ───────────────────────────────────────────── */
@@ -533,27 +554,33 @@
 }
 
 /* ── Modern Variant Typography ──────────────────────────────────── */
-/* The deeper backgrounds (#080A0F) and desaturated text colors need
-   slightly stronger glow/lift to maintain readability. */
+/* The deeper backgrounds (#080A0F) need slightly stronger depth
+   shadows to maintain text separation. */
 
 .lcars-theme.lcars-modern .lcars-content {
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 .lcars-theme.lcars-modern h1 {
   text-shadow:
-    0 0 24px color-mix(in srgb, currentColor 22%, transparent),
-    0 1px 4px rgba(0, 0, 0, 0.8) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 0 rgba(0, 0, 0, 0.6),
+    0 2px 0 rgba(0, 0, 0, 0.35),
+    0 3px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 .lcars-theme.lcars-modern h2 {
   text-shadow:
-    0 0 18px color-mix(in srgb, currentColor 18%, transparent),
-    0 1px 3px rgba(0, 0, 0, 0.7) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 2px 1px rgba(0, 0, 0, 0.25) !important;
 }
 
 .lcars-theme.lcars-modern h3 {
   text-shadow:
-    0 0 14px color-mix(in srgb, currentColor 15%, transparent),
-    0 1px 3px rgba(0, 0, 0, 0.6) !important;
+    0 -1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    0 2px 1px rgba(0, 0, 0, 0.2) !important;
 }

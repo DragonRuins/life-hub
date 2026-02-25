@@ -538,11 +538,11 @@ export function LCARSMiniPanel({ title, color = 'var(--lcars-sunflower)', childr
         <span
           style={{
             fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
-            fontSize: '0.65rem',
+            fontSize: isModernLCARS ? '0.7rem' : '0.65rem',
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
-            color: '#000',
+            color: isModernLCARS ? 'var(--lcars-space-white)' : '#000',
             whiteSpace: 'nowrap',
           }}
         >

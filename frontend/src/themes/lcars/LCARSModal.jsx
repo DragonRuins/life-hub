@@ -67,11 +67,14 @@ export default function LCARSModal({
           position: 'relative',
           width: '100%',
           maxWidth: 'min(520px, calc(100vw - 2rem))',
+          maxHeight: 'calc(100dvh - 2rem)',
           margin: '1rem',
           background: '#000000',
           border: `2px solid ${color}`,
           borderRadius: '4px',
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         {/* Corner elbow accents */}
@@ -88,6 +91,7 @@ export default function LCARSModal({
             justifyContent: 'space-between',
             padding: '0.625rem 1rem 0.625rem 1.5rem',
             background: color,
+            flexShrink: 0,
           }}
         >
           <span
@@ -126,7 +130,7 @@ export default function LCARSModal({
         </div>
 
         {/* Content area */}
-        <div style={{ padding: '1.5rem' }}>
+        <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
           {children}
         </div>
       </div>

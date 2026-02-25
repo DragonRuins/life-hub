@@ -882,6 +882,8 @@ function LCARSModalOverlay({ title, onClose, children }) {
     }}>
       <div style={{
         width: '100%', maxWidth: '600px', margin: '1rem',
+        maxHeight: 'calc(100dvh - 2rem)',
+        display: 'flex', flexDirection: 'column',
         background: '#000000',
         border: '2px solid var(--lcars-butterscotch)',
         overflow: 'hidden',
@@ -890,6 +892,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0.5rem 1rem',
           background: 'var(--lcars-butterscotch)',
+          flexShrink: 0,
         }}>
           <span style={{
             fontFamily: "'Antonio', 'Helvetica Neue', 'Arial Narrow', sans-serif",
@@ -913,7 +916,7 @@ function LCARSModalOverlay({ title, onClose, children }) {
             <X size={16} />
           </button>
         </div>
-        <div style={{ padding: '1.25rem' }}>
+        <div style={{ padding: '1.25rem', overflowY: 'auto' }}>
           {children}
         </div>
       </div>

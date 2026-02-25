@@ -488,7 +488,7 @@ export default function VehicleDetail() {
                 position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
                 background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
               }}>
-                <div className="card" style={{ width: '100%', maxWidth: 'min(600px, calc(100vw - 2rem))', margin: '1rem' }}>
+                <div className="card" style={{ width: '100%', maxWidth: 'min(600px, calc(100vw - 2rem))', maxHeight: 'calc(100dvh - 2rem)', overflowY: 'auto', margin: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
                       {editingTireSet ? 'Edit Tire Set' : 'Add Tire Set'}
