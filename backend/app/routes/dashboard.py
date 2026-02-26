@@ -314,7 +314,8 @@ def get_fleet_status():
     severity = {'unknown': 0, 'ok': 1, 'due_soon': 2, 'due': 3, 'overdue': 4}
 
     # ── Section 1: Interval Alerts ──────────────────────────────────────
-    # Collect non-ok intervals across all vehicles
+    # Collect ALL enabled intervals across all vehicles (including ok/unknown)
+    # so clients can display full maintenance status lists.
     interval_alerts = []
 
     # ── Section 2: Vehicle Summaries ────────────────────────────────────
@@ -339,21 +340,20 @@ def get_fleet_status():
             if severity.get(status, 0) > severity.get(worst_status, 0):
                 worst_status = status
 
-            # Collect non-ok alerts for the alerts panel
-            if status not in ('ok', 'unknown'):
-                interval_alerts.append({
-                    'interval_id': interval.id,
-                    'item_name': interval.item.name if interval.item else 'Unknown',
-                    'item_category': interval.item.category if interval.item else 'Other',
-                    'status': status,
-                    'miles_remaining': status_info['miles_remaining'],
-                    'days_remaining': status_info['days_remaining'],
-                    'percent_miles': status_info['percent_miles'],
-                    'next_due_mileage': status_info['next_due_mileage'],
-                    'next_due_date': status_info['next_due_date'],
-                    'vehicle_id': v.id,
-                    'vehicle_name': vehicle_name,
-                })
+            # Collect all intervals (including ok/unknown) for full status display
+            interval_alerts.append({
+                'interval_id': interval.id,
+                'item_name': interval.item.name if interval.item else 'Unknown',
+                'item_category': interval.item.category if interval.item else 'Other',
+                'status': status,
+                'miles_remaining': status_info['miles_remaining'],
+                'days_remaining': status_info['days_remaining'],
+                'percent_miles': status_info['percent_miles'],
+                'next_due_mileage': status_info['next_due_mileage'],
+                'next_due_date': status_info['next_due_date'],
+                'vehicle_id': v.id,
+                'vehicle_name': vehicle_name,
+            })
 
         # Get last fuel log MPG and average MPG
         sorted_fuel = sorted(

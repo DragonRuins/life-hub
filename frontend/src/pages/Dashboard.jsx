@@ -153,7 +153,7 @@ export default function Dashboard() {
           onAddMaintenance={() => setShowQuickAdd(true)}
           onAddFuel={() => setShowQuickAddFuel(true)}
         />
-        <MaintenanceAlertsCard alerts={fleetStatus?.interval_alerts || []} />
+        <MaintenanceAlertsCard alerts={(fleetStatus?.interval_alerts || []).filter(a => a.status !== 'ok' && a.status !== 'unknown')} />
       </div>
 
       {/* Row 3: Recent Activity (full width) */}

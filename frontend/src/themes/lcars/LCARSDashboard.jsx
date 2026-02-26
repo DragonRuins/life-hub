@@ -204,7 +204,7 @@ export default function LCARSDashboard() {
 
       {/* ── Row 1: Maintenance Alerts (full width) ───────────────────── */}
       <div style={{ marginBottom: '1rem' }}>
-        <MaintenanceAlertPanel alerts={fleetStatus?.interval_alerts || []} />
+        <MaintenanceAlertPanel alerts={(fleetStatus?.interval_alerts || []).filter(a => a.status !== 'ok' && a.status !== 'unknown')} />
       </div>
 
       {/* ── Row 2: Vehicle Readout + Weather (2 columns) ─────────────── */}

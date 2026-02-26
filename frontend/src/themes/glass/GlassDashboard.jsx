@@ -104,7 +104,7 @@ export default function GlassDashboard() {
     )
   }
 
-  const alerts = fleetStatus?.interval_alerts || []
+  const alerts = (fleetStatus?.interval_alerts || []).filter(a => a.status !== 'ok' && a.status !== 'unknown')
   const timeline = fleetStatus?.recent_activity || []
   const summaries = fleetStatus?.vehicle_summaries || []
 
