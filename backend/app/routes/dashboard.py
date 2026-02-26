@@ -33,10 +33,11 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def get_weather():
     """
     Fetch current weather from Open-Meteo (free, no API key needed).
-    Uses the lat/lon from your .env config.
+    Accepts optional ?lat=&lon= query params (e.g. from iOS CoreLocation).
+    Falls back to .env config values if not provided.
     """
-    lat = current_app.config['WEATHER_LAT']
-    lon = current_app.config['WEATHER_LON']
+    lat = request.args.get('lat', current_app.config['WEATHER_LAT'])
+    lon = request.args.get('lon', current_app.config['WEATHER_LON'])
 
     try:
         resp = requests.get(

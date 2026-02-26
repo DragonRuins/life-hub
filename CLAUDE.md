@@ -26,6 +26,13 @@ Datacore has TWO codebases that share the same Flask backend API:
 - `Datacore/Config/ServerConfig.swift` — UserDefaults-backed server address
 - Navigation: `TabView` (iPhone) / `NavigationSplitView` (iPad), both get native Liquid Glass on iOS 26
 
+**iOS SwiftUI Coding Standards:**
+
+- **Picker style:** Always use `.pickerStyle(.menu)` on `Picker` controls (unless you explicitly want `.segmented`). SwiftUI's default `List` row picker style hijacks row taps — tapping anywhere in a `List` row activates the first unstyled `Picker`, which causes controls to open unexpectedly. `.menu` style makes each picker handle its own taps via an inline dropdown, preventing this.
+- **UserDefaults + @Observable:** Never use computed properties that read/write UserDefaults directly on an `@Observable` class. The observation system can't track computed getters. Instead, use a stored property initialized from UserDefaults with a `didSet` that syncs back: `var myPref: Int? = { UserDefaults.standard... }() { didSet { UserDefaults.standard.set(...) } }`.
+- **Tap isolation in List rows:** When embedding interactive controls (Toggles, Pickers, TextFields) inside expandable `List` rows, add `.contentShape(Rectangle())` and `.onTapGesture {}` to non-interactive container VStacks. This prevents stray taps from propagating up to the `List` row and accidentally activating controls.
+- **No Steppers:** Never use `Stepper` for numeric inputs. Use a `TextField` with `.keyboardType(.numberPad)` and a trailing unit label instead. Steppers require tedious +/- tapping — a text field lets the user type the value directly. Pattern: `HStack { Text("Label"); Spacer(); TextField("0", text: $value).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 60); Text("unit").foregroundStyle(.secondary).font(.subheadline) }`
+
 ---
 
 ## Important Notes for Agents

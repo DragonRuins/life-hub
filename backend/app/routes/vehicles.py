@@ -144,6 +144,7 @@ def create_tire_set(vehicle_id, data):
         'install_mileage': install_mileage,
         'mileage_at_last_swap': install_mileage,  # Track mileage at creation
         'accumulated_mileage': to_int(data.get('accumulated_mileage')) or 0,
+        'rated_lifespan': to_int(data.get('rated_lifespan')),
         'purchase_date': parse_component_date(data.get('purchase_date')),
         'purchase_price': to_float(data.get('purchase_price')),
         'notes': data.get('notes') or None,
@@ -1215,7 +1216,7 @@ def update_tire_set(set_id):
 
     for field in ('name', 'tire_brand', 'tire_model', 'rim_brand', 'rim_model',
                   'install_date', 'install_mileage', 'accumulated_mileage',
-                  'purchase_date', 'purchase_price', 'notes'):
+                  'rated_lifespan', 'purchase_date', 'purchase_price', 'notes'):
         if field in data:
             setattr(tire_set, field, data[field])
 

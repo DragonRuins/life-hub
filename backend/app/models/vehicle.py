@@ -212,6 +212,7 @@ class TireSet(db.Model):
     install_mileage = db.Column(db.Integer)  # Vehicle mileage when first installed
     accumulated_mileage = db.Column(db.Integer, default=0)  # Total miles this set has been used
     mileage_at_last_swap = db.Column(db.Integer)  # Vehicle mileage when last equipped
+    rated_lifespan = db.Column(db.Integer, nullable=True)  # Manufacturer-rated tire lifespan in miles
     purchase_date = db.Column(db.Date)
     purchase_price = db.Column(db.Float)
     notes = db.Column(db.Text)
@@ -239,6 +240,7 @@ class TireSet(db.Model):
             'install_mileage': self.install_mileage,
             'accumulated_mileage': self.accumulated_mileage or 0,
             'mileage_at_last_swap': self.mileage_at_last_swap,
+            'rated_lifespan': self.rated_lifespan,
             'purchase_date': self.purchase_date.isoformat() if self.purchase_date else None,
             'purchase_price': self.purchase_price,
             'notes': self.notes,
