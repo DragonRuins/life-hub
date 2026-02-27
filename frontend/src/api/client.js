@@ -978,3 +978,15 @@ export const trek = {
   status: () => apiFetch('/trek/status'),
   entityTypes: () => apiFetch('/trek/entity-types'),
 }
+
+// ── Work Hours ────────────────────────────────────────────────
+
+export const workHours = {
+  getYear: (year) => apiFetch(`/work-hours/${year}`),
+  updateMonth: (year, month, data) => apiFetch(`/work-hours/${year}/${month}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  getYears: () => apiFetch('/work-hours/years'),
+  getSummary: (year) => apiFetch(`/work-hours/summary/${year}`),
+}
