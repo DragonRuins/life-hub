@@ -1,14 +1,14 @@
 /**
- * ThemeSwitcher.jsx - Three-Way Theme Dropdown
+ * ThemeSwitcher.jsx - Theme Dropdown
  *
- * Dropdown button (Palette icon) that opens a popover with three
- * theme options: Catppuccin, Liquid Glass, and LCARS.
+ * Dropdown button (Palette icon) that opens a popover with two
+ * theme options: Catppuccin and LCARS.
  * Each option shows name, short description, and color swatch preview.
  * Dropdown styling adapts to the current theme via CSS variables.
  * Closes on click outside or Escape key.
  */
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Palette, Monitor, Sparkles, Tv } from 'lucide-react'
+import { Palette, Monitor, Tv } from 'lucide-react'
 import { useTheme } from '../themes/lcars/ThemeProvider'
 
 const THEMES = [
@@ -18,13 +18,6 @@ const THEMES = [
     description: 'Warm dark theme',
     icon: Monitor,
     swatches: ['#89b4fa', '#a6e3a1', '#fab387', '#cba6f7'],
-  },
-  {
-    id: 'glass',
-    name: 'Liquid Glass',
-    description: 'Apple-inspired glass',
-    icon: Sparkles,
-    swatches: ['#0A84FF', '#30D158', '#FF9F0A', '#BF5AF2'],
   },
   {
     id: 'lcars',

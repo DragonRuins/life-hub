@@ -22,15 +22,14 @@ A self-hosted personal dashboard and database for tracking everything in your li
 | **AI Chat** | Conversational AI via Anthropic API with streaming, conversation history, and tool use |
 | **Notifications** | Rule-based alerts with channels (Discord, email, Pushover, SMS, in-app), quiet hours, history |
 
-## Triple-Theme System
+## Dual-Theme System
 
-Every page is implemented three times in three distinct visual languages:
+Every page is implemented twice in two distinct visual languages:
 
 | Theme | Style | Font |
 |-------|-------|------|
 | **Catppuccin Mocha** | Dark theme with pastel accents | Outfit / JetBrains Mono |
 | **LCARS** | Star Trek computer interface with elbows, cascades, pill buttons, boot sequence | Antonio |
-| **Liquid Glass** | Apple WWDC 2025 design language — floating sidebar, bento grids, glass material effects | SF Pro / Inter |
 
 Theme preference is stored in localStorage and can be switched at any time. Each theme has its own layout shell, navigation, component library, and per-page implementations — they are not reskins of each other.
 
@@ -171,8 +170,7 @@ datacore/
 │       │   ├── kb/           # Knowledge base sub-pages (editor, reader, categories)
 │       │   └── settings/     # Settings sub-pages (AI, Astro, import, vehicles)
 │       └── themes/
-│           ├── lcars/        # LCARS theme (Star Trek) — full page set + settings/
-│           └── glass/        # Liquid Glass theme (Apple) — full page set + settings/
+│           └── lcars/        # LCARS theme (Star Trek) — full page set + settings/
 ├── docker-compose.yml        # Local development
 ├── docker-compose.prod.yml   # Production (GHCR images)
 ├── .github/workflows/        # CI/CD — builds to ghcr.io/dragonruins/*
@@ -208,8 +206,7 @@ See `CLAUDE.md` for the full guide. In short:
 2. Create API routes in `backend/app/routes/`
 3. Register the blueprint in `backend/app/__init__.py`
 4. Add API client functions in `frontend/src/api/client.js`
-5. Create page components in **all three themes**:
+5. Create page components in **both themes**:
    - `frontend/src/pages/` (Catppuccin)
    - `frontend/src/themes/lcars/` (LCARS)
-   - `frontend/src/themes/glass/` (Liquid Glass)
 6. Add routes and nav links in `App.jsx` for each theme shell

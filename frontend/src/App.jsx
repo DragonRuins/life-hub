@@ -85,51 +85,16 @@ import LCARSAISettings from './themes/lcars/settings/LCARSAISettings'
 import DataImport from './pages/settings/DataImport'
 import LCARSDataImport from './themes/lcars/settings/LCARSDataImport'
 
-// Glass (Liquid Glass) theme components
-import GlassLayout from './themes/glass/GlassLayout'
-import GlassDashboard from './themes/glass/GlassDashboard'
-import GlassVehicles from './themes/glass/GlassVehicles'
-import GlassVehicleDetail from './themes/glass/GlassVehicleDetail'
-import GlassFuelEconomy from './themes/glass/GlassFuelEconomy'
-import GlassNotes from './themes/glass/GlassNotes'
-import GlassProjects from './themes/glass/GlassProjects'
-import GlassProjectDetail from './themes/glass/GlassProjectDetail'
-import GlassKnowledgeBase from './themes/glass/GlassKnowledgeBase'
-import GlassInfrastructure from './themes/glass/GlassInfrastructure'
-import GlassInfraHostDetail from './themes/glass/GlassInfraHostDetail'
-import GlassInfraNetwork from './themes/glass/GlassInfraNetwork'
-import GlassInfraServices from './themes/glass/GlassInfraServices'
-import GlassInfraIncidents from './themes/glass/GlassInfraIncidents'
-import GlassInfraIntegrations from './themes/glass/GlassInfraIntegrations'
-import GlassInfraSmartHome from './themes/glass/GlassInfraSmartHome'
-import GlassInfraPrinter from './themes/glass/GlassInfraPrinter'
-import GlassAstrometrics from './themes/glass/GlassAstrometrics'
-import GlassTrekDatabase from './themes/glass/GlassTrekDatabase'
-import GlassTrekBrowse from './themes/glass/GlassTrekBrowse'
-import GlassTrekDetail from './themes/glass/GlassTrekDetail'
-import GlassTrekEpisodes from './themes/glass/GlassTrekEpisodes'
-import GlassTrekShips from './themes/glass/GlassTrekShips'
-import GlassTrekSearch from './themes/glass/GlassTrekSearch'
-import GlassTrekFavorites from './themes/glass/GlassTrekFavorites'
-import GlassNotifications from './themes/glass/GlassNotifications'
-import GlassSettings from './themes/glass/GlassSettings'
-import GlassVehicleSettings from './themes/glass/settings/GlassVehicleSettings'
-import GlassAstroSettings from './themes/glass/settings/GlassAstroSettings'
-import GlassNotificationSettings from './themes/glass/settings/GlassNotificationSettings'
-import GlassAISettings from './themes/glass/settings/GlassAISettings'
-import GlassDataImport from './themes/glass/settings/GlassDataImport'
 import ThemeSwitcher from './components/ThemeSwitcher'
 
 export default function App() {
-  const { isLCARS, isGlass, booting, lcarsVariant } = useTheme()
+  const { isLCARS, booting, lcarsVariant } = useTheme()
   const chat = useChat()
 
   // Determine which app shell to render
   const shell = isLCARS
     ? <LCARSAppShell chat={chat} />
-    : isGlass
-      ? <GlassAppShell chat={chat} />
-      : <AppShell chat={chat} />
+    : <AppShell chat={chat} />
 
   return (
     <BrowserRouter>
@@ -137,21 +102,19 @@ export default function App() {
       {booting && <LCARSBootSequence variant={lcarsVariant} />}
 
       <Routes>
-        {/* FuelEntry: standalone in default theme, gets frame in LCARS/Glass */}
+        {/* FuelEntry: standalone in default theme, gets frame in LCARS */}
         <Route
           path="/fuel/add/:id"
           element={
             isLCARS ? (
               <LCARSLayout><FuelEntry /></LCARSLayout>
-            ) : isGlass ? (
-              <GlassLayout><FuelEntry /></GlassLayout>
             ) : (
               <FuelEntry />
             )
           }
         />
 
-        {/* Main app with sidebar (default), LCARS frame, or Glass shell */}
+        {/* Main app with sidebar (default) or LCARS frame */}
         <Route path="*" element={shell} />
       </Routes>
 
@@ -205,54 +168,6 @@ function LCARSAppShell({ chat }) {
         <Route path="/settings/import" element={<LCARSDataImport />} />
       </Routes>
     </LCARSLayout>
-  )
-}
-
-/**
- * Glass (Liquid Glass) version of the app shell.
- * Renders all page routes inside the Glass layout frame.
- * Glass pages wrap Catppuccin pages — CSS overrides handle the visual transformation.
- */
-function GlassAppShell({ chat }) {
-  return (
-    <GlassLayout chat={chat}>
-      <Routes>
-        <Route path="/" element={<GlassDashboard />} />
-        <Route path="/vehicles" element={<GlassVehicles />} />
-        <Route path="/vehicles/:id" element={<GlassVehicleDetail />} />
-        <Route path="/vehicles/:id/fuel" element={<GlassFuelEconomy />} />
-        <Route path="/notes" element={<GlassNotes />} />
-        <Route path="/projects" element={<GlassProjects />} />
-        <Route path="/projects/:slug" element={<GlassProjectDetail />} />
-        <Route path="/kb" element={<GlassKnowledgeBase />} />
-        <Route path="/kb/:slug" element={<GlassKnowledgeBase />} />
-        <Route path="/kb/:slug/edit" element={<GlassKnowledgeBase />} />
-        <Route path="/infrastructure" element={<GlassInfrastructure />} />
-        <Route path="/infrastructure/hosts/:id" element={<GlassInfraHostDetail />} />
-        <Route path="/infrastructure/network" element={<GlassInfraNetwork />} />
-        <Route path="/infrastructure/services" element={<GlassInfraServices />} />
-        <Route path="/infrastructure/incidents" element={<GlassInfraIncidents />} />
-        <Route path="/infrastructure/integrations" element={<GlassInfraIntegrations />} />
-        <Route path="/infrastructure/smarthome" element={<GlassInfraSmartHome />} />
-        <Route path="/infrastructure/printer" element={<GlassInfraPrinter />} />
-        <Route path="/astrometrics" element={<GlassAstrometrics />} />
-        <Route path="/trek" element={<GlassTrekDatabase />} />
-        <Route path="/trek/search" element={<GlassTrekSearch />} />
-        <Route path="/trek/favorites" element={<GlassTrekFavorites />} />
-        <Route path="/trek/episodes" element={<GlassTrekEpisodes />} />
-        <Route path="/trek/ships" element={<GlassTrekShips />} />
-        <Route path="/trek/:entityType/:uid" element={<GlassTrekDetail />} />
-        <Route path="/trek/:entityType" element={<GlassTrekBrowse />} />
-        <Route path="/work-hours" element={<WorkHours />} />
-        <Route path="/notifications" element={<GlassNotifications />} />
-        <Route path="/settings" element={<GlassSettings />} />
-        <Route path="/settings/vehicles" element={<GlassVehicleSettings />} />
-        <Route path="/settings/astrometrics" element={<GlassAstroSettings />} />
-        <Route path="/settings/notifications" element={<GlassNotificationSettings />} />
-        <Route path="/settings/ai" element={<GlassAISettings />} />
-        <Route path="/settings/import" element={<GlassDataImport />} />
-      </Routes>
-    </GlassLayout>
   )
 }
 

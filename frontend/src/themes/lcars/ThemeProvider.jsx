@@ -2,7 +2,7 @@
  * ThemeProvider.jsx - Theme Context & Provider
  *
  * Manages three independent settings:
- *   1. Theme engine (catppuccin | lcars | glass) — stored in 'datacore-theme'
+ *   1. Theme engine (catppuccin | lcars) — stored in 'datacore-theme'
  *   2. Color scheme (mocha, dracula, etc.) — stored in 'datacore-color-scheme'
  *   3. LCARS variant (classic | modern) — stored in 'datacore-lcars-variant'
  *
@@ -14,13 +14,9 @@
  * palettes. When variant is 'modern', .lcars-modern is added to <html>,
  * layering overrides from lcars-modern-variables.css on top of .lcars-theme.
  *
- * The glass theme applies Apple's Liquid Glass design language with
- * translucent panels, backdrop blur, and system colors. When active,
- * .glass-theme is added to <html> and glass CSS variable overrides apply.
- *
  * Usage:
  *   import { useTheme } from './themes/lcars/ThemeProvider'
- *   const { theme, setTheme, isLCARS, isGlass, booting, colorScheme, setColorScheme,
+ *   const { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme,
  *           lcarsVariant, setLcarsVariant, isModernLCARS } = useTheme()
  */
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
@@ -32,11 +28,6 @@ import './lcars-modern-variables.css'
 import './lcars-library.css'      // Vendored joernweissenborn/lcars structural CSS
 import './lcars-components.css'
 import './lcars-animations.css'
-
-// Import Glass (Liquid Glass) CSS files
-import '../glass/glass-variables.css'
-import '../glass/glass-components.css'
-import '../glass/glass-animations.css'
 
 const STORAGE_KEY = 'datacore-theme'
 const COLOR_SCHEME_KEY = 'datacore-color-scheme'
@@ -65,7 +56,7 @@ const ThemeContext = createContext(null)
 
 /**
  * Hook to access theme state and controls.
- * Returns { theme, setTheme, isLCARS, isGlass, booting, colorScheme, setColorScheme,
+ * Returns { theme, setTheme, isLCARS, booting, colorScheme, setColorScheme,
  *           lcarsVariant, setLcarsVariant, isModernLCARS, alertCondition }
  */
 export function useTheme() {
@@ -84,9 +75,11 @@ export function useTheme() {
  */
 export function ThemeProvider({ children }) {
   // Read initial theme from localStorage (default: catppuccin)
+  // Falls back to catppuccin if stored theme was 'glass' (removed)
   const [theme, setThemeState] = useState(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY) || 'catppuccin'
+      const stored = localStorage.getItem(STORAGE_KEY) || 'catppuccin'
+      return stored === 'glass' ? 'catppuccin' : stored
     } catch {
       return 'catppuccin'
     }
@@ -116,21 +109,18 @@ export function ThemeProvider({ children }) {
   const isInitialMount = useRef(true)
 
   const isLCARS = theme === 'lcars'
-  const isGlass = theme === 'glass'
   const isModernLCARS = isLCARS && lcarsVariant === 'modern'
 
   // Apply or remove theme classes on <html>
   useEffect(() => {
     const root = document.documentElement
 
-    // Clear all theme classes first
-    root.classList.remove('lcars-theme', 'glass-theme')
+    // Clear theme class first
+    root.classList.remove('lcars-theme')
 
     // Add the active theme class
     if (isLCARS) {
       root.classList.add('lcars-theme')
-    } else if (isGlass) {
-      root.classList.add('glass-theme')
     }
 
     // Save to localStorage
@@ -139,7 +129,7 @@ export function ThemeProvider({ children }) {
     } catch {
       // Silently fail if localStorage isn't available
     }
-  }, [theme, isLCARS, isGlass])
+  }, [theme, isLCARS])
 
   // Apply or remove the .lcars-modern class on <html>
   useEffect(() => {
@@ -170,15 +160,15 @@ export function ThemeProvider({ children }) {
     }
 
     // Set color-scheme CSS property for light/dark browser controls
-    // Only matters when not in LCARS/Glass mode (both are always dark)
-    if (!isLCARS && !isGlass) {
+    // Only matters when not in LCARS mode (LCARS is always dark)
+    if (!isLCARS) {
       root.style.colorScheme = LIGHT_SCHEMES.includes(colorScheme) ? 'light' : 'dark'
     } else {
       root.style.colorScheme = 'dark'
     }
 
     // Update theme-color meta tag (affects mobile browser chrome color)
-    const baseColor = (isLCARS || isGlass) ? '#000000' : (SCHEME_BASE_COLORS[colorScheme] || '#1e1e2e')
+    const baseColor = isLCARS ? '#000000' : (SCHEME_BASE_COLORS[colorScheme] || '#1e1e2e')
     let metaThemeColor = document.querySelector('meta[name="theme-color"]')
     if (!metaThemeColor) {
       metaThemeColor = document.createElement('meta')
@@ -193,7 +183,7 @@ export function ThemeProvider({ children }) {
     } catch {
       // Silently fail if localStorage isn't available
     }
-  }, [colorScheme, isLCARS, isGlass])
+  }, [colorScheme, isLCARS])
 
   // Skip boot sequence on initial mount (page load with LCARS already active)
   useEffect(() => {
@@ -277,7 +267,7 @@ export function ThemeProvider({ children }) {
   }, [isLCARS])
 
   const value = {
-    theme, setTheme, isLCARS, isGlass, booting,
+    theme, setTheme, isLCARS, booting,
     colorScheme, setColorScheme,
     lcarsVariant, setLcarsVariant, isModernLCARS,
     alertCondition,

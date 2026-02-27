@@ -65,7 +65,7 @@ Click any month row to open a modal with a number input for `hours_worked`. Pre-
 
 ### Theme Implementations
 
-All three themes (Catppuccin, LCARS, Glass) get unique implementations following existing module patterns. Dashboard summary cards added to all three dashboards.
+Both themes (Catppuccin, LCARS) get unique implementations following existing module patterns. Dashboard summary cards added to both dashboards.
 
 ## Frontend — iOS/iPad/Mac
 

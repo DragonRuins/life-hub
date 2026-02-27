@@ -11,8 +11,8 @@ Datacore has TWO codebases that share the same Flask backend API:
 
 **How to direct Claude to the right project:**
 
-- Default context is the **web app** (this repo). Web app work follows the triple-theme requirement below.
-- To work on the **iOS app**, say "work on the Apple app" or "switch to the Xcode project" or reference the `Datacore-Apple` path. iOS work does NOT follow the triple-theme requirement — it uses native iOS 26 Liquid Glass via SwiftUI.
+- Default context is the **web app** (this repo). Web app work follows the dual-theme requirement below.
+- To work on the **iOS app**, say "work on the Apple app" or "switch to the Xcode project" or reference the `Datacore-Apple` path. iOS work does NOT follow the dual-theme requirement — it uses native iOS 26 Liquid Glass via SwiftUI.
 - The iOS app is a **read-only API client** — it consumes the Flask REST API as-is. No backend changes are needed for iOS features.
 - When exploring iOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/Datacore/`.
 - The iOS project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
@@ -107,17 +107,16 @@ The dashboard silently refreshes all data every 5 minutes via `DashboardViewMode
 
 ## Important Notes for Agents
 
-**IMPORTANT: Triple-Theme Requirement (ALL THREE themes must have parity)**
-Every new feature, page, or component MUST be implemented in ALL THREE themes:
+**IMPORTANT: Dual-Theme Requirement (BOTH themes must have parity)**
+Every new feature, page, or component MUST be implemented in BOTH themes:
 
-1. **Catppuccin Mocha** (default, may be deprecated) — the standard dark theme using CSS variables and `.card`/`.btn` classes. Located in `frontend/src/pages/`.
+1. **Catppuccin Mocha** (default) — the standard dark theme using CSS variables and `.card`/`.btn` classes. Located in `frontend/src/pages/`.
 2. **LCARS** (Star Trek) — a fully custom theme that mimics the LCARS operating system aesthetic. LCARS versions are NOT simple reskins. They must be purpose-built components in `frontend/src/themes/lcars/` that use LCARS panels, color variables (`--lcars-*`), the Antonio font, pill-shaped buttons, and the distinctive LCARS layout language (elbows, cascades, horizontal rule segments). Study existing LCARS components before building new ones to match the visual language.
 
-Never ship a feature in only one or two themes. If you build `pages/NewFeature.jsx`, you must also build:
+Never ship a feature in only one theme. If you build `pages/NewFeature.jsx`, you must also build:
 
 - `themes/lcars/LCARSNewFeature.jsx` (LCARS version)
-- `themes/glass/GlassNewFeature.jsx` (Glass version)
-  And wire both up in `App.jsx` (GlassAppShell and LCARSAppShell routes).
+  And wire it up in `App.jsx` (LCARSAppShell routes).
 
 ---
 
@@ -161,7 +160,7 @@ Similarly, when reading files for context, read only the relevant sections or li
 
 ## Project Overview
 
-Datacore is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, fuel economy, notifications, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser. The app supports three switchable themes: Catppuccin Mocha (default, may be deprecated), LCARS (Star Trek computer interface), and Liquid Glass (Apple WWDC 2025 design language).
+Datacore is a self-hosted personal dashboard and database application. It's a modular web app where each "module" is a self-contained feature area (vehicles, notes, fuel economy, notifications, etc.) with its own database models, API endpoints, and frontend pages. The user accesses it via a web browser. The app supports two switchable themes: Catppuccin Mocha (default) and LCARS (Star Trek computer interface).
 
 **Owner:** Chase — has minimal Python experience, learning React. Explain things clearly and comment code well.
 
@@ -169,7 +168,7 @@ Datacore is a self-hosted personal dashboard and database application. It's a mo
 
 - **Backend:** Python 3.12, Flask, SQLAlchemy ORM, PostgreSQL
 - **Frontend:** React 19 (Vite), React Router v7, Tailwind CSS v4, Lucide icons
-- **Theming:** Triple-theme system via `ThemeProvider.jsx` — Catppuccin Mocha + LCARS + Liquid Glass
+- **Theming:** Dual-theme system via `ThemeProvider.jsx` — Catppuccin Mocha + LCARS
 - **Mobile:** Responsive down to 375px via `useIsMobile()` hook + CSS utility classes
 - **Infrastructure:** Docker Compose for local dev, GitHub Actions builds images to GHCR, deployed on HexOS (TrueNAS-based) via Dockge
 
@@ -243,7 +242,7 @@ datacore/
 │       │       └── HistoryTab.jsx
 │       └── themes/
 │           ├── lcars/              # LCARS theme (Star Trek)
-│           │   ├── ThemeProvider.jsx    # Theme switcher (manages all 3 themes)
+│           │   ├── ThemeProvider.jsx    # Theme switcher (manages both themes)
 │           │   ├── LCARSLayout.jsx     # Grid frame: elbows, sidebar, header, footer
 │           │   ├── LCARSLayout.css     # CSS Grid for LCARS frame + mobile overrides
 │           │   ├── lcars-variables.css  # LCARS color palette (--lcars-*)
@@ -261,20 +260,6 @@ datacore/
 │           │   ├── LCARSDashboard.jsx  # 8-panel dashboard
 │           │   ├── LCARS<Page>.jsx     # Per-page LCARS implementations
 │           │   └── settings/           # LCARS settings sub-pages
-│           └── glass/              # Liquid Glass theme (Apple WWDC 2025)
-│               ├── glass-variables.css  # Apple system colors, glass effects
-│               ├── glass-components.css # Component overrides + HIG patterns
-│               ├── glass-animations.css # Spring physics, material illumination
-│               ├── GlassLayout.jsx/css  # Floating inset sidebar shell
-│               ├── GlassSidebar.jsx     # Floating glass nav sidebar
-│               ├── GlassHeader.jsx      # Minimal floating header controls
-│               ├── GlassMobileNav.jsx   # iOS 26 capsule tab bar
-│               ├── GlassPanel.jsx       # Three-layer glass card
-│               ├── GlassModal.jsx       # Spring-animated glass modal
-│               ├── GlassIcon.jsx        # Squircle icon wrapper
-│               ├── GlassDashboard.jsx   # Bento grid dashboard
-│               ├── Glass<Page>.jsx      # Per-page Glass implementations
-│               └── settings/            # Glass settings sub-pages
 ```
 
 ## How to Add a New Module
@@ -303,7 +288,7 @@ Add a new section in `frontend/src/api/client.js`:
 
 - Export an object with list/get/create/update/delete functions
 
-### 4. Create frontend pages (ALL THREE themes)
+### 4. Create frontend pages (BOTH themes)
 
 **Catppuccin version:**
 
@@ -319,15 +304,6 @@ Add a new section in `frontend/src/api/client.js`:
 - Register the component in `App.jsx` (LCARSAppShell routes)
 - Add nav entry in `LCARSSidebar.jsx` and `LCARSMobileNav.jsx`
 - Add a summary panel on `LCARSDashboard.jsx`
-
-**Liquid Glass version (required):**
-
-- Create `frontend/src/themes/glass/Glass<ModuleName>.jsx`
-- Must be a UNIQUE implementation — NOT a wrapper around the Catppuccin component
-- Use `GlassPanel` for content sections, Apple system colors, capsule-shaped controls
-- Use bento grid layouts, `GlassSegmentControl` for tabs, `GlassListRow` for lists
-- Register the component in `App.jsx` (GlassAppShell routes)
-- Add a summary tile on `GlassDashboard.jsx`
 
 ### 5. Ensure mobile responsiveness
 
@@ -360,59 +336,6 @@ LCARS variables defined in `frontend/src/themes/lcars/lcars-variables.css`:
 - Components: `LCARSPanel` for content sections, `LCARSModal` for dialogs, pill-shaped buttons
 - Visual language: Rounded rectangles, horizontal rule segments, data cascade animation, boot sequence
 
-### Liquid Glass Theme (Apple WWDC 2025)
-
-Glass variables defined in `frontend/src/themes/glass/glass-variables.css`:
-
-- Colors: Apple system palette — `--glass-system-blue` (#0A84FF), `--glass-system-green` (#30D158), `--glass-system-orange` (#FF9F0A), `--glass-system-red` (#FF453A), `--glass-system-purple` (#BF5AF2), etc.
-- Font: `-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter'` — Apple system font stack
-- Layout: Floating inset sidebar (12px margin from viewport edges), content flows behind it
-- Components: `GlassPanel` for content sections, `GlassModal` for dialogs, capsule-shaped buttons (border-radius: 980px)
-- Visual language: Three-layer glass (base + inner glow + elevation), material illumination on hover, bento grids, capsule segment controls
-
-**Key Design Principles:**
-
-- **Lensing**: Glass bends/concentrates light dynamically — not just blur
-- **Material responds to interaction**: Elements illuminate from within on hover/touch
-- **Spatial hierarchy through depth**: Glass floats above content, not beside it
-- **Content-first**: UI chrome recedes; glass controls defer to content
-- **Concentric shapes**: Inner radius = outer radius - padding
-- **Capsule shapes** for all interactive elements (radius = half height / 980px)
-
-**Glass Component Patterns:**
-
-- `GlassPanel` — Three-layer glass card (backdrop-filter blur + inner glow pseudo + optional elevation)
-- `GlassModal` — Spring-animated modal with heavy blur
-- `GlassIcon` — Squircle icon wrapper (22% border-radius) with gradient fill and glow
-- `GlassSegmentControl` — Apple-style capsule tab switcher
-- `GlassStatCard` — Large metric display (2rem+ number, label, trend indicator)
-- `GlassBentoGrid` — Responsive asymmetric grid
-- `GlassSearchBar` — Floating capsule-shaped search input
-- `GlassChip` — Filter/tag capsule chip
-- `GlassListRow` — Apple Settings-style list row (icon + label + chevron)
-- `GlassSheet` — Bottom sheet / action sheet for mobile
-
-**Glass File Structure:**
-
-```
-themes/glass/
-├── glass-variables.css       # Apple system colors, glass effects, layout vars
-├── glass-components.css      # Component overrides + Apple HIG patterns
-├── glass-animations.css      # Spring physics, material illumination
-├── GlassLayout.jsx/css       # Floating inset sidebar app shell
-├── GlassSidebar.jsx          # Floating glass nav sidebar
-├── GlassHeader.jsx           # Minimal floating header controls
-├── GlassMobileNav.jsx        # iOS 26 capsule tab bar (mobile)
-├── GlassPanel.jsx            # Reusable glass card component
-├── GlassModal.jsx            # Glass modal dialog
-├── GlassIcon.jsx             # Squircle icon wrapper
-├── GlassSegmentControl.jsx   # Capsule tab switcher
-├── GlassStatCard.jsx         # Large metric card
-├── GlassBentoGrid.jsx        # Asymmetric grid helper
-├── Glass<PageName>.jsx       # Per-page implementations (NOT wrappers)
-└── settings/                 # Settings sub-pages
-```
-
 ### Responsive Utilities (all themes)
 
 Defined in `index.css`, collapse to single column at 768px:
@@ -425,7 +348,6 @@ Mobile navigation:
 
 - Catppuccin: Hamburger icon in header opens a slide-out drawer overlay
 - LCARS: Bottom pill-button nav bar (`LCARSMobileNav.jsx`)
-- Liquid Glass: Floating capsule bottom nav bar (`GlassMobileNav.jsx`) + slide-in drawer
 
 ## API Conventions
 
@@ -490,7 +412,7 @@ This project runs in Docker with volume mounts. The `node_modules` directory liv
 - **Tags on notes:** Stored as comma-separated string for simplicity. Can migrate to many-to-many table later if needed.
 - **Database:** Tables auto-created on Flask startup via `db.create_all()`. For production schema changes, use Flask-Migrate (alembic).
 - **No auth yet:** This is a personal, local-network-only app. Authentication can be added later if needed.
-- **Theming:** `ThemeProvider.jsx` wraps the app and manages three themes: Catppuccin, LCARS, and Liquid Glass. `App.jsx` renders the appropriate AppShell (AppShell, LCARSAppShell, or GlassAppShell) based on the active theme. Theme preference is stored in localStorage as `'datacore-theme'`. The `.glass-theme` or `.lcars-theme` class is added to `<html>` to enable CSS overrides.
+- **Theming:** `ThemeProvider.jsx` wraps the app and manages two themes: Catppuccin and LCARS. `App.jsx` renders the appropriate AppShell (AppShell or LCARSAppShell) based on the active theme. Theme preference is stored in localStorage as `'datacore-theme'`. The `.lcars-theme` class is added to `<html>` to enable CSS overrides.
 - **Mobile viewport:** Uses `100dvh` (not `100vh`) to account for mobile browser chrome (Safari toolbar).
 - **Responsive grids:** CSS utility classes (`.form-grid-2col`, `.form-grid-3col`) instead of inline styles, so `@media` queries can collapse columns on mobile.
 
@@ -531,9 +453,8 @@ docker compose down
 - Fuel Economy module: fleet-wide analytics with charts (MPG trends, cost analysis), per-vehicle breakdowns, standalone fuel entry page
 - Notifications module: configurable rules, channels, history, quiet hours, in-app bell with dropdown
 - LCARS theme: full Star Trek computer interface with boot sequence, 8-panel dashboard, elbows/cascade/sidebar frame, all vehicle pages, fuel economy, service intervals
-- Liquid Glass theme: Apple WWDC 2025 design language with floating inset sidebar, bento grid dashboard, capsule controls, glass material effects, iOS 26 mobile nav
-- Triple-theme system with localStorage preference and seamless switching
-- Mobile-responsive: hamburger nav (Catppuccin), bottom nav (LCARS), capsule bottom nav (Glass), collapsing form grids, card views for tables, viewport-safe modals
+- Dual-theme system with localStorage preference and seamless switching
+- Mobile-responsive: hamburger nav (Catppuccin), bottom nav (LCARS), collapsing form grids, card views for tables, viewport-safe modals
 - Sidebar navigation with collapsible toggle
 - Docker Compose for dev and prod
 - GitHub Actions CI/CD pipeline
