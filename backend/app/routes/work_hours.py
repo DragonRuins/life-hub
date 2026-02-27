@@ -52,8 +52,9 @@ def get_years():
     rows = db.session.query(WorkHoursLog.year).distinct().all()
     years = {row[0] for row in rows}
 
-    # Always include the current year
+    # Always include the current year and 2025 (first year with full data)
     years.add(current_year)
+    years.add(2025)
 
     return jsonify(sorted(years, reverse=True))
 
