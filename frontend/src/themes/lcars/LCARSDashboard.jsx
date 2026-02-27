@@ -16,7 +16,7 @@ import {
   StickyNote, Wrench, Plus, Droplets, Wind, X,
   Fuel, Thermometer,
   CircleDot, FolderKanban, BookOpen, Server, Telescope, Library,
-  ChevronRight
+  ChevronRight, Clock
 } from 'lucide-react'
 import { dashboard, vehicles } from '../../api/client'
 import { formatDate } from '../../utils/formatDate'
@@ -913,6 +913,15 @@ const SYSTEM_TILES = [
       return daily ? `Today: ${daily.length > 25 ? daily.slice(0, 25) + '...' : daily}` : null
     },
   },
+  {
+    key: 'work_hours',
+    label: 'Duty Roster',
+    icon: Clock,
+    color: 'var(--lcars-tanoi)',
+    link: '/work-hours',
+    getValue: () => 0,
+    getUnit: () => 'hours this year',
+  },
 ]
 
 // Modern variant: vibrant dark palette for system tile frames
@@ -923,6 +932,7 @@ const MODERN_TILE_COLORS = {
   infrastructure: '#1A7A8C',
   astrometrics: '#402E6A',
   trek: '#5E3E8A',
+  work_hours: '#2A6E5E',
 }
 
 function SystemsStatusBoard({ stats }) {

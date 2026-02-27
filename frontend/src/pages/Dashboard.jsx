@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind,
   X, Fuel, FolderKanban, BookOpen, Server, Telescope, Library,
-  CheckCircle2, AlertTriangle, CircleDot, ChevronRight
+  CheckCircle2, AlertTriangle, CircleDot, ChevronRight, Clock
 } from 'lucide-react'
 import { dashboard, vehicles } from '../api/client'
 import { formatDate } from '../utils/formatDate'
@@ -589,6 +589,16 @@ const MODULE_TILES = [
       const favs = s?.trek?.favorites ?? 0
       return favs > 0 ? `cached, ${favs} favorites` : 'cached entries'
     },
+  },
+  {
+    key: 'work_hours',
+    label: 'Work Hours',
+    icon: Clock,
+    color: 'var(--color-teal)',
+    bgColor: 'rgba(148, 226, 213, 0.1)',
+    link: '/work-hours',
+    getValue: () => 0,
+    getSublabel: () => 'hours this year',
   },
 ]
 

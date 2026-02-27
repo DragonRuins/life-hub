@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom'
 import {
   Car, StickyNote, Wrench, Plus, Droplets, Wind,
   X, Fuel, FolderKanban, BookOpen, Server, Telescope, Library,
-  CheckCircle2, AlertTriangle, CircleDot, ChevronRight
+  CheckCircle2, AlertTriangle, CircleDot, ChevronRight, Clock
 } from 'lucide-react'
 import { dashboard, vehicles } from '../../api/client'
 import { formatDate } from '../../utils/formatDate'
@@ -350,6 +350,7 @@ export default function GlassDashboard() {
             { label: 'Hosts', value: systemStats?.infrastructure?.hosts ?? 0, icon: Server, color: '#64D2FF', to: '/infrastructure' },
             { label: 'Space', value: systemStats?.astrometrics?.crew_in_space ?? 0, icon: Telescope, color: '#FFD60A', to: '/astrometrics' },
             { label: 'Database', value: systemStats?.trek?.cached_entities ?? 0, icon: Library, color: '#FF375F', to: '/trek' },
+            { label: 'Work Hours', value: 0, icon: Clock, color: '#5AC8FA', to: '/work-hours' },
           ].map(stat => (
             <Link
               key={stat.label}
