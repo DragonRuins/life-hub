@@ -106,7 +106,7 @@ def check_interval_status(interval, current_mileage, current_date=None):
     days_overdue = None
     percent_time = 0
 
-    if interval.last_service_date is not None and interval.months_interval is not None:
+    if interval.last_service_date is not None and interval.months_interval:
         # Calculate the next due date using accurate month math if available
         if HAS_DATEUTIL:
             next_due_date = interval.last_service_date + relativedelta(months=interval.months_interval)
@@ -174,8 +174,8 @@ def _determine_status(condition_type, miles_interval, months_interval, miles_rem
         One of: "ok", "due_soon", "due", "overdue", "unknown"
     """
     # If neither interval type is configured, we can't determine status
-    has_miles = miles_interval is not None and miles_remaining is not None
-    has_time = months_interval is not None and days_remaining is not None
+    has_miles = miles_interval is not None and miles_interval > 0 and miles_remaining is not None
+    has_time = months_interval is not None and months_interval > 0 and days_remaining is not None
 
     if not has_miles and not has_time:
         return "unknown"

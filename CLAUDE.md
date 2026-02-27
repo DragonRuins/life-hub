@@ -4,12 +4,13 @@
 
 Datacore has TWO codebases that share the same Flask backend API:
 
-| Project | Path | Tech | Purpose |
-|---------|------|------|---------|
-| **Web App** | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL | The main web dashboard (this repo) |
-| **iOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/` | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
+| Project     | Path                                                                | Tech                             | Purpose                                          |
+| ----------- | ------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------ |
+| **Web App** | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL       | The main web dashboard (this repo)               |
+| **iOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
 
 **How to direct Claude to the right project:**
+
 - Default context is the **web app** (this repo). Web app work follows the triple-theme requirement below.
 - To work on the **iOS app**, say "work on the Apple app" or "switch to the Xcode project" or reference the `Datacore-Apple` path. iOS work does NOT follow the triple-theme requirement — it uses native iOS 26 Liquid Glass via SwiftUI.
 - The iOS app is a **read-only API client** — it consumes the Flask REST API as-is. No backend changes are needed for iOS features.
@@ -18,13 +19,80 @@ Datacore has TWO codebases that share the same Flask backend API:
 - To type-check iOS code without a simulator: use `swiftc -typecheck -sdk ...iPhoneSimulator.sdk -target arm64-apple-ios26.0-simulator`.
 
 **iOS App Architecture (quick reference):**
+
 - `Datacore/Network/` — `APIClient` (actor, async/await), `Endpoint` enum (all API routes), `APIError`
 - `Datacore/Models/` — Codable structs matching Flask `to_dict()` output (snake_case auto-converted)
 - `Datacore/ViewModels/` — `@Observable @MainActor` classes, one per module
 - `Datacore/Views/` — SwiftUI views organized by module (Dashboard, Vehicles, Notes, etc.)
-- `Datacore/Views/Shared/` — Reusable components: `GlassCard`, `StatCard`, `LoadingView`, `ErrorView`, `EmptyStateView`
+- `Datacore/Views/Shared/` — Reusable components: `GlassCard`, `StatCard`, `LoadingView`, `ErrorView`, `EmptyStateView`, `CommandRail`, `LiveStatusBar`, `AdaptiveGrid`, `iPadSplitLayout`
 - `Datacore/Config/ServerConfig.swift` — UserDefaults-backed server address
-- Navigation: `TabView` (iPhone) / `NavigationSplitView` (iPad), both get native Liquid Glass on iOS 26
+- Navigation: `TabView` (iPhone) / Command Center with `CommandRail` + `LiveStatusBar` (iPad)
+
+**iOS iPad vs iPhone — Design Philosophy:**
+
+The iOS app has two fundamentally different design philosophies based on device class, detected via `@Environment(\.horizontalSizeClass)` (`.regular` = iPad, `.compact` = iPhone). **No `UIDevice` checks** — only size class.
+
+| Aspect | iPhone (`.compact`) | iPad (`.regular`) |
+|--------|-------------------|-----------------|
+| **Philosophy** | Standard iOS mobile app | **Command Center** — dense, everything visible at a glance |
+| **Navigation** | `TabView` with tab bar | `CommandRail` (60pt icon-only rail) + `LiveStatusBar` (36pt status strip) |
+| **Dashboard** | Single-column scroll with hero card, weather, activity | **Bento grid** with 8-10 HUD-style panels covering every module |
+| **List modules** (Vehicles, Notes) | `NavigationLink` push to detail | Persistent list + inline detail split (no push, detail updates in-place) |
+| **Data-heavy modules** (Fuel, Infra) | Single-column stacked sections | Side-by-side panels, taller charts, all sections visible simultaneously |
+| **Grid modules** (Projects, Knowledge) | Single-column `List` | 2-column `LazyVGrid` card grid |
+| **Astrometrics** | Segmented picker, one section at a time | Full-width tabbed layout with labeled segments |
+| **Title style** | `.navigationBarTitleDisplayMode(.large)` | `.navigationBarTitleDisplayMode(.inline)` to save vertical space |
+| **Drill-down** | Standard push navigation | Inline detail panes or popovers |
+| **Data refresh** | Pull-to-refresh + silent 5-min auto-refresh | Same, plus cross-module panel refresh (Astro, Trek, Infra) |
+
+**Key iPad architectural components:**
+- **`CommandRail`** (`Views/Shared/CommandRail.swift`) — Narrow 60pt icon-only navigation rail replacing the sidebar. Badge dots for actionable states (red = overdue maintenance, etc.). Selection persisted via `@SceneStorage`.
+- **`LiveStatusBar`** (`Views/Shared/LiveStatusBar.swift`) — Persistent 36pt bar showing weather, next launch countdown (`TimelineView`), infra health dot, notification count, clock.
+- **`iPadSplitLayout`** (`Views/Shared/iPadSplitLayout.swift`) — Reusable left/right pane split helper for list+detail patterns.
+- **`AdaptiveGrid`** (`Views/Shared/AdaptiveGrid.swift`) — Reusable 2-column/1-column grid helper + custom `isIPad` environment key.
+
+**iPad implementation pattern for new modules:**
+Every view that needs iPad adaptation should branch in the `body`:
+```swift
+@Environment(\.horizontalSizeClass) private var sizeClass
+
+var body: some View {
+    Group {
+        if sizeClass == .regular {
+            iPadLayout    // Dense, multi-panel
+        } else {
+            iPhoneLayout  // Standard single-column
+        }
+    }
+    .navigationBarTitleDisplayMode(sizeClass == .regular ? .inline : .large)
+}
+```
+iPhone layouts must remain completely unchanged when adding iPad layouts. Extract shared subviews and recompose them differently per device.
+
+**iPad glass effect pitfalls:**
+- `.glassEffect(.regular.interactive())` creates Liquid Glass bubbles that **intercept taps** — don't use on cards that contain `NavigationLink`. Use `.background(.ultraThinMaterial, in: .rect(cornerRadius: 12))` instead for tap-through cards.
+- Separate `.glassEffect()` calls on adjacent views create **visible background seams**. Use `.ultraThinMaterial` for elements that need to look continuous (e.g., CommandRail + LiveStatusBar).
+
+**Tri-Platform Requirement (Mac, iPad, iPhone):**
+
+The iOS/macOS app has THREE first-class platforms that must stay in sync:
+
+| Platform | Shell | Navigation | Styling |
+|----------|-------|------------|---------|
+| **Mac** | `NavigationSplitView` + `MacSidebar` + `MacToolbar` | Sidebar with sections, HSplitView for list+detail modules | Native AppKit materials |
+| **iPad** | `NavigationSplitView` + `iPadSidebar` + `iPadToolbar` | Identical to Mac — same sidebar, same toolbar, same split layouts | Liquid Glass (automatic via iOS 26) |
+| **iPhone** | `TabView` (5 tabs + More) | Standard push navigation | Liquid Glass (automatic via iOS 26) |
+
+**Key rules:**
+- Mac and iPad share identical layout patterns (sidebar, toolbar, split panes, context menus). Any change to one must be applied to the other.
+- iPhone is a separate mobile-first design and does NOT need to match Mac/iPad.
+- When adding a new module, implement all 3 platform variants.
+- The Mac uses `#if os(macOS)` wrappers; iPad uses `sizeClass == .regular` branching.
+- Toolbar actions use `NotificationCenter` to communicate with module views (shared notification names in `DatacoreNotifications.swift`).
+- Module views with list+detail patterns: use `HSplitView` on Mac, `HStack` on iPad (same visual result).
+
+**Auto-refresh:**
+The dashboard silently refreshes all data every 5 minutes via `DashboardViewModel.silentRefresh()` (no loading indicators, no error overlays). Pauses when backgrounded, resumes with an immediate refresh when the app returns to foreground. Only applies to the Dashboard — other modules refresh on pull-down or navigation.
 
 **iOS SwiftUI Coding Standards:**
 
@@ -32,6 +100,8 @@ Datacore has TWO codebases that share the same Flask backend API:
 - **UserDefaults + @Observable:** Never use computed properties that read/write UserDefaults directly on an `@Observable` class. The observation system can't track computed getters. Instead, use a stored property initialized from UserDefaults with a `didSet` that syncs back: `var myPref: Int? = { UserDefaults.standard... }() { didSet { UserDefaults.standard.set(...) } }`.
 - **Tap isolation in List rows:** When embedding interactive controls (Toggles, Pickers, TextFields) inside expandable `List` rows, add `.contentShape(Rectangle())` and `.onTapGesture {}` to non-interactive container VStacks. This prevents stray taps from propagating up to the `List` row and accidentally activating controls.
 - **No Steppers:** Never use `Stepper` for numeric inputs. Use a `TextField` with `.keyboardType(.numberPad)` and a trailing unit label instead. Steppers require tedious +/- tapping — a text field lets the user type the value directly. Pattern: `HStack { Text("Label"); Spacer(); TextField("0", text: $value).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 60); Text("unit").foregroundStyle(.secondary).font(.subheadline) }`
+- **iPad size class detection:** Always use `@Environment(\.horizontalSizeClass)` — never `UIDevice.current`. The size class changes dynamically in Split View / Slide Over multitasking.
+- **iPad title style:** Use `.navigationBarTitleDisplayMode(sizeClass == .regular ? .inline : .large)` on all module root views to save vertical space on iPad.
 
 ---
 
@@ -42,12 +112,12 @@ Every new feature, page, or component MUST be implemented in ALL THREE themes:
 
 1. **Catppuccin Mocha** (default, may be deprecated) — the standard dark theme using CSS variables and `.card`/`.btn` classes. Located in `frontend/src/pages/`.
 2. **LCARS** (Star Trek) — a fully custom theme that mimics the LCARS operating system aesthetic. LCARS versions are NOT simple reskins. They must be purpose-built components in `frontend/src/themes/lcars/` that use LCARS panels, color variables (`--lcars-*`), the Antonio font, pill-shaped buttons, and the distinctive LCARS layout language (elbows, cascades, horizontal rule segments). Study existing LCARS components before building new ones to match the visual language.
-3. **Liquid Glass** (Apple WWDC 2025) — a fully custom theme implementing Apple's Liquid Glass design language. Glass versions are NOT CSS reskins of Catppuccin. They must be purpose-built components in `frontend/src/themes/glass/` with unique layouts, bento grids, capsule-shaped controls, floating inset sidebar, and glass material effects (`backdrop-filter`, inner glow, material illumination). Study existing Glass components and the design principles below before building new ones.
 
 Never ship a feature in only one or two themes. If you build `pages/NewFeature.jsx`, you must also build:
+
 - `themes/lcars/LCARSNewFeature.jsx` (LCARS version)
 - `themes/glass/GlassNewFeature.jsx` (Glass version)
-And wire both up in `App.jsx` (GlassAppShell and LCARSAppShell routes).
+  And wire both up in `App.jsx` (GlassAppShell and LCARSAppShell routes).
 
 ---
 
@@ -301,6 +371,7 @@ Glass variables defined in `frontend/src/themes/glass/glass-variables.css`:
 - Visual language: Three-layer glass (base + inner glow + elevation), material illumination on hover, bento grids, capsule segment controls
 
 **Key Design Principles:**
+
 - **Lensing**: Glass bends/concentrates light dynamically — not just blur
 - **Material responds to interaction**: Elements illuminate from within on hover/touch
 - **Spatial hierarchy through depth**: Glass floats above content, not beside it
@@ -309,6 +380,7 @@ Glass variables defined in `frontend/src/themes/glass/glass-variables.css`:
 - **Capsule shapes** for all interactive elements (radius = half height / 980px)
 
 **Glass Component Patterns:**
+
 - `GlassPanel` — Three-layer glass card (backdrop-filter blur + inner glow pseudo + optional elevation)
 - `GlassModal` — Spring-animated modal with heavy blur
 - `GlassIcon` — Squircle icon wrapper (22% border-radius) with gradient fill and glow
@@ -321,6 +393,7 @@ Glass variables defined in `frontend/src/themes/glass/glass-variables.css`:
 - `GlassSheet` — Bottom sheet / action sheet for mobile
 
 **Glass File Structure:**
+
 ```
 themes/glass/
 ├── glass-variables.css       # Apple system colors, glass effects, layout vars

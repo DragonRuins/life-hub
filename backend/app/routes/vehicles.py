@@ -565,9 +565,14 @@ def create_vehicle_interval(vehicle_id):
     # Look up the maintenance item to get its default intervals
     item = MaintenanceItem.query.get_or_404(data['item_id'])
 
-    # Use provided intervals, or fall back to the item's defaults
-    miles_interval = data.get('miles_interval') or item.default_miles_interval
-    months_interval = data.get('months_interval') or item.default_months_interval
+    # Use provided intervals, or fall back to the item's defaults.
+    # Explicit None check (not truthiness) so that 0 means "disable this threshold".
+    miles_interval = data.get('miles_interval')
+    if miles_interval is None:
+        miles_interval = item.default_miles_interval
+    months_interval = data.get('months_interval')
+    if months_interval is None:
+        months_interval = item.default_months_interval
 
     interval = VehicleMaintenanceInterval(
         vehicle_id=vehicle_id,
