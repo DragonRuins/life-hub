@@ -7,7 +7,7 @@
  * Active route is highlighted with a distinct accent color.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library, Clock } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
 // Fixed color assignments per navigation item
@@ -76,6 +76,14 @@ const NAV_ITEMS = [
     color: 'var(--lcars-almond-creme)',
     activeColor: 'var(--lcars-butterscotch)',
     code: '08-3350',
+  },
+  {
+    to: '/work-hours',
+    label: 'Duty Roster',
+    icon: Clock,
+    color: 'var(--lcars-tanoi)',
+    activeColor: 'var(--lcars-butterscotch)',
+    code: '09-4158',
   },
 ]
 

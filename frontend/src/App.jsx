@@ -6,7 +6,7 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Maximize, Minimize, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Maximize, Minimize, MessageSquare, Clock } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
@@ -19,6 +19,7 @@ import Notes from './pages/notes/Notes'
 import Notifications from './pages/Notifications'
 import FuelEconomy from './pages/FuelEconomy'
 import FuelEntry from './pages/FuelEntry'
+import WorkHours from './pages/WorkHours'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import NotificationBell from './components/NotificationBell'
@@ -67,6 +68,7 @@ import LCARSTrekShips from './themes/lcars/LCARSTrekShips'
 import LCARSTrekSearch from './themes/lcars/LCARSTrekSearch'
 import LCARSTrekFavorites from './themes/lcars/LCARSTrekFavorites'
 import SettingsPage from './pages/Settings'
+import LCARSWorkHours from './themes/lcars/LCARSWorkHours'
 import LCARSSettings from './themes/lcars/LCARSSettings'
 import ChatWidget from './components/ChatWidget'
 import LCARSChatTerminal from './themes/lcars/LCARSChatTerminal'
@@ -193,6 +195,7 @@ function LCARSAppShell({ chat }) {
         <Route path="/trek/ships" element={<LCARSTrekShips />} />
         <Route path="/trek/:entityType/:uid" element={<LCARSTrekDetail />} />
         <Route path="/trek/:entityType" element={<LCARSTrekBrowse />} />
+        <Route path="/work-hours" element={<LCARSWorkHours />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<LCARSSettings />} />
         <Route path="/settings/vehicles" element={<LCARSVehicleSettings />} />
@@ -240,6 +243,7 @@ function GlassAppShell({ chat }) {
         <Route path="/trek/ships" element={<GlassTrekShips />} />
         <Route path="/trek/:entityType/:uid" element={<GlassTrekDetail />} />
         <Route path="/trek/:entityType" element={<GlassTrekBrowse />} />
+        <Route path="/work-hours" element={<WorkHours />} />
         <Route path="/notifications" element={<GlassNotifications />} />
         <Route path="/settings" element={<GlassSettings />} />
         <Route path="/settings/vehicles" element={<GlassVehicleSettings />} />
@@ -321,6 +325,7 @@ function AppShell({ chat }) {
             <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={sidebarCollapsed} />
             <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={sidebarCollapsed} />
             <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/work-hours" icon={<Clock size={20} />} label="Work Hours" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -417,6 +422,7 @@ function AppShell({ chat }) {
               <SidebarLink to="/infrastructure" icon={<Server size={20} />} label="Infrastructure" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/work-hours" icon={<Clock size={20} />} label="Work Hours" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -464,6 +470,7 @@ function AppShell({ chat }) {
             <Route path="/trek/ships" element={<TrekShips />} />
             <Route path="/trek/:entityType/:uid" element={<TrekDetail />} />
             <Route path="/trek/:entityType" element={<TrekBrowse />} />
+            <Route path="/work-hours" element={<WorkHours />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/vehicles" element={<VehicleSettings />} />

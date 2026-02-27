@@ -14,7 +14,7 @@ import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Car, StickyNote, BookOpen, MoreHorizontal,
-  Server, FolderKanban, Telescope, Library, Settings, X
+  Server, FolderKanban, Telescope, Library, Settings, X, Clock
 } from 'lucide-react'
 
 const PRIMARY_TABS = [
@@ -29,6 +29,7 @@ const MORE_ITEMS = [
   { to: '/infrastructure', icon: Server, label: 'Infrastructure' },
   { to: '/astrometrics', icon: Telescope, label: 'Astrometrics' },
   { to: '/trek', icon: Library, label: 'Database' },
+  { to: '/work-hours', icon: Clock, label: 'Work Hours' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

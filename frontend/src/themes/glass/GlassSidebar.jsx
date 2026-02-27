@@ -13,7 +13,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen,
-  Server, Telescope, Library, ChevronLeft, ChevronRight, Settings
+  Server, Telescope, Library, ChevronLeft, ChevronRight, Settings, Clock
 } from 'lucide-react'
 
 export const NAV_ITEMS = [
@@ -25,6 +25,7 @@ export const NAV_ITEMS = [
   { to: '/infrastructure', icon: Server, label: 'Infrastructure' },
   { to: '/astrometrics', icon: Telescope, label: 'Astrometrics' },
   { to: '/trek', icon: Library, label: 'Database' },
+  { to: '/work-hours', icon: Clock, label: 'Work Hours' },
 ]
 
 export default function GlassSidebar({ collapsed, onToggle }) {
