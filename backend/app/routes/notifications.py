@@ -121,7 +121,7 @@ AVAILABLE_EVENTS = [
     {
         'name': 'maintenance.interval_due_soon',
         'module': 'vehicles',
-        'description': 'When a maintenance interval is approaching (within 500 miles or 30 days)',
+        'description': 'When a maintenance interval is approaching (within 1,000 miles or 30 days)',
         'fields': ['vehicle_id', 'vehicle_name', 'item_name', 'item_category', 'status',
                    'miles_remaining', 'days_remaining', 'miles_overdue', 'days_overdue',
                    'next_due_mileage', 'next_due_date'],

@@ -183,7 +183,7 @@ def _determine_status(condition_type, miles_interval, months_interval, miles_rem
     # Helper flags for each threshold type
     miles_overdue = has_miles and miles_remaining < 0
     miles_due = has_miles and miles_remaining == 0
-    miles_due_soon = has_miles and 0 < miles_remaining <= 500
+    miles_due_soon = has_miles and 0 < miles_remaining <= 1000
     time_overdue = has_time and days_remaining < 0
     time_due = has_time and days_remaining == 0
     time_due_soon = has_time and 0 < days_remaining <= 30

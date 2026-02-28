@@ -947,7 +947,12 @@ def build_system_context():
         projects = Project.query.filter_by(status='active').all()
         project_list = ", ".join(p.name for p in projects) if projects else "none"
 
+        from datetime import date
+        today = date.today()
+
         lines = [
+            f"Today's date is {today.strftime('%B %d, %Y')}.",
+            "",
             "Database overview:",
             f"- Vehicles ({summary['vehicles']}):",
             vehicle_section,
