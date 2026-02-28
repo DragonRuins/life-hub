@@ -808,10 +808,20 @@ def create_maintenance(vehicle_id):
 
 @vehicles_bp.route('/maintenance/<int:log_id>', methods=['PUT'])
 def update_maintenance(log_id):
-    """Update a maintenance log entry."""
+    """
+    Update a maintenance log entry.
+
+    If item_ids are provided, the item associations and their maintenance
+    intervals are fully synced:
+      - All items in the new list get their intervals reset to this log's date/mileage
+      - Removed items get their intervals rolled back to the previous log for that item
+      - Date/mileage changes automatically re-sync because intervals use the log's values
+    """
     log = MaintenanceLog.query.get_or_404(log_id)
     data = request.get_json()
+    vehicle = Vehicle.query.get(log.vehicle_id)
 
+    # Update scalar fields
     for field in ('service_type', 'description', 'mileage', 'cost',
                   'shop_name', 'next_service_mileage'):
         if field in data:
@@ -825,7 +835,70 @@ def update_maintenance(log_id):
             if data['next_service_date'] else None
         )
 
+    # Handle item_ids: sync associations and reset/rollback intervals
+    if 'item_ids' in data:
+        new_item_ids = set(data['item_ids'] or [])
+        old_item_ids = {item.id for item in log.items}
+        removed_ids = old_item_ids - new_item_ids
+
+        # Rollback intervals for removed items to their previous service log
+        for item_id in removed_ids:
+            MaintenanceLogItem.query.filter_by(
+                log_id=log.id, item_id=item_id
+            ).delete()
+
+            interval = VehicleMaintenanceInterval.query.filter_by(
+                vehicle_id=log.vehicle_id, item_id=item_id
+            ).first()
+            if interval:
+                # Find the most recent OTHER log that serviced this item
+                prev_log = (
+                    db.session.query(MaintenanceLog)
+                    .join(MaintenanceLogItem, MaintenanceLogItem.log_id == MaintenanceLog.id)
+                    .filter(
+                        MaintenanceLog.vehicle_id == log.vehicle_id,
+                        MaintenanceLogItem.item_id == item_id,
+                        MaintenanceLog.id != log.id
+                    )
+                    .order_by(MaintenanceLog.date.desc(), MaintenanceLog.id.desc())
+                    .first()
+                )
+                if prev_log:
+                    interval.last_service_date = prev_log.date
+                    interval.last_service_mileage = prev_log.mileage
+                else:
+                    interval.last_service_date = None
+                    interval.last_service_mileage = None
+                interval.notified_milestones = {"miles": [], "months": []}
+
+        # Reset intervals for all items in the new list
+        for item_id in new_item_ids:
+            # Upsert join record (add if not already present)
+            if item_id not in old_item_ids:
+                db.session.add(MaintenanceLogItem(log_id=log.id, item_id=item_id))
+
+            interval = VehicleMaintenanceInterval.query.filter_by(
+                vehicle_id=log.vehicle_id, item_id=item_id
+            ).first()
+            if interval:
+                interval.last_service_date = log.date
+                interval.last_service_mileage = log.mileage or (vehicle.current_mileage if vehicle else None)
+                interval.notified_milestones = {"miles": [], "months": []}
+
+        # Auto-populate service_type from item names if not explicitly provided
+        if 'service_type' not in data and new_item_ids:
+            items = MaintenanceItem.query.filter(MaintenanceItem.id.in_(new_item_ids)).all()
+            log.service_type = ', '.join(item.name for item in items)
+
     db.session.commit()
+
+    # Check maintenance intervals after update
+    try:
+        from app.services.interval_checker import check_and_notify_intervals
+        check_and_notify_intervals(log.vehicle_id)
+    except Exception:
+        pass  # Never let interval checks break maintenance updates
+
     return jsonify(log.to_dict())
 
 

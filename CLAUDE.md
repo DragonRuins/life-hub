@@ -1,32 +1,45 @@
 # Datacore - CLAUDE.md
 
-## Multi-Project Setup: Web App + Native iOS App
+## Multi-Project Setup: Web App + Native Apple Apps
 
-Datacore has TWO codebases that share the same Flask backend API:
+Datacore has TWO codebases (three targets) that share the same Flask backend API:
 
-| Project     | Path                                                                | Tech                             | Purpose                                          |
-| ----------- | ------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------ |
-| **Web App** | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL       | The main web dashboard (this repo)               |
-| **iOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
+| Project         | Path                                                                | Tech                              | Purpose                                          |
+| --------------- | ------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| **Web App**     | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL        | The main web dashboard (this repo)               |
+| **iOS/Mac App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
+| **watchOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (watchOS 26+, Swift 6)   | Apple Watch companion app (same Xcode project)   |
 
 **How to direct Claude to the right project:**
 
 - Default context is the **web app** (this repo). Web app work follows the dual-theme requirement below.
 - To work on the **iOS app**, say "work on the Apple app" or "switch to the Xcode project" or reference the `Datacore-Apple` path. iOS work does NOT follow the dual-theme requirement — it uses native iOS 26 Liquid Glass via SwiftUI.
-- The iOS app is a **read-only API client** — it consumes the Flask REST API as-is. No backend changes are needed for iOS features.
+- The iOS/watchOS app is a **read-only API client** — it consumes the Flask REST API as-is. No backend changes are needed for Apple app features.
 - When exploring iOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/Datacore/`.
-- The iOS project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
+- When exploring watchOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/DatacoreWatch/`.
+- The project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
 - To type-check iOS code without a simulator: use `swiftc -typecheck -sdk ...iPhoneSimulator.sdk -target arm64-apple-ios26.0-simulator`.
+- To type-check watchOS code without a simulator: use `swiftc -typecheck -sdk ...WatchSimulator.sdk -target arm64-apple-watchos26.0-simulator`.
 
 **iOS App Architecture (quick reference):**
 
-- `Datacore/Network/` — `APIClient` (actor, async/await), `Endpoint` enum (all API routes), `APIError`
+- `Datacore/Network/` — `APIClient` (actor, async/await), `Endpoint` enum (all API routes), `APIError`, `PhoneConnectivityManager` (WatchConnectivity relay, `#if os(iOS)` only)
 - `Datacore/Models/` — Codable structs matching Flask `to_dict()` output (snake_case auto-converted)
 - `Datacore/ViewModels/` — `@Observable @MainActor` classes, one per module
 - `Datacore/Views/` — SwiftUI views organized by module (Dashboard, Vehicles, Notes, etc.)
 - `Datacore/Views/Shared/` — Reusable components: `GlassCard`, `StatCard`, `LoadingView`, `ErrorView`, `EmptyStateView`, `CommandRail`, `LiveStatusBar`, `AdaptiveGrid`, `iPadSplitLayout`
 - `Datacore/Config/ServerConfig.swift` — UserDefaults-backed server address
 - Navigation: `TabView` (iPhone) / Command Center with `CommandRail` + `LiveStatusBar` (iPad)
+
+**watchOS App Architecture (quick reference):**
+
+- `DatacoreWatch/Network/` — `WatchAPIClient` (actor, shorter 10s/20s timeouts), `WatchEndpoint` enum, `WatchConnectivityManager` (fallback data relay from iPhone)
+- `DatacoreWatch/Cache/` — `WatchDataCache` (App Group UserDefaults persistence for offline access)
+- `DatacoreWatch/ViewModels/` — Single `WatchViewModel` managing all 4 modules (Vehicles, Fuel, Launches, Work Hours) with cache-first loading and concurrent API refresh via `withTaskGroup`
+- `DatacoreWatch/Views/` — Compact watch views: `VehicleDetailView`, `FuelDetailView`, `FuelLogFormView`, `LaunchDetailView`, `WorkHoursDetailView`, `WorkHoursFormView`
+- `DatacoreWatch/Complications/` — WidgetKit complications: `VehicleHealthComplication`, `FuelEconomyComplication`, `LaunchCountdownComplication`, `WorkHoursComplication`
+- Navigation: Single `NavigationStack` with hub-and-spoke pattern (ContentView → detail views)
+- Data flow: Direct API calls → WatchConnectivity fallback (iPhone relays API data to watch if direct connection fails)
 
 **iOS iPad vs iPhone — Design Philosophy:**
 
@@ -73,23 +86,34 @@ iPhone layouts must remain completely unchanged when adding iPad layouts. Extrac
 - `.glassEffect(.regular.interactive())` creates Liquid Glass bubbles that **intercept taps** — don't use on cards that contain `NavigationLink`. Use `.background(.ultraThinMaterial, in: .rect(cornerRadius: 12))` instead for tap-through cards.
 - Separate `.glassEffect()` calls on adjacent views create **visible background seams**. Use `.ultraThinMaterial` for elements that need to look continuous (e.g., CommandRail + LiveStatusBar).
 
-**Tri-Platform Requirement (Mac, iPad, iPhone):**
+**Quad-Platform Requirement (Mac, iPad, iPhone, Apple Watch):**
 
-The iOS/macOS app has THREE first-class platforms that must stay in sync:
+The Apple app has FOUR first-class platforms that must stay in sync:
 
 | Platform | Shell | Navigation | Styling |
 |----------|-------|------------|---------|
 | **Mac** | `NavigationSplitView` + `MacSidebar` + `MacToolbar` | Sidebar with sections, HSplitView for list+detail modules | Native AppKit materials |
 | **iPad** | `NavigationSplitView` + `iPadSidebar` + `iPadToolbar` | Identical to Mac — same sidebar, same toolbar, same split layouts | Liquid Glass (automatic via iOS 26) |
 | **iPhone** | `TabView` (5 tabs + More) | Standard push navigation | Liquid Glass (automatic via iOS 26) |
+| **Apple Watch** | `NavigationStack` (hub-and-spoke) | ContentView hub → detail views | Compact watchOS styling |
 
 **Key rules:**
 - Mac and iPad share identical layout patterns (sidebar, toolbar, split panes, context menus). Any change to one must be applied to the other.
 - iPhone is a separate mobile-first design and does NOT need to match Mac/iPad.
-- When adding a new module, implement all 3 platform variants.
-- The Mac uses `#if os(macOS)` wrappers; iPad uses `sizeClass == .regular` branching.
+- Apple Watch is a minimal companion — only core data-at-a-glance modules (Vehicles, Fuel, Launches, Work Hours). Not every module needs a watch variant, but data-centric modules should be considered.
+- When adding a new module, implement Mac, iPad, and iPhone variants. Evaluate whether the module warrants an Apple Watch view (quick-glance data or simple input actions are good candidates).
+- The Mac uses `#if os(macOS)` wrappers; iPad uses `sizeClass == .regular` branching; watchOS code lives in the separate `DatacoreWatch/` target directory.
 - Toolbar actions use `NotificationCenter` to communicate with module views (shared notification names in `DatacoreNotifications.swift`).
 - Module views with list+detail patterns: use `HSplitView` on Mac, `HStack` on iPad (same visual result).
+
+**Apple Watch implementation pattern for new modules:**
+- Add a new `WatchEndpoint` case in `DatacoreWatch/Network/WatchEndpoint.swift`
+- Add a loader method in `WatchViewModel` with WatchConnectivity fallback
+- Add a cache accessor in `WatchDataCache` for offline persistence
+- Create a compact detail view in `DatacoreWatch/Views/`
+- If applicable, create a WidgetKit complication in `DatacoreWatch/Complications/`
+- Add a corresponding handler in `PhoneConnectivityManager.handleRequest()` for iPhone relay fallback
+- Shared model files are included via `project.yml` path references — no code duplication needed
 
 **Auto-refresh:**
 The dashboard silently refreshes all data every 5 minutes via `DashboardViewModel.silentRefresh()` (no loading indicators, no error overlays). Pauses when backgrounded, resumes with an immediate refresh when the app returns to foreground. Only applies to the Dashboard — other modules refresh on pull-down or navigation.
@@ -102,6 +126,16 @@ The dashboard silently refreshes all data every 5 minutes via `DashboardViewMode
 - **No Steppers:** Never use `Stepper` for numeric inputs. Use a `TextField` with `.keyboardType(.numberPad)` and a trailing unit label instead. Steppers require tedious +/- tapping — a text field lets the user type the value directly. Pattern: `HStack { Text("Label"); Spacer(); TextField("0", text: $value).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 60); Text("unit").foregroundStyle(.secondary).font(.subheadline) }`
 - **iPad size class detection:** Always use `@Environment(\.horizontalSizeClass)` — never `UIDevice.current`. The size class changes dynamically in Split View / Slide Over multitasking.
 - **iPad title style:** Use `.navigationBarTitleDisplayMode(sizeClass == .regular ? .inline : .large)` on all module root views to save vertical space on iPad.
+
+**watchOS SwiftUI Coding Standards:**
+
+- **Picker style:** Use `.pickerStyle(.navigationLink)` on watchOS — `.menu` is not available.
+- **WatchConnectivity guards:** `WatchConnectivity` is only available on iOS and watchOS. Any code using `WCSession` must be guarded with `#if os(iOS)` or `#if os(watchOS)`. The Mac target includes all files under `Datacore/`, so unguarded WatchConnectivity imports will break the macOS build.
+- **Swift 6 strict concurrency with WCSession:** `replyHandler` closures from `didReceiveMessage` cannot be directly captured in `Task` blocks (Swift 6 `sending` parameter error). Use a `SendableBox<T>: @unchecked Sendable` wrapper struct to safely capture the closure. See `PhoneConnectivityManager.swift` for the pattern.
+- **UserDefaults concurrency:** `UserDefaults` is not `Sendable`. For static properties on watch cache types, use `nonisolated(unsafe) static let defaults` to satisfy Swift 6 strict concurrency.
+- **Shared model files:** The watchOS target shares model files with the iOS target via `project.yml` include paths (e.g., `Vehicle.swift`, `DashboardStats.swift`, `Astrometrics.swift`). Don't duplicate model code — add the file path to the `DatacoreWatch` target sources in `project.yml`.
+- **Timeout values:** Watch API calls use shorter timeouts (10s for normal requests, 20s for large payloads) since cellular/WiFi connections on watch are less reliable. See `WatchAPIClient`.
+- **App Group:** Both the iOS app and watchOS app share the `group.com.chaseburrell.datacore` App Group for UserDefaults data sharing and WatchConnectivity.
 
 ---
 
@@ -458,6 +492,7 @@ docker compose down
 - Sidebar navigation with collapsible toggle
 - Docker Compose for dev and prod
 - GitHub Actions CI/CD pipeline
+- **Apple Watch companion app:** 4 modules (Vehicle Health, Fuel Economy, Launch Countdown, Work Hours), WidgetKit complications (4 types), WatchConnectivity iPhone↔Watch data relay, offline caching via App Group UserDefaults, hub-and-spoke navigation, write actions (log fuel, mark service done, log work hours)
 
 ### Planned future modules/features:
 
