@@ -28,6 +28,7 @@ from sqlalchemy import func
 
 from app import db
 from app.models.vehicle import Vehicle, FuelLog
+from app.services.tire_mileage import update_equipped_tire_mileage
 from app.services.event_bus import emit
 
 fuel_bp = Blueprint('fuel', __name__)
@@ -164,8 +165,9 @@ def create_entry():
     )
     db.session.add(log)
 
-    # Update vehicle odometer if this reading is higher
+    # Update equipped tire set and vehicle odometer
     if vehicle.current_mileage is None or int(odometer) > vehicle.current_mileage:
+        update_equipped_tire_mileage(vehicle, int(odometer))
         vehicle.current_mileage = int(odometer)
 
     db.session.commit()

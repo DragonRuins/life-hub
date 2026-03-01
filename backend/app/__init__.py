@@ -109,6 +109,19 @@ def create_app():
         except Exception:
             pass  # Don't break startup if seeding fails
 
+        # Ensure "Odometer Update" item exists (added after initial seed).
+        try:
+            from app.models.maintenance_interval import MaintenanceItem as MI
+            if not MI.query.filter_by(name='Odometer Update').first():
+                db.session.add(MI(
+                    name='Odometer Update', category='General',
+                    default_miles_interval=None, default_months_interval=None,
+                    is_preset=True, sort_order=9,
+                ))
+                db.session.commit()
+        except Exception:
+            pass
+
         # Auto-seed astrometrics notification rules (all disabled by default).
         try:
             _seed_astro_notification_rules(db)
@@ -211,6 +224,8 @@ def _seed_maintenance_items(db):
         # Tires
         ('Wheel Alignment', 'Tires', 15000, 12, 520),
         ('Tire Balancing', 'Tires', 15000, 12, 530),
+        # General
+        ('Odometer Update', 'General', None, None, 9),
     ]
     for name, category, miles, months, sort_order in items:
         db.session.add(MaintenanceItem(

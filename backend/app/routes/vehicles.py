@@ -36,6 +36,7 @@ from app import db
 from app.models.vehicle import Vehicle, MaintenanceLog, VehicleComponent, ComponentLog, TireSet, FuelLog
 from app.models.maintenance_interval import MaintenanceItem, VehicleMaintenanceInterval, MaintenanceLogItem
 from app.services.event_bus import emit
+from app.services.tire_mileage import update_equipped_tire_mileage
 
 vehicles_bp = Blueprint('vehicles', __name__)
 
@@ -262,40 +263,16 @@ def swap_tire_set(set_id):
 
 def add_miles_to_equipped_set(vehicle_id, new_mileage):
     """
-    Add miles to the currently equipped tire set when vehicle mileage is updated.
-    Call this whenever the vehicle's odometer is updated via maintenance logs.
+    Legacy wrapper: updates equipped tire mileage AND sets vehicle.current_mileage.
+
+    Delegates to the shared tire_mileage service for the delta calculation,
+    then updates the vehicle odometer and commits.
     """
-    # Get vehicle to calculate mileage delta
     vehicle = Vehicle.query.get(vehicle_id)
     if not vehicle:
         return
 
-    old_mileage = vehicle.current_mileage or 0
-    mileage_delta = new_mileage - old_mileage
-
-    # DEBUG
-    print(f"[TIRE MILES] vehicle_id={vehicle_id}, old_mileage={old_mileage}, new_mileage={new_mileage}, delta={mileage_delta}")
-
-    if mileage_delta <= 0:
-        print(f"[TIRE MILES] Skipping - delta <= 0")
-        return
-
-    # Find currently equipped set
-    equipped_component = VehicleComponent.query.filter(
-        VehicleComponent.vehicle_id == vehicle_id,
-        VehicleComponent.component_type.in_(['tire', 'rim']),
-        VehicleComponent.is_active == True
-    ).first()
-
-    if equipped_component and equipped_component.tire_set_id:
-        equipped_set = TireSet.query.get(equipped_component.tire_set_id)
-        if equipped_set:
-            old_accum = equipped_set.accumulated_mileage or 0
-            # Add the mileage delta to the set's accumulated mileage
-            equipped_set.accumulated_mileage = old_accum + mileage_delta
-            print(f"[TIRE MILES] Added {mileage_delta} to set '{equipped_set.name}': {old_accum} -> {equipped_set.accumulated_mileage}")
-
-    # Update vehicle mileage
+    update_equipped_tire_mileage(vehicle, new_mileage)
     vehicle.current_mileage = new_mileage
     db.session.commit()
 
@@ -381,6 +358,10 @@ def update_vehicle(vehicle_id):
     """Update a vehicle's info."""
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     data = request.get_json()
+
+    # If mileage is changing, update equipped tire set BEFORE setting the new value
+    if 'current_mileage' in data and data['current_mileage'] is not None:
+        update_equipped_tire_mileage(vehicle, data['current_mileage'])
 
     # Update only the fields that were provided
     for field in ('year', 'make', 'model', 'trim', 'color', 'vin',
@@ -1204,8 +1185,9 @@ def create_fuel_log(vehicle_id):
     )
     db.session.add(log)
 
-    # Update vehicle odometer if this fill-up has a higher mileage
+    # Update equipped tire set and vehicle odometer
     if mileage and (vehicle.current_mileage is None or mileage > vehicle.current_mileage):
+        update_equipped_tire_mileage(vehicle, mileage)
         vehicle.current_mileage = mileage
 
     db.session.commit()
