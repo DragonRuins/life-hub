@@ -835,7 +835,10 @@ def update_maintenance(log_id):
             if data['next_service_date'] else None
         )
 
-    # Handle item_ids: sync associations and reset/rollback intervals
+    # Handle item_ids: sync associations and reset/rollback intervals.
+    # We manage items through the log.items relationship (not direct
+    # MaintenanceLogItem manipulation) to avoid SQLAlchemy session cache
+    # conflicts — the relationship tracks the secondary join table internally.
     if 'item_ids' in data:
         new_item_ids = set(data['item_ids'] or [])
         old_item_ids = {item.id for item in log.items}
@@ -843,10 +846,6 @@ def update_maintenance(log_id):
 
         # Rollback intervals for removed items to their previous service log
         for item_id in removed_ids:
-            MaintenanceLogItem.query.filter_by(
-                log_id=log.id, item_id=item_id
-            ).delete()
-
             interval = VehicleMaintenanceInterval.query.filter_by(
                 vehicle_id=log.vehicle_id, item_id=item_id
             ).first()
@@ -871,12 +870,15 @@ def update_maintenance(log_id):
                     interval.last_service_mileage = None
                 interval.notified_milestones = {"miles": [], "months": []}
 
+        # Update item associations via the relationship so SQLAlchemy
+        # properly tracks the join table changes
+        new_items = MaintenanceItem.query.filter(
+            MaintenanceItem.id.in_(new_item_ids)
+        ).all() if new_item_ids else []
+        log.items = new_items
+
         # Reset intervals for all items in the new list
         for item_id in new_item_ids:
-            # Upsert join record (add if not already present)
-            if item_id not in old_item_ids:
-                db.session.add(MaintenanceLogItem(log_id=log.id, item_id=item_id))
-
             interval = VehicleMaintenanceInterval.query.filter_by(
                 vehicle_id=log.vehicle_id, item_id=item_id
             ).first()
@@ -887,8 +889,7 @@ def update_maintenance(log_id):
 
         # Auto-populate service_type from item names if not explicitly provided
         if 'service_type' not in data and new_item_ids:
-            items = MaintenanceItem.query.filter(MaintenanceItem.id.in_(new_item_ids)).all()
-            log.service_type = ', '.join(item.name for item in items)
+            log.service_type = ', '.join(item.name for item in new_items)
 
     db.session.commit()
 
