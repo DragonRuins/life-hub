@@ -85,6 +85,10 @@ export const vehicles = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+    update: (id, data) => apiFetch(`/vehicles/maintenance-items/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
     delete: (id) => apiFetch(`/vehicles/maintenance-items/${id}`, {
       method: 'DELETE',
     }),

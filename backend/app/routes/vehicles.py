@@ -475,6 +475,30 @@ def create_maintenance_item():
     return jsonify(item.to_dict()), 201
 
 
+@vehicles_bp.route('/maintenance-items/<int:item_id>', methods=['PUT'])
+def update_maintenance_item(item_id):
+    """
+    Update a maintenance item in the global catalog.
+    Allows editing name, category, and default intervals.
+    """
+    item = MaintenanceItem.query.get_or_404(item_id)
+    data = request.get_json()
+
+    if 'name' in data:
+        item.name = data['name']
+    if 'category' in data:
+        item.category = data['category']
+    if 'default_miles_interval' in data:
+        item.default_miles_interval = data['default_miles_interval']
+    if 'default_months_interval' in data:
+        item.default_months_interval = data['default_months_interval']
+    if 'sort_order' in data:
+        item.sort_order = data['sort_order']
+
+    db.session.commit()
+    return jsonify(item.to_dict())
+
+
 @vehicles_bp.route('/maintenance-items/<int:item_id>', methods=['DELETE'])
 def delete_maintenance_item(item_id):
     """
