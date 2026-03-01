@@ -380,7 +380,8 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                 status_info = check_interval_status(interval, vehicle.current_mileage, today)
 
                 # Skip intervals with unknown status (no service history)
-                if status_info['status'] == 'unknown':
+                # or ok status (nothing due — no reason to notify)
+                if status_info['status'] in ('unknown', 'ok'):
                     continue
 
                 # Skip intervals set to scheduled-only during immediate checks.
