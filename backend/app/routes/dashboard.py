@@ -382,6 +382,7 @@ def get_fleet_status():
                     'name': ts.name,
                     'tire_brand': ts.tire_brand,
                     'accumulated_mileage': ts.accumulated_mileage or 0,
+                    'rated_lifespan': ts.rated_lifespan,
                 }
                 break
 
@@ -498,6 +499,7 @@ def get_fleet_status():
                     'tire_brand': ts.tire_brand,
                     'tire_model': ts.tire_model,
                     'accumulated_mileage': ts.accumulated_mileage or 0,
+                    'rated_lifespan': ts.rated_lifespan,
                     'is_current': True,
                 })
 
