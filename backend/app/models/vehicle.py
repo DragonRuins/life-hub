@@ -27,7 +27,7 @@ class Vehicle(db.Model):
     color = db.Column(db.String(50))
     vin = db.Column(db.String(17))                          # Vehicle Identification Number
     license_plate = db.Column(db.String(20))
-    current_mileage = db.Column(db.Integer)
+    current_mileage = db.Column(db.Float)
     notes = db.Column(db.Text)                              # Any extra info
     is_primary = db.Column(db.Boolean, default=False)         # Favorite vehicle for dashboard
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -256,13 +256,14 @@ class FuelLog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    mileage = db.Column(db.Integer, nullable=False)  # Odometer at fill-up
+    date = db.Column(db.DateTime, nullable=False)
+    mileage = db.Column(db.Float, nullable=False)  # Odometer at fill-up
     gallons_added = db.Column(db.Float, nullable=False)  # Amount of fuel added
     cost_per_gallon = db.Column(db.Float, nullable=False)  # Price per gallon
     total_cost = db.Column(db.Float, nullable=False)  # Calculated or manual entry
     location = db.Column(db.String(200))  # Optional: where purchased (e.g., "Shell station on Main St")
-    fuel_type = db.Column(db.String(50))  # Optional: regular, midgrade, premium, diesel, e85
+    fuel_type = db.Column(db.String(50))  # Optional: regular, midgrade, premium, diesel, e85, high
+    octane_rating = db.Column(db.Integer)  # Optional: 87-93
     payment_method = db.Column(db.String(50))  # Optional: cash, credit, debit, mobile
     notes = db.Column(db.Text)  # Additional notes
     mpg = db.Column(db.Float)  # Calculated: miles driven / gallons
@@ -281,6 +282,7 @@ class FuelLog(db.Model):
             'total_cost': self.total_cost,
             'location': self.location,
             'fuel_type': self.fuel_type,
+            'octane_rating': self.octane_rating,
             'payment_method': self.payment_method,
             'notes': self.notes,
             'mpg': self.mpg,

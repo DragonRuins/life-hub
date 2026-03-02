@@ -402,6 +402,48 @@ def _run_safe_migrations(db):
                 ALTER TABLE infra_printer_jobs RENAME COLUMN metadata TO job_metadata;
             END IF;
         END $$""",
+
+        # Fuel log improvements: Date → DateTime (preserves existing dates at midnight)
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'fuel_logs' AND column_name = 'date'
+                  AND data_type = 'date'
+            ) THEN
+                ALTER TABLE fuel_logs ALTER COLUMN date TYPE TIMESTAMP USING date::timestamp;
+            END IF;
+        END $$""",
+
+        # Fuel log improvements: mileage Integer → Float
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'fuel_logs' AND column_name = 'mileage'
+                  AND data_type = 'integer'
+            ) THEN
+                ALTER TABLE fuel_logs ALTER COLUMN mileage TYPE DOUBLE PRECISION USING mileage::double precision;
+            END IF;
+        END $$""",
+
+        # Vehicle current_mileage Integer → Float
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'vehicles' AND column_name = 'current_mileage'
+                  AND data_type = 'integer'
+            ) THEN
+                ALTER TABLE vehicles ALTER COLUMN current_mileage TYPE DOUBLE PRECISION USING current_mileage::double precision;
+            END IF;
+        END $$""",
+
+        # Fuel log improvements: add octane_rating column
+        """ALTER TABLE fuel_logs ADD COLUMN IF NOT EXISTS octane_rating INTEGER""",
+
+        # Normalize "mid-grade" → "midgrade" in fuel_type
+        """UPDATE fuel_logs SET fuel_type = 'midgrade' WHERE fuel_type = 'mid-grade'""",
     ]
 
     for sql in migrations:

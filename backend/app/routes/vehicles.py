@@ -1169,6 +1169,14 @@ def create_fuel_log(vehicle_id):
         price_per = data.get('cost_per_gallon', 0)
         total_cost = gallons * price_per
 
+    # Parse octane_rating if provided
+    octane_rating = data.get('octane_rating')
+    if octane_rating is not None:
+        try:
+            octane_rating = int(octane_rating)
+        except (ValueError, TypeError):
+            octane_rating = None
+
     log = FuelLog(
         vehicle_id=vehicle_id,
         date=datetime.fromisoformat(data['date']),
@@ -1178,6 +1186,7 @@ def create_fuel_log(vehicle_id):
         total_cost=total_cost,
         location=data.get('location'),
         fuel_type=data.get('fuel_type'),
+        octane_rating=octane_rating,
         payment_method=data.get('payment_method'),
         notes=data.get('notes'),
         mpg=mpg,
@@ -1216,7 +1225,8 @@ def update_fuel_log(log_id):
     data = request.get_json()
 
     for field in ('date', 'mileage', 'gallons_added', 'cost_per_gallon',
-                  'total_cost', 'location', 'fuel_type', 'payment_method', 'notes'):
+                  'total_cost', 'location', 'fuel_type', 'octane_rating',
+                  'payment_method', 'notes'):
         if field in data:
             setattr(log, field, data[field])
 

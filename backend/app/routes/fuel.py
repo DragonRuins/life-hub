@@ -151,14 +151,36 @@ def create_entry():
         if miles_driven > 0 and gallons > 0:
             mpg = round(miles_driven / gallons, 1)
 
+    # Parse date — accept ISO 8601 datetime or date-only string
+    date_str = data.get('date')
+    if date_str:
+        try:
+            entry_date = datetime.fromisoformat(date_str)
+        except ValueError:
+            entry_date = datetime.now(timezone.utc)
+    else:
+        entry_date = datetime.now(timezone.utc)
+
+    # Parse optional fuel type and octane rating
+    fuel_type = data.get('fuel_type') or data.get('fuel-type')
+    octane_rating = data.get('octane_rating') or data.get('octane-rating')
+    if octane_rating is not None:
+        try:
+            octane_rating = int(octane_rating)
+        except (ValueError, TypeError):
+            octane_rating = None
+
     # Create the fuel log entry
     log = FuelLog(
         vehicle_id=vehicle_id,
-        date=date.today(),
-        mileage=int(odometer),
+        date=entry_date,
+        mileage=odometer,
         gallons_added=gallons,
         cost_per_gallon=price_per_gallon,
         total_cost=total_cost,
+        location=data.get('location'),
+        fuel_type=fuel_type,
+        octane_rating=octane_rating,
         notes=data.get('notes'),
         mpg=mpg,
         missed_previous=missed_previous,
@@ -166,9 +188,9 @@ def create_entry():
     db.session.add(log)
 
     # Update equipped tire set and vehicle odometer
-    if vehicle.current_mileage is None or int(odometer) > vehicle.current_mileage:
-        update_equipped_tire_mileage(vehicle, int(odometer))
-        vehicle.current_mileage = int(odometer)
+    if vehicle.current_mileage is None or odometer > vehicle.current_mileage:
+        update_equipped_tire_mileage(vehicle, odometer)
+        vehicle.current_mileage = odometer
 
     db.session.commit()
 
@@ -221,12 +243,14 @@ def list_entries():
 
     Vehicle.query.get_or_404(int(vehicle_id))
 
-    logs = (
-        FuelLog.query
-        .filter_by(vehicle_id=int(vehicle_id))
-        .order_by(FuelLog.date.desc(), FuelLog.id.desc())
-        .all()
-    )
+    query = FuelLog.query.filter_by(vehicle_id=int(vehicle_id))
+
+    # Optional fuel_type filter
+    fuel_type = request.args.get('fuel_type')
+    if fuel_type:
+        query = query.filter(FuelLog.fuel_type == fuel_type)
+
+    logs = query.order_by(FuelLog.date.desc(), FuelLog.id.desc()).all()
     return jsonify([log.to_dict() for log in logs])
 
 
@@ -395,17 +419,24 @@ def get_stats():
     vehicle_id = int(vehicle_id)
     Vehicle.query.get_or_404(vehicle_id)
 
+    # Optional fuel_type filter
+    fuel_type = request.args.get('fuel_type')
+
+    # Build base query with optional fuel type filter
+    base_query = FuelLog.query.filter_by(vehicle_id=vehicle_id)
+    if fuel_type:
+        base_query = base_query.filter(FuelLog.fuel_type == fuel_type)
+
     # Get all entries with MPG values (excludes first fill-up which has null MPG)
     entries_with_mpg = (
-        FuelLog.query
-        .filter_by(vehicle_id=vehicle_id)
+        base_query
         .filter(FuelLog.mpg.isnot(None))
         .order_by(FuelLog.date.desc(), FuelLog.id.desc())
         .all()
     )
 
     # Get all entries (for total gallons, total cost, etc.)
-    all_entries = FuelLog.query.filter_by(vehicle_id=vehicle_id).all()
+    all_entries = base_query.all()
     total_entries = len(all_entries)
 
     if total_entries == 0:
