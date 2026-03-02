@@ -1220,15 +1220,80 @@ def create_fuel_log(vehicle_id):
 
 @vehicles_bp.route('/fuel-logs/<int:log_id>', methods=['PUT'])
 def update_fuel_log(log_id):
-    """Update a fuel log."""
+    """Update a fuel log with MPG recalculation."""
     log = FuelLog.query.get_or_404(log_id)
     data = request.get_json()
 
-    for field in ('date', 'mileage', 'gallons_added', 'cost_per_gallon',
-                  'total_cost', 'location', 'fuel_type', 'octane_rating',
-                  'payment_method', 'notes'):
+    # Update simple text/optional fields
+    for field in ('location', 'fuel_type', 'payment_method', 'notes'):
         if field in data:
             setattr(log, field, data[field])
+
+    # Parse date if provided
+    if 'date' in data:
+        log.date = datetime.fromisoformat(data['date'])
+
+    # Update numeric fields
+    if 'mileage' in data:
+        log.mileage = data['mileage']
+    if 'gallons_added' in data:
+        log.gallons_added = data['gallons_added']
+    if 'cost_per_gallon' in data:
+        log.cost_per_gallon = data['cost_per_gallon']
+    if 'missed_previous' in data:
+        log.missed_previous = bool(data['missed_previous'])
+    if 'octane_rating' in data:
+        try:
+            log.octane_rating = int(data['octane_rating']) if data['octane_rating'] else None
+        except (ValueError, TypeError):
+            log.octane_rating = None
+
+    # Auto-recalculate total_cost if gallons or price changed and total wasn't explicitly sent
+    if 'total_cost' in data:
+        log.total_cost = data['total_cost']
+    elif 'gallons_added' in data or 'cost_per_gallon' in data:
+        g = log.gallons_added or 0
+        p = log.cost_per_gallon or 0
+        log.total_cost = g * p
+
+    # Recalculate this log's MPG
+    if log.missed_previous:
+        log.mpg = None
+    elif log.mileage and log.gallons_added and log.gallons_added > 0:
+        prev = (
+            FuelLog.query
+            .filter_by(vehicle_id=log.vehicle_id)
+            .filter(FuelLog.mileage < log.mileage)
+            .filter(FuelLog.id != log.id)
+            .order_by(FuelLog.mileage.desc())
+            .first()
+        )
+        if prev:
+            log.mpg = round((log.mileage - prev.mileage) / log.gallons_added, 1)
+        else:
+            log.mpg = None
+    else:
+        log.mpg = None
+
+    # Recalculate next log's MPG (it uses this log as its predecessor)
+    next_log = (
+        FuelLog.query
+        .filter_by(vehicle_id=log.vehicle_id)
+        .filter(FuelLog.mileage > log.mileage)
+        .filter(FuelLog.id != log.id)
+        .order_by(FuelLog.mileage.asc())
+        .first()
+    )
+    if next_log:
+        if next_log.missed_previous:
+            next_log.mpg = None
+        elif next_log.gallons_added and next_log.gallons_added > 0 and log.mileage:
+            next_log.mpg = round((next_log.mileage - log.mileage) / next_log.gallons_added, 1)
+
+    # Update vehicle mileage if this is the highest reading
+    vehicle = Vehicle.query.get(log.vehicle_id)
+    if vehicle and log.mileage and (vehicle.current_mileage is None or log.mileage > vehicle.current_mileage):
+        vehicle.current_mileage = log.mileage
 
     db.session.commit()
     return jsonify(log.to_dict())

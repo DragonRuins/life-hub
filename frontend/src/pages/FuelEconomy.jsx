@@ -11,10 +11,11 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Fuel, Trash2, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft } from 'lucide-react'
+import { Fuel, Trash2, Pencil, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft, X } from 'lucide-react'
 import useIsMobile from '../hooks/useIsMobile'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { vehicles, fuel } from '../api/client'
+import FuelForm from '../components/FuelForm'
 import { formatDate, formatShortDate } from '../utils/formatDate'
 
 export default function FuelEconomy() {
@@ -27,6 +28,8 @@ export default function FuelEconomy() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState('all')
+  const [editingEntry, setEditingEntry] = useState(null)
+  const [showEditForm, setShowEditForm] = useState(false)
 
   // Load vehicle info + fuel data on mount
   useEffect(() => {
@@ -48,6 +51,22 @@ export default function FuelEconomy() {
     }
     loadData()
   }, [vehicleId])
+
+  async function handleUpdateEntry(data) {
+    try {
+      await vehicles.fuelLogs.update(editingEntry.id, data)
+      const [entriesData, statsData] = await Promise.all([
+        fuel.entries(vehicleId),
+        fuel.stats(vehicleId),
+      ])
+      setEntries(entriesData)
+      setStats(statsData)
+      setEditingEntry(null)
+      setShowEditForm(false)
+    } catch (err) {
+      alert('Failed to update entry: ' + err.message)
+    }
+  }
 
   async function handleDeleteEntry(entryId) {
     if (!confirm('Delete this fuel entry?')) return
@@ -334,6 +353,16 @@ export default function FuelEconomy() {
                               </span>
                             )}
                             <button
+                              onClick={() => { setEditingEntry(entry); setShowEditForm(true) }}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--color-overlay-0)', padding: '0.25rem',
+                                borderRadius: '4px', display: 'flex', alignItems: 'center',
+                              }}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
                               onClick={() => handleDeleteEntry(entry.id)}
                               style={{
                                 background: 'none', border: 'none', cursor: 'pointer',
@@ -407,22 +436,40 @@ export default function FuelEconomy() {
                               )}
                             </Td>
                             <Td align="center">
-                              <button
-                                onClick={() => handleDeleteEntry(entry.id)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: 'var(--color-overlay-0)',
-                                  padding: '0.25rem',
-                                  borderRadius: '4px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                }}
-                                title="Delete entry"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                              <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                                <button
+                                  onClick={() => { setEditingEntry(entry); setShowEditForm(true) }}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: 'var(--color-overlay-0)',
+                                    padding: '0.25rem',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                  }}
+                                  title="Edit entry"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteEntry(entry.id)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: 'var(--color-overlay-0)',
+                                    padding: '0.25rem',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                  }}
+                                  title="Delete entry"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </Td>
                           </tr>
                         ))}
@@ -441,6 +488,30 @@ export default function FuelEconomy() {
               <p style={{ color: 'var(--color-overlay-0)', fontSize: '0.85rem' }}>
                 Add fuel logs from the vehicle detail page or via the Apple Shortcut.
               </p>
+            </div>
+          )}
+
+          {/* Edit Fuel Log Modal */}
+          {showEditForm && editingEntry && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+            }}>
+              <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Edit Fuel Log</h2>
+                  <button className="btn btn-ghost" onClick={() => { setShowEditForm(false); setEditingEntry(null) }}>
+                    <X size={18} />
+                  </button>
+                </div>
+                <FuelForm
+                  vehicleId={vehicleId}
+                  vehicleMileage={vehicle?.current_mileage}
+                  fuelLog={editingEntry}
+                  onSubmit={handleUpdateEntry}
+                  onCancel={() => { setShowEditForm(false); setEditingEntry(null) }}
+                />
+              </div>
             </div>
           )}
         </>

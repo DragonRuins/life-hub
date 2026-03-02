@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, AlertTriangle } from 'lucide-react'
 import { vehicles } from '../api/client'
 import { formatDate } from '../utils/formatDate'
 import ComponentCard from '../components/ComponentCard'
@@ -204,6 +204,7 @@ export default function VehicleDetail() {
       await vehicles.fuelLogs.update(editingFuelLog.id, data)
       await loadFuelLogs()
       setEditingFuelLog(null)
+      setShowFuelForm(false)
     } catch (err) {
       alert('Failed to save fuel log: ' + err.message)
     }
@@ -713,6 +714,9 @@ export default function VehicleDetail() {
                           {log.mpg.toFixed(1)} MPG
                         </div>
                       )}
+                      <button className="btn btn-ghost" style={{ fontSize: '0.8rem' }} onClick={() => { setEditingFuelLog(log); setShowFuelForm(true) }}>
+                        <Pencil size={14} />
+                      </button>
                       <button className="btn btn-ghost" style={{ fontSize: '0.8rem' }} onClick={() => handleDeleteFuelLog(log.id)}>
                         <Trash2 size={14} />
                       </button>

@@ -23,14 +23,15 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
     vehicle_id: vehicleId || '',
     date: fuelLog?.date || new Date().toISOString().split('T')[0],
     mileage: fuelLog?.mileage || vehicleMileage || '',
-    gallons: '',
-    price_per_gallon: '',
-    total_cost: '',
-    location: '',
-    fuel_type: '',
-    payment_method: '',
-    notes: '',
-    missed_previous: false,
+    gallons: fuelLog?.gallons_added || '',
+    price_per_gallon: fuelLog?.cost_per_gallon || '',
+    total_cost: fuelLog?.total_cost || '',
+    location: fuelLog?.location || '',
+    fuel_type: fuelLog?.fuel_type || '',
+    payment_method: fuelLog?.payment_method || '',
+    notes: fuelLog?.notes || '',
+    missed_previous: fuelLog?.missed_previous || false,
+    octane_rating: fuelLog?.octane_rating || '',
   })
 
   // Auto-fill mileage from vehicle when adding new log
@@ -54,7 +55,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
     const dataToSend = {
       vehicle_id: form.vehicle_id || vehicleId,
       date: form.date,
-      mileage: form.mileage ? parseInt(form.mileage) : null,
+      mileage: form.mileage ? parseFloat(form.mileage) : null,
       gallons_added: form.gallons ? parseFloat(form.gallons) : null,
       cost_per_gallon: form.price_per_gallon ? parseFloat(form.price_per_gallon) : null,
       total_cost: form.total_cost ? parseFloat(form.total_cost) : null,
@@ -109,7 +110,7 @@ export default function FuelForm({ vehicleId, vehicleMileage, fuelLog, onSubmit,
             Odometer (mi) *
             <Tooltip text="Vehicle mileage at fill-up" />
           </label>
-          <input name="mileage" type="number" placeholder="45000" value={form.mileage} onChange={handleChange} required />
+          <input name="mileage" type="number" step="0.1" placeholder="45000" value={form.mileage} onChange={handleChange} required />
           {vehicleMileage && (
             <small style={{ color: 'var(--color-subtext-1)' }}>
               Current: {vehicleMileage.toLocaleString()} mi

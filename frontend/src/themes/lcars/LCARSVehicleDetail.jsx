@@ -11,7 +11,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car, AlertTriangle } from 'lucide-react'
 import { vehicles } from '../../api/client'
 import ComponentForm from '../../components/ComponentForm'
 import ComponentLogForm from '../../components/ComponentLogForm'
@@ -160,6 +160,7 @@ export default function LCARSVehicleDetail() {
       await vehicles.fuelLogs.update(editingFuelLog.id, data)
       await loadFuelLogs()
       setEditingFuelLog(null)
+      setShowFuelForm(false)
     } catch (err) { alert('Failed to save fuel log: ' + err.message) }
   }
 
@@ -717,19 +718,34 @@ export default function LCARSVehicleDetail() {
                           )}
                         </LTd>
                         <LTd align="center">
-                          <button
-                            onClick={() => handleDeleteFuelLog(log.id)}
-                            style={{
-                              background: 'none', border: 'none', cursor: 'pointer',
-                              color: 'var(--lcars-gray)', padding: '0.25rem', display: 'flex', alignItems: 'center',
-                              transition: 'color 0.15s',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-tomato)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => { setEditingFuelLog(log); setShowFuelForm(true) }}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--lcars-gray)', padding: '0.25rem', display: 'flex', alignItems: 'center',
+                                transition: 'color 0.15s',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-sunflower)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
+                              title="Edit"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteFuelLog(log.id)}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--lcars-gray)', padding: '0.25rem', display: 'flex', alignItems: 'center',
+                                transition: 'color 0.15s',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-tomato)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
+                              title="Delete"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </LTd>
                       </tr>
                       )

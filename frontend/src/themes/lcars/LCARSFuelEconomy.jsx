@@ -10,12 +10,14 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Fuel, Trash2, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft } from 'lucide-react'
+import { Fuel, Trash2, Pencil, TrendingUp, TrendingDown, DollarSign, Droplets, Gauge, BarChart3, ChevronLeft } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { vehicles, fuel } from '../../api/client'
+import FuelForm from '../../components/FuelForm'
 import { formatDate, formatShortDate } from '../../utils/formatDate'
 import useIsMobile from '../../hooks/useIsMobile'
 import LCARSPanel, { LCARSStat } from './LCARSPanel'
+import LCARSModal from './LCARSModal'
 
 export default function LCARSFuelEconomy() {
   const { id } = useParams()
@@ -27,6 +29,8 @@ export default function LCARSFuelEconomy() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState('all')
+  const [editingEntry, setEditingEntry] = useState(null)
+  const [showEditForm, setShowEditForm] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -47,6 +51,22 @@ export default function LCARSFuelEconomy() {
     }
     loadData()
   }, [vehicleId])
+
+  async function handleUpdateEntry(data) {
+    try {
+      await vehicles.fuelLogs.update(editingEntry.id, data)
+      const [entriesData, statsData] = await Promise.all([
+        fuel.entries(vehicleId),
+        fuel.stats(vehicleId),
+      ])
+      setEntries(entriesData)
+      setStats(statsData)
+      setEditingEntry(null)
+      setShowEditForm(false)
+    } catch (err) {
+      alert('Failed to update entry: ' + err.message)
+    }
+  }
 
   async function handleDeleteEntry(entryId) {
     if (!confirm('Delete this fuel entry?')) return
@@ -380,6 +400,16 @@ export default function LCARSFuelEconomy() {
                           </span>
                         )}
                         <button
+                          onClick={() => { setEditingEntry(entry); setShowEditForm(true) }}
+                          style={{
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            color: 'var(--lcars-gray)', padding: '0.25rem',
+                            display: 'flex', alignItems: 'center',
+                          }}
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
                           onClick={() => handleDeleteEntry(entry.id)}
                           style={{
                             background: 'none', border: 'none', cursor: 'pointer',
@@ -465,24 +495,44 @@ export default function LCARSFuelEconomy() {
                           )}
                         </LTd>
                         <LTd align="center">
-                          <button
-                            onClick={() => handleDeleteEntry(entry.id)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: 'var(--lcars-gray)',
-                              padding: '0.25rem',
-                              display: 'flex',
-                              alignItems: 'center',
-                              transition: 'color 0.15s',
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-tomato)'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
-                            title="Delete entry"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => { setEditingEntry(entry); setShowEditForm(true) }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--lcars-gray)',
+                                padding: '0.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'color 0.15s',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-sunflower)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
+                              title="Edit entry"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEntry(entry.id)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--lcars-gray)',
+                                padding: '0.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                transition: 'color 0.15s',
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--lcars-tomato)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--lcars-gray)'}
+                              title="Delete entry"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </LTd>
                       </tr>
                       )
@@ -517,6 +567,23 @@ export default function LCARSFuelEconomy() {
           </div>
         </LCARSPanel>
       )}
+
+      {/* Edit Fuel Log Modal */}
+      <LCARSModal
+        isOpen={showEditForm && !!editingEntry}
+        onClose={() => { setShowEditForm(false); setEditingEntry(null) }}
+        title="Edit Fuel Log"
+      >
+        {editingEntry && (
+          <FuelForm
+            vehicleId={vehicleId}
+            vehicleMileage={vehicle?.current_mileage}
+            fuelLog={editingEntry}
+            onSubmit={handleUpdateEntry}
+            onCancel={() => { setShowEditForm(false); setEditingEntry(null) }}
+          />
+        )}
+      </LCARSModal>
     </div>
   )
 }
