@@ -10,7 +10,7 @@ The weather endpoint proxies the free Open-Meteo API so the
 frontend doesn't need to handle external API calls directly.
 Open-Meteo requires no API key, which keeps things simple.
 """
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, current_app, jsonify, request
 from sqlalchemy.orm import joinedload, subqueryload
@@ -358,7 +358,7 @@ def get_fleet_status():
         # Get last fuel log MPG and average MPG
         sorted_fuel = sorted(
             v.fuel_logs,
-            key=lambda fl: (fl.date or date.min, fl.id),
+            key=lambda fl: (fl.date or datetime.min, fl.id),
             reverse=True,
         )
         last_mpg = None
@@ -408,8 +408,8 @@ def get_fleet_status():
     for v in vehicles_list:
         all_fuel_logs.extend(v.fuel_logs)
 
-    fuel_30d = [fl for fl in all_fuel_logs if fl.date and fl.date >= thirty_days_ago]
-    fuel_ytd = [fl for fl in all_fuel_logs if fl.date and fl.date >= year_start]
+    fuel_30d = [fl for fl in all_fuel_logs if fl.date and fl.date.date() >= thirty_days_ago]
+    fuel_ytd = [fl for fl in all_fuel_logs if fl.date and fl.date.date() >= year_start]
 
     valid_mpg_all = [fl for fl in all_fuel_logs if fl.mpg is not None]
     fleet_avg_mpg = (
@@ -420,7 +420,7 @@ def get_fleet_status():
     # Sparkline: last 20 fuel entries with MPG, in chronological order
     sparkline_entries = sorted(
         [fl for fl in all_fuel_logs if fl.mpg is not None],
-        key=lambda fl: (fl.date or date.min, fl.id),
+        key=lambda fl: (fl.date or datetime.min, fl.id),
         reverse=True,
     )[:20]
     sparkline_data = [
