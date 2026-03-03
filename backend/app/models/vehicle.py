@@ -232,7 +232,7 @@ class TireSet(db.Model):
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    # Relationship: one set has many components (8 total: 4 tires + 4 rims)
+    # Relationship: one set has many components (4+4 for cars, 2+2 for motorcycles)
     components = db.relationship(
         'VehicleComponent', backref='tire_set', cascade='all, delete-orphan'
     )
