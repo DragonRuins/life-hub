@@ -146,4 +146,4 @@ def get_all_schemas():
 # to use them.
 # ---------------------------------------------------------------------------
 
-from . import in_app, pushover, discord, email_channel, sms  # noqa: E402, F401
+from . import in_app, pushover, discord, email_channel, sms, apns  # noqa: E402, F401
