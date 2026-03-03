@@ -103,6 +103,62 @@ export const COMPONENT_TYPES = [
     commonFields: ['brand', 'model', 'purchase_price'],
   },
   {
+    value: 'drive_chain',
+    label: 'Drive Chain',
+    icon: '⛓️',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'model', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'drive_belt',
+    label: 'Drive Belt',
+    icon: '🔗',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'model', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'front_sprocket',
+    label: 'Front Sprocket',
+    icon: '⚙️',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'rear_sprocket',
+    label: 'Rear Sprocket',
+    icon: '⚙️',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'front_pulley',
+    label: 'Front Pulley',
+    icon: '⚙️',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'rear_pulley',
+    label: 'Rear Pulley',
+    icon: '⚙️',
+    suggestedPositions: ['Drivetrain'],
+    commonFields: ['brand', 'part_number', 'install_mileage'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
+    value: 'stator',
+    label: 'Stator',
+    icon: '⚡',
+    suggestedPositions: ['Engine'],
+    commonFields: ['brand', 'part_number'],
+    vehicleTypes: ['motorcycle'],
+  },
+  {
     value: 'other',
     label: 'Other',
     icon: '📦',
@@ -127,6 +183,18 @@ export function getAllPositions() {
     type.suggestedPositions.forEach(pos => positions.add(pos))
   })
   return Array.from(positions).sort()
+}
+
+/**
+ * Get component types filtered for a specific vehicle type.
+ * Items with no vehicleTypes restriction are always included.
+ * Items with a vehicleTypes array are only included if the vehicle type matches.
+ */
+export function getComponentTypesForVehicle(vehicleType) {
+  if (!vehicleType) return COMPONENT_TYPES
+  return COMPONENT_TYPES.filter(t =>
+    !t.vehicleTypes || t.vehicleTypes.includes(vehicleType)
+  )
 }
 
 /**
