@@ -21,6 +21,16 @@ const PRIORITY_STYLES = {
   critical: { bg: 'rgba(243, 139, 168, 0.1)', color: 'var(--color-red)' },
 }
 
+// Map internal channel_type to user-friendly display names
+const CHANNEL_LABELS = {
+  apns: 'Push',
+  pushover: 'Pushover',
+  discord: 'Discord',
+  email: 'Email',
+  in_app: 'In-App',
+  sms: 'SMS',
+}
+
 export default function HistoryTab() {
   const [stats, setStats] = useState(null)
   const [logData, setLogData] = useState({ items: [], total: 0, page: 1, pages: 0 })
@@ -193,6 +203,7 @@ export default function HistoryTab() {
             style={{ minWidth: '120px' }}
           >
             <option value="">All</option>
+            <option value="apns">Push</option>
             <option value="pushover">Pushover</option>
             <option value="discord">Discord</option>
             <option value="email">Email</option>
@@ -261,7 +272,7 @@ export default function HistoryTab() {
                     fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px',
                     background: 'var(--color-surface-0)', color: 'var(--color-overlay-1)', flexShrink: 0,
                   }}>
-                    {entry.channel_type}
+                    {CHANNEL_LABELS[entry.channel_type] || entry.channel_type}
                   </span>
 
                   {/* Priority badge */}
