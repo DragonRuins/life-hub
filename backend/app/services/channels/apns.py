@@ -168,8 +168,6 @@ async def _send_push_async(title, body, priority, **kwargs):
             logger.error(f"APNs error for {device.device_id[:8]}: {e}")
             failed_count += 1
 
-    await client.close()
-
     if failed_count == len(tokens):
         raise Exception(f"APNs: All {failed_count} device deliveries failed")
 
