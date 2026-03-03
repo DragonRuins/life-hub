@@ -864,6 +864,9 @@ def schedule_delayed_push(title, body, priority, **kwargs):
         **kwargs: Extra APNs params (thread_id, category, deep_link, etc.)
     """
     global scheduler, _app
+    logger.info(f"schedule_delayed_push called: title='{title}', priority='{priority}', "
+                f"kwargs={kwargs}, scheduler={'yes' if scheduler else 'NO'}, app={'yes' if _app else 'NO'}")
+
     if not _app:
         logger.warning("App not initialized, cannot schedule delayed push")
         return
@@ -873,26 +876,33 @@ def schedule_delayed_push(title, body, priority, **kwargs):
         from app.models.notification import NotificationSettings
         settings = NotificationSettings.get_settings()
         delay_minutes = settings.push_delay_minutes or 0
+        logger.info(f"Push delay setting: {delay_minutes} minutes")
 
     if delay_minutes <= 0 or not scheduler:
         # Send immediately (no delay configured or scheduler unavailable)
+        logger.info(f"Sending APNs push immediately (delay={delay_minutes}, scheduler={'yes' if scheduler else 'NO'})")
         _fire_delayed_push(title, body, priority, kwargs)
         return
 
     # Schedule a one-shot job to fire after the delay
-    import uuid
-    job_id = f"apns_delayed_{uuid.uuid4().hex[:12]}"
-    fire_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
+    try:
+        import uuid
+        job_id = f"apns_delayed_{uuid.uuid4().hex[:12]}"
+        fire_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
 
-    scheduler.add_job(
-        _fire_delayed_push,
-        trigger='date',
-        id=job_id,
-        run_date=fire_at,
-        args=[title, body, priority, kwargs],
-        replace_existing=True,
-    )
-    logger.info(f"Scheduled delayed APNs push '{job_id}' for {fire_at.isoformat()} ({delay_minutes}min delay)")
+        scheduler.add_job(
+            _fire_delayed_push,
+            trigger='date',
+            id=job_id,
+            run_date=fire_at,
+            args=[title, body, priority, kwargs],
+            replace_existing=True,
+        )
+        logger.info(f"Scheduled delayed APNs push '{job_id}' for {fire_at.isoformat()} ({delay_minutes}min delay)")
+    except Exception as e:
+        logger.error(f"Failed to schedule delayed APNs push, sending immediately: {e}")
+        # Fall back to immediate send if scheduling fails
+        _fire_delayed_push(title, body, priority, kwargs)
 
 
 def _fire_delayed_push(title, body, priority, extra_kwargs):
@@ -907,7 +917,10 @@ def _fire_delayed_push(title, body, priority, extra_kwargs):
         extra_kwargs: Dict of extra APNs params
     """
     global _app
+    logger.info(f"_fire_delayed_push called: title='{title}', priority='{priority}', app={'yes' if _app else 'NO'}")
+
     if not _app:
+        logger.error("_fire_delayed_push: _app is None, cannot send push")
         return
 
     import time as time_mod
@@ -917,6 +930,7 @@ def _fire_delayed_push(title, body, priority, extra_kwargs):
         from app.services.channels import apns
 
         if not apns.is_configured():
+            logger.warning("_fire_delayed_push: APNs not configured (missing APNS_KEY_FILE / APNS_KEY_ID / APNS_TEAM_ID)")
             return
 
         start_time = time_mod.time()
