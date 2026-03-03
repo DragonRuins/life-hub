@@ -38,6 +38,11 @@ Endpoints:
   Settings:
     GET    /api/notifications/settings                  -> Get global settings
     PUT    /api/notifications/settings                  -> Update global settings
+
+  Devices (APNs):
+    GET    /api/notifications/devices                   -> List registered devices
+    POST   /api/notifications/devices                   -> Register/update device token
+    DELETE /api/notifications/devices                   -> Unregister device token
 """
 import math
 from datetime import datetime, timedelta, timezone
@@ -777,3 +782,81 @@ def update_settings():
 
     db.session.commit()
     return jsonify(settings.to_dict())
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Device Token Registration (APNs)
+# ═══════════════════════════════════════════════════════════════════
+
+@notifications_bp.route('/devices', methods=['GET'])
+def list_devices():
+    """List all registered device tokens."""
+    from app.models.device_token import DeviceToken
+    devices = DeviceToken.query.order_by(DeviceToken.updated_at.desc()).all()
+    return jsonify([d.to_dict() for d in devices])
+
+
+@notifications_bp.route('/devices', methods=['POST'])
+def register_device():
+    """
+    Register or update a device token for push notifications.
+
+    Upserts by device_id — if the device already exists, updates its token.
+    This handles token refresh (iOS regenerates tokens periodically).
+
+    Body: {"device_id": "...", "token": "...", "platform": "ios|macos|watchos", "app_version": "1.0.0"}
+    """
+    from app.models.device_token import DeviceToken
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Request body required'}), 400
+
+    device_id = data.get('device_id')
+    token = data.get('token')
+    platform = data.get('platform')
+
+    if not device_id or not token or not platform:
+        return jsonify({'error': 'device_id, token, and platform are required'}), 400
+
+    if platform not in ('ios', 'macos', 'watchos'):
+        return jsonify({'error': 'platform must be ios, macos, or watchos'}), 400
+
+    # Upsert: update existing or create new
+    existing = DeviceToken.query.filter_by(device_id=device_id).first()
+    if existing:
+        existing.token = token
+        existing.platform = platform
+        existing.app_version = data.get('app_version')
+    else:
+        existing = DeviceToken(
+            device_id=device_id,
+            token=token,
+            platform=platform,
+            app_version=data.get('app_version'),
+        )
+        db.session.add(existing)
+
+    db.session.commit()
+    return jsonify(existing.to_dict()), 200
+
+
+@notifications_bp.route('/devices', methods=['DELETE'])
+def unregister_device():
+    """
+    Unregister a device token.
+
+    Body: {"device_id": "..."}
+    """
+    from app.models.device_token import DeviceToken
+
+    data = request.get_json()
+    if not data or not data.get('device_id'):
+        return jsonify({'error': 'device_id is required'}), 400
+
+    device = DeviceToken.query.filter_by(device_id=data['device_id']).first()
+    if device:
+        db.session.delete(device)
+        db.session.commit()
+
+    return jsonify({'status': 'ok'}), 200
