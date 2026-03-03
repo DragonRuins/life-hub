@@ -104,8 +104,22 @@ export default function Vehicles() {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '1rem' }}>
+                  <div style={{ fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     {v.year} {v.make} {v.model}
+                    {v.vehicle_type && v.vehicle_type !== 'car' && (
+                      <span style={{
+                        fontSize: '0.65rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        padding: '0.125rem 0.375rem',
+                        borderRadius: '4px',
+                        background: v.vehicle_type === 'motorcycle' ? 'rgba(203, 166, 247, 0.15)' : 'rgba(137, 180, 250, 0.15)',
+                        color: v.vehicle_type === 'motorcycle' ? 'var(--color-mauve)' : 'var(--color-blue)',
+                      }}>
+                        {v.vehicle_type}
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--color-subtext-0)', display: 'flex', gap: '1rem', marginTop: '0.125rem' }}>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-overlay-0)' }}>ID: {v.id}</span>
@@ -151,6 +165,7 @@ export default function Vehicles() {
  */
 function VehicleForm({ onSubmit, onCancel }) {
   const [form, setForm] = useState({
+    vehicle_type: 'car',
     year: '',
     make: '',
     model: '',
@@ -159,6 +174,9 @@ function VehicleForm({ onSubmit, onCancel }) {
     vin: '',
     license_plate: '',
     current_mileage: '',
+    cylinder_count: '',
+    dual_spark: false,
+    final_drive_type: 'chain',
     notes: '',
   })
 
@@ -172,12 +190,26 @@ function VehicleForm({ onSubmit, onCancel }) {
       ...form,
       year: parseInt(form.year),
       current_mileage: form.current_mileage ? parseInt(form.current_mileage) : null,
+      cylinder_count: form.cylinder_count ? parseInt(form.cylinder_count) : null,
+      dual_spark: form.vehicle_type === 'motorcycle' ? form.dual_spark : false,
+      final_drive_type: form.vehicle_type === 'motorcycle' ? form.final_drive_type : null,
     })
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Add New Vehicle</h3>
+
+      {/* Vehicle Type Selection */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label>Vehicle Type</label>
+        <select name="vehicle_type" value={form.vehicle_type} onChange={handleChange}>
+          <option value="car">Car</option>
+          <option value="truck">Truck</option>
+          <option value="suv">SUV</option>
+          <option value="motorcycle">Motorcycle</option>
+        </select>
+      </div>
 
       <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
         <div>
@@ -207,6 +239,37 @@ function VehicleForm({ onSubmit, onCancel }) {
           <label>Current Mileage</label>
           <input name="current_mileage" type="number" placeholder="45000" value={form.current_mileage} onChange={handleChange} />
         </div>
+      </div>
+
+      {/* Engine & Motorcycle-specific fields */}
+      <div className="form-grid-3col" style={{ marginBottom: '1rem' }}>
+        <div>
+          <label>Cylinder Count</label>
+          <input name="cylinder_count" type="number" placeholder={form.vehicle_type === 'motorcycle' ? '2' : '8'} value={form.cylinder_count} onChange={handleChange} />
+        </div>
+        {form.vehicle_type === 'motorcycle' && (
+          <>
+            <div>
+              <label>Final Drive Type</label>
+              <select name="final_drive_type" value={form.final_drive_type} onChange={handleChange}>
+                <option value="chain">Chain</option>
+                <option value="belt">Belt</option>
+                <option value="shaft">Shaft</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingTop: '1.5rem' }}>
+              <input
+                type="checkbox"
+                id="dual_spark"
+                name="dual_spark"
+                checked={form.dual_spark}
+                onChange={(e) => setForm({ ...form, dual_spark: e.target.checked })}
+                style={{ width: 'auto' }}
+              />
+              <label htmlFor="dual_spark" style={{ margin: 0, cursor: 'pointer' }}>Dual Spark Plugs</label>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="form-grid-2col" style={{ marginBottom: '1rem' }}>
