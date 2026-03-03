@@ -179,7 +179,7 @@ def create_default_components(vehicle):
 # ── Tire Set CRUD ───────────────────────────────────────
 
 def create_tire_set(vehicle_id, data):
-    """Create a tire set and its 8 components (4 tires + 4 rims)."""
+    """Create a tire set and its components (4 tires + 4 rims for cars, 2+2 for motorcycles)."""
 
     # Helper to convert empty strings to None for numeric fields
     def to_int(val):
@@ -224,6 +224,13 @@ def create_tire_set(vehicle_id, data):
     purchase_date = parse_component_date(data.get('purchase_date'))
     purchase_price = to_float(data.get('purchase_price'))
 
+    # Determine tire positions based on vehicle type
+    vehicle = Vehicle.query.get(vehicle_id)
+    if vehicle and vehicle.vehicle_type == 'motorcycle':
+        positions = ['Front', 'Rear']
+    else:
+        positions = ['Front Left', 'Front Right', 'Rear Left', 'Rear Right']
+
     # Check if there's already an equipped tire set for this vehicle
     has_equipped_set = VehicleComponent.query.filter(
         VehicleComponent.vehicle_id == vehicle_id,
@@ -234,8 +241,8 @@ def create_tire_set(vehicle_id, data):
     # New sets start as inactive (in storage) unless there are no other sets
     is_active = not has_equipped_set
 
-    # Create 4 tires
-    for position in ['Front Left', 'Front Right', 'Rear Left', 'Rear Right']:
+    # Create tires (2 for motorcycle, 4 for cars)
+    for position in positions:
         tire = VehicleComponent(
             vehicle_id=vehicle_id,
             tire_set_id=tire_set.id,
@@ -251,9 +258,10 @@ def create_tire_set(vehicle_id, data):
         )
         db.session.add(tire)
 
-    # Create 4 rims
-    rim_price = purchase_price / 8 if purchase_price else None
-    for position in ['Front Left', 'Front Right', 'Rear Left', 'Rear Right']:
+    # Create rims (2 for motorcycle, 4 for cars)
+    num_components = len(positions) * 2  # tires + rims
+    rim_price = purchase_price / num_components if purchase_price else None
+    for position in positions:
         rim = VehicleComponent(
             vehicle_id=vehicle_id,
             tire_set_id=tire_set.id,

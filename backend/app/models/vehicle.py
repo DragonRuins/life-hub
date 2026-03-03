@@ -212,7 +212,7 @@ class VehicleComponent(db.Model):
 
 
 class TireSet(db.Model):
-    """A set of 4 tires + 4 rims that can be swapped on a vehicle."""
+    """A set of tires + rims that can be swapped on a vehicle (4+4 for cars, 2+2 for motorcycles)."""
     __tablename__ = 'tire_sets'
 
     id = db.Column(db.Integer, primary_key=True)
