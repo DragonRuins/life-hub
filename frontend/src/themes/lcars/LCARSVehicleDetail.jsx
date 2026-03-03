@@ -11,7 +11,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, Gauge, Calendar, Hash, Car, AlertTriangle, Camera, ImageOff } from 'lucide-react'
 import { vehicles } from '../../api/client'
 import ComponentForm from '../../components/ComponentForm'
 import ComponentLogForm from '../../components/ComponentLogForm'
@@ -171,6 +171,22 @@ export default function LCARSVehicleDetail() {
     } catch (err) { alert('Failed to delete fuel log: ' + err.message) }
   }
 
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const updated = await vehicles.uploadImage(id, file)
+      setVehicle(updated)
+    } catch (err) { alert('Failed to upload image: ' + err.message) }
+  }
+
+  async function handleDeleteImage() {
+    try {
+      const updated = await vehicles.deleteImage(id)
+      setVehicle(updated)
+    } catch (err) { alert('Failed to delete image: ' + err.message) }
+  }
+
   async function handleDeleteVehicle() {
     try {
       await vehicles.delete(id)
@@ -249,6 +265,44 @@ export default function LCARSVehicleDetail() {
           Fleet Registry
         </button>
 
+        {/* Vehicle Image */}
+        {vehicle?.image_url && (
+          <div style={{ marginBottom: '0.75rem', position: 'relative' }}>
+            <img
+              src={vehicle.image_url}
+              alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+              style={{
+                width: '100%',
+                maxHeight: '240px',
+                objectFit: 'cover',
+                borderRadius: '4px',
+                border: '2px solid var(--lcars-gold)',
+              }}
+            />
+            <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.375rem' }}>
+              <label style={{
+                display: 'flex', alignItems: 'center', padding: '0.25rem 0.5rem', cursor: 'pointer',
+                background: 'var(--lcars-gold)', color: 'var(--lcars-black)', borderRadius: '10px',
+                fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem', textTransform: 'uppercase',
+              }}>
+                <Camera size={12} style={{ marginRight: '0.25rem' }} />
+                Change
+                <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+              </label>
+              <button
+                onClick={handleDeleteImage}
+                style={{
+                  display: 'flex', alignItems: 'center', padding: '0.25rem 0.5rem', border: 'none', cursor: 'pointer',
+                  background: 'var(--lcars-rust)', color: 'var(--lcars-space-white)', borderRadius: '10px',
+                  fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem', textTransform: 'uppercase',
+                }}
+              >
+                <ImageOff size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
           <div>
             <h1 style={{
@@ -283,6 +337,18 @@ export default function LCARSVehicleDetail() {
               {vehicle?.license_plate && <VehicleInfoField label="Plate" value={vehicle.license_plate} />}
               {vehicle?.current_mileage && <VehicleInfoField label="Odometer" value={`${vehicle.current_mileage.toLocaleString()} mi`} icon={<Gauge size={11} />} />}
               <VehicleInfoField label="Service Logs" value={vehicle?.maintenance_logs?.length || 0} icon={<Wrench size={11} />} />
+              {!vehicle?.image_url && (
+                <label style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer',
+                  padding: '0.125rem 0.5rem', borderRadius: '10px',
+                  background: 'var(--lcars-african-violet)', color: 'var(--lcars-space-white)',
+                  fontFamily: "'Antonio', sans-serif", fontSize: '0.7rem', textTransform: 'uppercase',
+                }}>
+                  <Camera size={11} />
+                  Add Photo
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                </label>
+              )}
             </div>
           </div>
 

@@ -1,0 +1,22 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Layer 3: Middle Hex — warmer dark plum with brighter red edge -->
+
+  <!-- Base hex fill -->
+  <path d="M 742.6,378.9 L 742.6,645.1 L 512.0,778.2 L 281.4,645.1 L 281.4,378.9 L 512.0,245.8 Z" fill="#2a2028"/>
+
+  <!-- Edge stroke -->
+  <path d="M 742.6,378.9 L 742.6,645.1 L 512.0,778.2 L 281.4,645.1 L 281.4,378.9 L 512.0,245.8 Z"
+    fill="none" stroke="#dd4433" stroke-width="4" opacity="0.55"/>
+
+  <!-- Inner detail hex ring (dashed) -->
+  <path d="M 705.7,400.2 L 705.7,623.8 L 512.0,735.6 L 318.3,623.8 L 318.3,400.2 L 512.0,288.4 Z"
+    fill="none" stroke="#aa3322" stroke-width="2" opacity="0.18" stroke-dasharray="10 20"/>
+
+  <!-- Vertex nodes -->
+  <circle cx="742.6" cy="378.9" r="6.5" fill="#dd4433" opacity="0.45"/>
+  <circle cx="742.6" cy="645.1" r="6.5" fill="#dd4433" opacity="0.45"/>
+  <circle cx="512.0" cy="778.2" r="6.5" fill="#dd4433" opacity="0.45"/>
+  <circle cx="281.4" cy="645.1" r="6.5" fill="#dd4433" opacity="0.45"/>
+  <circle cx="281.4" cy="378.9" r="6.5" fill="#dd4433" opacity="0.45"/>
+  <circle cx="512.0" cy="245.8" r="6.5" fill="#dd4433" opacity="0.45"/>
+</svg>

@@ -76,6 +76,7 @@ export default function RuleForm({ rule, channels, schemas, events, onSubmit, on
     channel_ids: rule?.channel_ids || [],
     cooldown_minutes: rule?.cooldown_minutes ?? 0,
     is_enabled: rule?.is_enabled ?? true,
+    push_enabled: rule?.push_enabled ?? true,
   })
 
   /** Update a single form field */
@@ -536,6 +537,32 @@ export default function RuleForm({ rule, channels, schemas, events, onSubmit, on
           })}
         </div>
       )}
+
+      {/* Push notification toggle */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <label style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer',
+          padding: '0.5rem 0.75rem', borderRadius: '8px',
+          background: form.push_enabled ? 'rgba(137, 180, 250, 0.06)' : 'transparent',
+          border: form.push_enabled ? '1px solid rgba(137, 180, 250, 0.2)' : '1px solid var(--color-surface-0)',
+          transition: 'all 0.15s ease',
+        }}>
+          <input
+            type="checkbox"
+            checked={form.push_enabled}
+            onChange={e => updateField('push_enabled', e.target.checked)}
+            style={{ width: 'auto' }}
+          />
+          <div>
+            <span style={{ fontSize: '0.875rem', fontWeight: 500, textTransform: 'none', letterSpacing: 'normal' }}>
+              Send Push Notification
+            </span>
+            <p style={{ fontSize: '0.7rem', color: 'var(--color-overlay-0)', margin: '0.125rem 0 0' }}>
+              Send push notification to Apple devices via APNs
+            </p>
+          </div>
+        </label>
+      </div>
 
       {/* ── Section 6: Advanced ────────────────────────────── */}
       <h3 style={sectionHeadingStyle}>Advanced</h3>

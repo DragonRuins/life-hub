@@ -1,0 +1,15 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Layer 4: Inner Hex + Center Core -->
+
+  <!-- Base hex fill -->
+  <path d="M 645.0,435.2 L 645.0,588.8 L 512.0,665.6 L 379.0,588.8 L 379.0,435.2 L 512.0,358.4 Z" fill="#141418"/>
+
+  <!-- Edge stroke -->
+  <path d="M 645.0,435.2 L 645.0,588.8 L 512.0,665.6 L 379.0,588.8 L 379.0,435.2 L 512.0,358.4 Z"
+    fill="none" stroke="#ff5544" stroke-width="4" opacity="0.55"/>
+
+  <!-- Center core glow layers -->
+  <circle cx="512" cy="512" r="41" fill="#ee3333" opacity="0.8"/>
+  <circle cx="512" cy="512" r="20" fill="#ffaaaa" opacity="0.9"/>
+  <circle cx="512" cy="512" r="8" fill="#ffffff"/>
+</svg>

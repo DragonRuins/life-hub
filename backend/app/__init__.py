@@ -452,6 +452,14 @@ def _run_safe_migrations(db):
         # APNs snooze support: global default snooze duration
         """ALTER TABLE notification_settings
            ADD COLUMN IF NOT EXISTS default_snooze_hours INTEGER DEFAULT 168""",
+
+        # Per-rule push notification toggle (default True for existing rules)
+        """ALTER TABLE notification_rules
+           ADD COLUMN IF NOT EXISTS push_enabled BOOLEAN DEFAULT TRUE""",
+
+        # Vehicle photo upload
+        """ALTER TABLE vehicles
+           ADD COLUMN IF NOT EXISTS image_filename VARCHAR(255)""",
     ]
 
     for sql in migrations:

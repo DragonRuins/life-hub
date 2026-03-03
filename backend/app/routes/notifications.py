@@ -400,6 +400,7 @@ def create_rule():
         priority=data.get('priority', 'normal'),
         cooldown_minutes=data.get('cooldown_minutes', 0),
         is_enabled=data.get('is_enabled', True),
+        push_enabled=data.get('push_enabled', True),
     )
     db.session.add(rule)
     db.session.flush()  # Get rule.id before creating channel links
@@ -449,7 +450,8 @@ def update_rule(rule_id):
     # Update simple fields
     for field in ('name', 'description', 'module', 'rule_type', 'schedule_config',
                   'event_name', 'conditions', 'title_template', 'body_template',
-                  'priority', 'cooldown_minutes', 'is_enabled', 'snooze_duration_hours'):
+                  'priority', 'cooldown_minutes', 'is_enabled', 'snooze_duration_hours',
+                  'push_enabled'):
         if field in data:
             setattr(rule, field, data[field])
 

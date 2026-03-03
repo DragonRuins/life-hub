@@ -126,6 +126,10 @@ class NotificationRule(db.Model):
     # Per-rule snooze duration override (hours). Null = use global default.
     snooze_duration_hours = db.Column(db.Integer, nullable=True)
 
+    # Whether this rule should also send APNs push notifications (default True).
+    # When False, APNs push is skipped even if the environment is configured.
+    push_enabled = db.Column(db.Boolean, nullable=False, default=True)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(
         db.DateTime,
@@ -168,6 +172,7 @@ class NotificationRule(db.Model):
             'last_fired_at': self.last_fired_at.isoformat() if self.last_fired_at else None,
             'is_enabled': self.is_enabled,
             'snooze_duration_hours': self.snooze_duration_hours,
+            'push_enabled': self.push_enabled if self.push_enabled is not None else True,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             # Include the linked channel IDs for convenience

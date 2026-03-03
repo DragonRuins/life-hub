@@ -62,6 +62,26 @@ export const vehicles = {
     method: "PUT",
   }),
 
+  // Vehicle image
+  uploadImage: async (id, file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch(`${API_BASE}/vehicles/${id}/image`, {
+      method: 'POST',
+      body: formData,
+      // Do NOT set Content-Type header — browser sets multipart boundary automatically
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }))
+      throw new Error(error.error || `HTTP ${response.status}`)
+    }
+    return response.json()
+  },
+  deleteImage: (id) => apiFetch(`/vehicles/${id}/image`, {
+    method: "DELETE",
+  }),
+  getImageUrl: (id) => `${API_BASE}/vehicles/${id}/image/file`,
+
   // Maintenance logs
   addMaintenance: (vehicleId, data) => apiFetch(`/vehicles/${vehicleId}/maintenance`, {
     method: "POST",

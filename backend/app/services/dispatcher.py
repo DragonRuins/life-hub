@@ -117,12 +117,18 @@ def _send_apns_push(rule, title, body, data, extra_kwargs):
 
     APNs is built-in infrastructure — it fires for every notification
     automatically, independent of user-configured channels.
+    Skipped if the rule has push_enabled=False.
     """
     from app import db
     from app.models.notification import NotificationLog
     from app.services.channels import apns
 
     if not apns.is_configured():
+        return
+
+    # Skip APNs if the rule has push notifications disabled
+    if not getattr(rule, 'push_enabled', True):
+        logger.info(f"APNs push skipped for rule '{rule.name}' (push_enabled=False)")
         return
 
     start_time = time.time()

@@ -1,0 +1,22 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Layer 2: Outer Hex — dark charcoal with red edge + vertex nodes -->
+
+  <!-- Base hex fill -->
+  <path d="M 849.0,317.4 L 849.0,706.6 L 512.0,901.1 L 175.0,706.6 L 175.0,317.4 L 512.0,122.9 Z" fill="#1e1e24"/>
+
+  <!-- Edge stroke -->
+  <path d="M 849.0,317.4 L 849.0,706.6 L 512.0,901.1 L 175.0,706.6 L 175.0,317.4 L 512.0,122.9 Z"
+    fill="none" stroke="#bb2222" stroke-width="4" opacity="0.55"/>
+
+  <!-- Inner detail hex ring (dashed) -->
+  <path d="M 795.1,348.6 L 795.1,675.4 L 512.0,838.9 L 228.9,675.4 L 228.9,348.6 L 512.0,185.1 Z"
+    fill="none" stroke="#992222" stroke-width="2" opacity="0.18" stroke-dasharray="10 20"/>
+
+  <!-- Vertex nodes -->
+  <circle cx="849.0" cy="317.4" r="6.5" fill="#bb2222" opacity="0.45"/>
+  <circle cx="849.0" cy="706.6" r="6.5" fill="#bb2222" opacity="0.45"/>
+  <circle cx="512.0" cy="901.1" r="6.5" fill="#bb2222" opacity="0.45"/>
+  <circle cx="175.0" cy="706.6" r="6.5" fill="#bb2222" opacity="0.45"/>
+  <circle cx="175.0" cy="317.4" r="6.5" fill="#bb2222" opacity="0.45"/>
+  <circle cx="512.0" cy="122.9" r="6.5" fill="#bb2222" opacity="0.45"/>
+</svg>

@@ -29,9 +29,11 @@ Endpoints:
     PUT    /api/vehicles/component-logs/<id>      → Update a component log
     DELETE /api/vehicles/component-logs/<id>      → Delete a component log
 """
+import os
 import sys
+import uuid
 from datetime import date, datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app, send_from_directory
 from app import db
 from app.models.vehicle import Vehicle, MaintenanceLog, VehicleComponent, ComponentLog, TireSet, FuelLog
 from app.models.maintenance_interval import MaintenanceItem, VehicleMaintenanceInterval, MaintenanceLogItem
@@ -1417,3 +1419,89 @@ def swap_tire_set_endpoint(set_id):
         pass  # Never let notifications break tire swap
 
     return jsonify(new_set.to_dict()), 200
+
+
+# ── Vehicle Image Upload / Serve / Delete ─────────────────────
+
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+
+@vehicles_bp.route('/<int:vehicle_id>/image', methods=['POST'])
+def upload_vehicle_image(vehicle_id):
+    """
+    Upload a photo for a vehicle.
+
+    Expects: multipart/form-data with a 'file' field.
+    Stores the file using a UUID filename and saves the filename to the vehicle record.
+    If the vehicle already has an image, the old file is deleted first.
+    """
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if file.filename == '' or file.filename is None:
+        return jsonify({'error': 'No file selected'}), 400
+
+    # Validate file extension
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({'error': f'File type .{ext} not allowed. Use: {", ".join(ALLOWED_IMAGE_EXTENSIONS)}'}), 400
+
+    upload_dir = current_app.config['UPLOAD_DIR']
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Delete old image if one exists
+    if vehicle.image_filename:
+        old_path = os.path.join(upload_dir, vehicle.image_filename)
+        try:
+            if os.path.exists(old_path):
+                os.remove(old_path)
+        except OSError:
+            pass
+
+    # Save new image with UUID filename
+    stored_name = f"{uuid.uuid4().hex}.{ext}"
+    file_path = os.path.join(upload_dir, stored_name)
+    file.save(file_path)
+
+    # Update vehicle record
+    vehicle.image_filename = stored_name
+    db.session.commit()
+
+    return jsonify(vehicle.to_dict()), 200
+
+
+@vehicles_bp.route('/<int:vehicle_id>/image/file', methods=['GET'])
+def serve_vehicle_image(vehicle_id):
+    """Serve the vehicle's image file."""
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
+    if not vehicle.image_filename:
+        return jsonify({'error': 'No image for this vehicle'}), 404
+
+    upload_dir = current_app.config['UPLOAD_DIR']
+    return send_from_directory(upload_dir, vehicle.image_filename)
+
+
+@vehicles_bp.route('/<int:vehicle_id>/image', methods=['DELETE'])
+def delete_vehicle_image(vehicle_id):
+    """Delete the vehicle's image file and clear the filename from the record."""
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
+    if not vehicle.image_filename:
+        return jsonify({'error': 'No image to delete'}), 404
+
+    upload_dir = current_app.config['UPLOAD_DIR']
+    file_path = os.path.join(upload_dir, vehicle.image_filename)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except OSError:
+        pass
+
+    vehicle.image_filename = None
+    db.session.commit()
+
+    return jsonify(vehicle.to_dict()), 200

@@ -30,6 +30,7 @@ class Vehicle(db.Model):
     current_mileage = db.Column(db.Float)
     notes = db.Column(db.Text)                              # Any extra info
     is_primary = db.Column(db.Boolean, default=False)         # Favorite vehicle for dashboard
+    image_filename = db.Column(db.String(255))                 # UUID-stored image filename
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationship: one vehicle has many maintenance logs
@@ -76,6 +77,8 @@ class Vehicle(db.Model):
             'current_mileage': self.current_mileage,
             'notes': self.notes,
             'is_primary': self.is_primary or False,
+            'image_filename': self.image_filename,
+            'image_url': f'/api/vehicles/{self.id}/image/file' if self.image_filename else None,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'maintenance_count': len(self.maintenance_logs),
             'component_count': len(self.components),

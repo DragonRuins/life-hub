@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Plus, Wrench, Trash2, Pencil, X, Box, Archive, Fuel, Settings, AlertTriangle, Camera, ImageOff } from 'lucide-react'
 import { vehicles } from '../api/client'
 import { formatDate } from '../utils/formatDate'
 import ComponentCard from '../components/ComponentCard'
@@ -219,6 +219,27 @@ export default function VehicleDetail() {
     }
   }
 
+  // Image handlers
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const updated = await vehicles.uploadImage(id, file)
+      setVehicle(updated)
+    } catch (err) {
+      alert('Failed to upload image: ' + err.message)
+    }
+  }
+
+  async function handleDeleteImage() {
+    try {
+      const updated = await vehicles.deleteImage(id)
+      setVehicle(updated)
+    } catch (err) {
+      alert('Failed to delete image: ' + err.message)
+    }
+  }
+
   async function handleDeleteVehicle() {
     try {
       await vehicles.delete(id)
@@ -281,6 +302,59 @@ export default function VehicleDetail() {
         <button onClick={() => navigate('/vehicles')} style={{ background: 'none', border: 'none', padding: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-subtext-0)', fontSize: '0.875rem' }}>
           <ArrowLeft size={20} />
         </button>
+
+        {/* Vehicle Image */}
+        <div style={{ marginBottom: '1rem', position: 'relative' }}>
+          {vehicle?.image_url ? (
+            <div style={{ position: 'relative' }}>
+              <img
+                src={vehicle.image_url}
+                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                style={{
+                  width: '100%',
+                  maxHeight: '280px',
+                  objectFit: 'cover',
+                  borderRadius: '12px',
+                }}
+              />
+              <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.375rem' }}>
+                <label
+                  className="btn btn-ghost"
+                  style={{ fontSize: '0.75rem', padding: '0.375rem 0.5rem', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', cursor: 'pointer' }}
+                  title="Change photo"
+                >
+                  <Camera size={14} />
+                  <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                </label>
+                <button
+                  className="btn btn-danger"
+                  style={{ fontSize: '0.75rem', padding: '0.375rem 0.5rem', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
+                  onClick={handleDeleteImage}
+                  title="Remove photo"
+                >
+                  <ImageOff size={14} />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                padding: '1.5rem', borderRadius: '12px',
+                border: '2px dashed var(--color-surface-1)',
+                color: 'var(--color-overlay-0)', cursor: 'pointer',
+                fontSize: '0.85rem', transition: 'border-color 0.15s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--color-blue)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--color-surface-1)'}
+            >
+              <Camera size={18} />
+              Add Vehicle Photo
+              <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+            </label>
+          )}
+        </div>
+
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em' }}>
             {vehicle?.year} {vehicle?.make} {vehicle?.model}
