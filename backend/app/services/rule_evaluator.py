@@ -55,6 +55,27 @@ def evaluate_event(event_name, data):
                 logger.debug(f"Rule '{rule.name}' skipped (cooldown)")
                 continue
 
+            # Check for active snooze
+            from app.models.notification_snooze import NotificationSnooze
+            vehicle_id = data.get('vehicle_id')
+            snooze_query = NotificationSnooze.query.filter(
+                NotificationSnooze.rule_id == rule.id,
+                NotificationSnooze.expires_at > datetime.now(timezone.utc),
+            )
+            if vehicle_id:
+                snooze_query = snooze_query.filter(
+                    db.or_(
+                        NotificationSnooze.vehicle_id == vehicle_id,
+                        NotificationSnooze.vehicle_id.is_(None),
+                    )
+                )
+            else:
+                snooze_query = snooze_query.filter(NotificationSnooze.vehicle_id.is_(None))
+
+            if snooze_query.first():
+                logger.debug(f"Rule '{rule.name}' skipped (snoozed)")
+                continue
+
             # Evaluate conditions
             if not evaluate_conditions(rule.conditions, data):
                 logger.debug(f"Rule '{rule.name}' skipped (conditions not met)")

@@ -43,6 +43,10 @@ Endpoints:
     GET    /api/notifications/devices                   -> List registered devices
     POST   /api/notifications/devices                   -> Register/update device token
     DELETE /api/notifications/devices                   -> Unregister device token
+
+  Snooze:
+    POST   /api/notifications/rules/<id>/snooze          -> Snooze a rule
+    DELETE /api/notifications/rules/<id>/snooze          -> Cancel snooze
 """
 import math
 from datetime import datetime, timedelta, timezone
@@ -445,7 +449,7 @@ def update_rule(rule_id):
     # Update simple fields
     for field in ('name', 'description', 'module', 'rule_type', 'schedule_config',
                   'event_name', 'conditions', 'title_template', 'body_template',
-                  'priority', 'cooldown_minutes', 'is_enabled'):
+                  'priority', 'cooldown_minutes', 'is_enabled', 'snooze_duration_hours'):
         if field in data:
             setattr(rule, field, data[field])
 
@@ -776,7 +780,7 @@ def update_settings():
 
     for field in ('enabled', 'default_priority', 'default_channel_ids',
                   'quiet_hours_start', 'quiet_hours_end', 'quiet_hours_timezone',
-                  'retention_days'):
+                  'retention_days', 'default_snooze_hours'):
         if field in data:
             setattr(settings, field, data[field])
 
@@ -859,4 +863,73 @@ def unregister_device():
         db.session.delete(device)
         db.session.commit()
 
+    return jsonify({'status': 'ok'}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Snooze Management
+# ═══════════════════════════════════════════════════════════════════
+
+@notifications_bp.route('/rules/<int:rule_id>/snooze', methods=['POST'])
+def snooze_rule(rule_id):
+    """
+    Snooze a notification rule.
+
+    Body: {"vehicle_id": 42, "hours": 168}
+    vehicle_id is optional (null for non-vehicle rules).
+    hours is optional (uses rule's snooze_duration_hours or global default).
+    """
+    from app.models.notification_snooze import NotificationSnooze
+    from app.models.notification import NotificationRule, NotificationSettings
+
+    rule = NotificationRule.query.get_or_404(rule_id)
+    data = request.get_json() or {}
+
+    vehicle_id = data.get('vehicle_id')
+
+    # Determine snooze duration: request > rule override > global default
+    hours = data.get('hours')
+    if hours is None:
+        hours = rule.snooze_duration_hours
+    if hours is None:
+        settings = NotificationSettings.get_settings()
+        hours = settings.default_snooze_hours or 168
+
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=int(hours))
+
+    # Upsert: replace existing snooze for this rule+vehicle
+    existing = NotificationSnooze.query.filter_by(
+        rule_id=rule_id, vehicle_id=vehicle_id
+    ).first()
+
+    if existing:
+        existing.expires_at = expires_at
+    else:
+        existing = NotificationSnooze(
+            rule_id=rule_id,
+            vehicle_id=vehicle_id,
+            expires_at=expires_at,
+        )
+        db.session.add(existing)
+
+    db.session.commit()
+    return jsonify(existing.to_dict()), 200
+
+
+@notifications_bp.route('/rules/<int:rule_id>/snooze', methods=['DELETE'])
+def cancel_snooze(rule_id):
+    """
+    Cancel a snooze for a notification rule.
+
+    Query param: ?vehicle_id=42 (optional)
+    """
+    from app.models.notification_snooze import NotificationSnooze
+
+    vehicle_id = request.args.get('vehicle_id', type=int)
+    query = NotificationSnooze.query.filter_by(rule_id=rule_id)
+    if vehicle_id:
+        query = query.filter_by(vehicle_id=vehicle_id)
+
+    query.delete()
+    db.session.commit()
     return jsonify({'status': 'ok'}), 200

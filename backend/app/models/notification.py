@@ -123,6 +123,9 @@ class NotificationRule(db.Model):
     last_fired_at = db.Column(db.DateTime)                     # When this rule last sent a notification
     is_enabled = db.Column(db.Boolean, nullable=False, default=True)
 
+    # Per-rule snooze duration override (hours). Null = use global default.
+    snooze_duration_hours = db.Column(db.Integer, nullable=True)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(
         db.DateTime,
@@ -164,6 +167,7 @@ class NotificationRule(db.Model):
             'cooldown_minutes': self.cooldown_minutes,
             'last_fired_at': self.last_fired_at.isoformat() if self.last_fired_at else None,
             'is_enabled': self.is_enabled,
+            'snooze_duration_hours': self.snooze_duration_hours,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             # Include the linked channel IDs for convenience
@@ -329,6 +333,9 @@ class NotificationSettings(db.Model):
     # How many days to keep notification log entries before auto-deleting
     retention_days = db.Column(db.Integer, default=90)
 
+    # Default snooze duration in hours (168 = 1 week)
+    default_snooze_hours = db.Column(db.Integer, default=168)
+
     updated_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc),
@@ -370,5 +377,6 @@ class NotificationSettings(db.Model):
             'quiet_hours_end': self.quiet_hours_end,
             'quiet_hours_timezone': self.quiet_hours_timezone,
             'retention_days': self.retention_days,
+            'default_snooze_hours': self.default_snooze_hours,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
