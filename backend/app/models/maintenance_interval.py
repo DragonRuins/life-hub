@@ -32,6 +32,7 @@ class MaintenanceItem(db.Model):
     default_miles_interval = db.Column(db.Integer)                # e.g., 5000
     default_months_interval = db.Column(db.Integer)               # e.g., 6
     is_preset = db.Column(db.Boolean, nullable=False, default=True)
+    vehicle_types = db.Column(db.String(100), nullable=True)  # Comma-separated: 'motorcycle' or NULL = all types
     sort_order = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -50,6 +51,7 @@ class MaintenanceItem(db.Model):
             'default_months_interval': self.default_months_interval,
             'is_preset': self.is_preset,
             'sort_order': self.sort_order,
+            'vehicle_types': self.vehicle_types,
         }
 
 

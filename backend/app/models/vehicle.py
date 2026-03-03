@@ -31,6 +31,13 @@ class Vehicle(db.Model):
     notes = db.Column(db.Text)                              # Any extra info
     is_primary = db.Column(db.Boolean, default=False)         # Favorite vehicle for dashboard
     image_filename = db.Column(db.String(255))                 # UUID-stored image filename
+
+    # Vehicle classification
+    vehicle_type = db.Column(db.String(20), nullable=False, default='car')  # car, truck, suv, motorcycle
+    cylinder_count = db.Column(db.Integer, nullable=True)  # Number of cylinders (for spark plug defaults)
+    dual_spark = db.Column(db.Boolean, default=False)  # Motorcycle-only: 2 spark plugs per cylinder
+    final_drive_type = db.Column(db.String(20), nullable=True)  # Motorcycle-only: chain, belt, shaft
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationship: one vehicle has many maintenance logs
@@ -79,6 +86,10 @@ class Vehicle(db.Model):
             'is_primary': self.is_primary or False,
             'image_filename': self.image_filename,
             'image_url': f'/api/vehicles/{self.id}/image/file' if self.image_filename else None,
+            'vehicle_type': self.vehicle_type or 'car',
+            'cylinder_count': self.cylinder_count,
+            'dual_spark': self.dual_spark or False,
+            'final_drive_type': self.final_drive_type,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'maintenance_count': len(self.maintenance_logs),
             'component_count': len(self.components),
