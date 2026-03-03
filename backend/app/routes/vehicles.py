@@ -742,8 +742,16 @@ def setup_default_intervals(vehicle_id):
     """
     vehicle = Vehicle.query.get_or_404(vehicle_id)
 
-    # Get all preset items from the global catalog
-    preset_items = MaintenanceItem.query.filter_by(is_preset=True).all()
+    # Get all preset items, filtered to those applicable to this vehicle type
+    all_presets = MaintenanceItem.query.filter_by(is_preset=True).all()
+    vehicle_type = vehicle.vehicle_type or 'car'
+
+    # Filter: include items where vehicle_types is NULL (universal)
+    # or where the vehicle's type is in the comma-separated vehicle_types list
+    preset_items = [
+        item for item in all_presets
+        if item.vehicle_types is None or vehicle_type in item.vehicle_types.split(',')
+    ]
 
     # Find which items this vehicle already has intervals for
     existing_item_ids = {
