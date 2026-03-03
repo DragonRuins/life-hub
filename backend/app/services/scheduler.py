@@ -844,3 +844,116 @@ def _reconcile_launch_reminders():
         except Exception:
             pass
         logger.error(f"Launch reminder reconciliation failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Delayed APNs Push Notifications
+# ═══════════════════════════════════════════════════════════════════════════
+
+def schedule_delayed_push(title, body, priority, **kwargs):
+    """
+    Schedule an APNs push to fire after push_delay_minutes.
+
+    If delay is 0, sends immediately. Otherwise uses APScheduler one-shot
+    'date' trigger to fire after the configured delay.
+
+    Args:
+        title: Push notification title
+        body: Push notification body
+        priority: 'low', 'normal', 'high', 'critical'
+        **kwargs: Extra APNs params (thread_id, category, deep_link, etc.)
+    """
+    global scheduler, _app
+    if not _app:
+        logger.warning("App not initialized, cannot schedule delayed push")
+        return
+
+    # Read the delay setting from the database
+    with _app.app_context():
+        from app.models.notification import NotificationSettings
+        settings = NotificationSettings.get_settings()
+        delay_minutes = settings.push_delay_minutes or 0
+
+    if delay_minutes <= 0 or not scheduler:
+        # Send immediately (no delay configured or scheduler unavailable)
+        _fire_delayed_push(title, body, priority, kwargs)
+        return
+
+    # Schedule a one-shot job to fire after the delay
+    import uuid
+    job_id = f"apns_delayed_{uuid.uuid4().hex[:12]}"
+    fire_at = datetime.now(timezone.utc) + timedelta(minutes=delay_minutes)
+
+    scheduler.add_job(
+        _fire_delayed_push,
+        trigger='date',
+        id=job_id,
+        run_date=fire_at,
+        args=[title, body, priority, kwargs],
+        replace_existing=True,
+    )
+    logger.info(f"Scheduled delayed APNs push '{job_id}' for {fire_at.isoformat()} ({delay_minutes}min delay)")
+
+
+def _fire_delayed_push(title, body, priority, extra_kwargs):
+    """
+    Called by APScheduler after the delay (or immediately if delay is 0).
+    Sends the actual APNs push and logs the result to notification_log.
+
+    Args:
+        title: Push notification title
+        body: Push notification body
+        priority: 'low', 'normal', 'high', 'critical'
+        extra_kwargs: Dict of extra APNs params
+    """
+    global _app
+    if not _app:
+        return
+
+    import time as time_mod
+    with _app.app_context():
+        from app import db
+        from app.models.notification import NotificationLog
+        from app.services.channels import apns
+
+        if not apns.is_configured():
+            return
+
+        start_time = time_mod.time()
+        try:
+            apns.send_push(title, body, priority, **(extra_kwargs or {}))
+            duration_ms = int((time_mod.time() - start_time) * 1000)
+
+            log_entry = NotificationLog(
+                rule_id=None,
+                channel_id=None,
+                channel_type='apns',
+                title=title,
+                body=body,
+                priority=priority,
+                status='sent',
+                delivery_duration_ms=duration_ms,
+                sent_at=datetime.now(timezone.utc),
+            )
+            db.session.add(log_entry)
+            db.session.commit()
+            logger.info(f"Delayed APNs push sent: '{title}' ({duration_ms}ms)")
+
+        except Exception as e:
+            duration_ms = int((time_mod.time() - start_time) * 1000)
+
+            log_entry = NotificationLog(
+                rule_id=None,
+                channel_id=None,
+                channel_type='apns',
+                title=title,
+                body=body,
+                priority=priority,
+                status='failed',
+                error_message=str(e),
+                delivery_duration_ms=duration_ms,
+                sent_at=datetime.now(timezone.utc),
+            )
+            db.session.add(log_entry)
+            db.session.commit()
+            logger.error(f"Delayed APNs push failed: '{title}': {e}")

@@ -150,6 +150,7 @@ function LCARSGeneralSettings() {
         quiet_hours_end: quietHoursEnabled ? settings.quiet_hours_end : null,
         quiet_hours_timezone: settings.quiet_hours_timezone,
         retention_days: settings.retention_days,
+        push_delay_minutes: settings.push_delay_minutes ?? 5,
       }
       await notifications.updateSettings(payload)
       setMessage({ type: 'success', text: 'Configuration saved.' })
@@ -338,6 +339,18 @@ function LCARSGeneralSettings() {
                 <option key={p.value} value={p.value}>{p.label}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Push Delay (minutes)</label>
+            <input
+              type="number"
+              min="0"
+              max="60"
+              value={settings.push_delay_minutes ?? 5}
+              onChange={e => updateSetting('push_delay_minutes', e.target.value ? Number(e.target.value) : 0)}
+              style={inputStyle}
+            />
           </div>
 
           <div>

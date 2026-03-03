@@ -118,9 +118,10 @@ def _send_apns_push(rule, title, body, data, extra_kwargs):
     APNs is built-in infrastructure — it fires for every notification
     automatically, independent of user-configured channels.
     Skipped if the rule has push_enabled=False.
+
+    Uses schedule_delayed_push() to respect the push_delay_minutes setting.
+    If delay is 0, sends immediately. Otherwise schedules via APScheduler.
     """
-    from app import db
-    from app.models.notification import NotificationLog
     from app.services.channels import apns
 
     if not apns.is_configured():
@@ -131,50 +132,8 @@ def _send_apns_push(rule, title, body, data, extra_kwargs):
         logger.info(f"APNs push skipped for rule '{rule.name}' (push_enabled=False)")
         return
 
-    start_time = time.time()
-
-    try:
-        apns.send_push(title, body, rule.priority, **extra_kwargs)
-
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        log_entry = NotificationLog(
-            rule_id=rule.id,
-            channel_id=None,
-            channel_type='apns',
-            title=title,
-            body=body,
-            priority=rule.priority,
-            status='sent',
-            delivery_duration_ms=duration_ms,
-            event_data=data,
-            sent_at=datetime.now(timezone.utc),
-        )
-        db.session.add(log_entry)
-        db.session.commit()
-
-        logger.info(f"APNs push sent for rule '{rule.name}' ({duration_ms}ms)")
-
-    except Exception as e:
-        duration_ms = int((time.time() - start_time) * 1000)
-
-        log_entry = NotificationLog(
-            rule_id=rule.id,
-            channel_id=None,
-            channel_type='apns',
-            title=title,
-            body=body,
-            priority=rule.priority,
-            status='failed',
-            error_message=str(e),
-            delivery_duration_ms=duration_ms,
-            event_data=data,
-            sent_at=datetime.now(timezone.utc),
-        )
-        db.session.add(log_entry)
-        db.session.commit()
-
-        logger.error(f"APNs push failed for rule '{rule.name}': {e}")
+    from app.services.scheduler import schedule_delayed_push
+    schedule_delayed_push(title, body, rule.priority, **extra_kwargs)
 
 
 def render_template(template, data):

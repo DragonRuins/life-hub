@@ -129,6 +129,9 @@ class VehicleMaintenanceInterval(db.Model):
     # 'scheduled': only during the daily 9 AM scheduler check
     notification_timing = db.Column(db.String(20), nullable=False, default='immediate')
 
+    # Whether this interval should also send APNs push notifications (default True).
+    push_enabled = db.Column(db.Boolean, nullable=False, default=True)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(
         db.DateTime,
@@ -164,6 +167,7 @@ class VehicleMaintenanceInterval(db.Model):
             'notification_title_template': self.notification_title_template,
             'notification_body_template': self.notification_body_template,
             'notification_timing': self.notification_timing,
+            'push_enabled': self.push_enabled if self.push_enabled is not None else True,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }

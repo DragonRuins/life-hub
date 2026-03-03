@@ -782,7 +782,7 @@ def update_settings():
 
     for field in ('enabled', 'default_priority', 'default_channel_ids',
                   'quiet_hours_start', 'quiet_hours_end', 'quiet_hours_timezone',
-                  'retention_days', 'default_snooze_hours'):
+                  'retention_days', 'default_snooze_hours', 'push_delay_minutes'):
         if field in data:
             setattr(settings, field, data[field])
 

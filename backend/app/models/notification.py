@@ -341,6 +341,11 @@ class NotificationSettings(db.Model):
     # Default snooze duration in hours (168 = 1 week)
     default_snooze_hours = db.Column(db.Integer, default=168)
 
+    # Delay (in minutes) before APNs push notifications are delivered.
+    # 0 = immediate delivery. Useful to avoid pushes being dismissed
+    # while actively interacting with the app.
+    push_delay_minutes = db.Column(db.Integer, nullable=False, default=5)
+
     updated_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(timezone.utc),
@@ -383,5 +388,6 @@ class NotificationSettings(db.Model):
             'quiet_hours_timezone': self.quiet_hours_timezone,
             'retention_days': self.retention_days,
             'default_snooze_hours': self.default_snooze_hours,
+            'push_delay_minutes': self.push_delay_minutes,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }

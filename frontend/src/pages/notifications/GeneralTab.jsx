@@ -79,6 +79,7 @@ export default function GeneralTab() {
         quiet_hours_end: quietHoursEnabled ? settings.quiet_hours_end : null,
         quiet_hours_timezone: settings.quiet_hours_timezone,
         retention_days: settings.retention_days,
+        push_delay_minutes: settings.push_delay_minutes ?? 5,
       }
 
       await notifications.updateSettings(payload)
@@ -224,6 +225,21 @@ export default function GeneralTab() {
           </select>
           <p style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)', marginTop: '0.25rem' }}>
             Priority used when a rule does not specify one.
+          </p>
+        </div>
+
+        {/* Push notification delay */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Push Notification Delay (minutes)</label>
+          <input
+            type="number"
+            min="0"
+            max="60"
+            value={settings.push_delay_minutes ?? 5}
+            onChange={e => updateSetting('push_delay_minutes', e.target.value ? Number(e.target.value) : 0)}
+          />
+          <p style={{ fontSize: '0.75rem', color: 'var(--color-overlay-0)', marginTop: '0.25rem' }}>
+            How long to wait before sending push notifications to Apple devices. Set to 0 for immediate delivery.
           </p>
         </div>
 

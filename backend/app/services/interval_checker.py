@@ -331,6 +331,27 @@ def _dispatch_interval_notification(interval, vehicle_name, status_info, milesto
                 f"channel {channel_id}: {e}"
             )
 
+    # Also send APNs push if push_enabled for this interval.
+    # Uses schedule_delayed_push() to respect the push_delay_minutes setting.
+    # Logging is handled by the delayed push function in scheduler.py.
+    if getattr(interval, 'push_enabled', True):
+        try:
+            from app.services.channels import apns
+            if apns.is_configured():
+                from app.services.scheduler import schedule_delayed_push
+                schedule_delayed_push(
+                    title, body, priority,
+                    thread_id=f"interval-{interval.id}",
+                )
+        except Exception as e:
+            logger.error(
+                f"APNs push scheduling failed for interval '{interval.item.name}': {e}"
+            )
+    else:
+        logger.info(
+            f"APNs push skipped for interval '{interval.item.name}' (push_enabled=False)"
+        )
+
 
 # ---------------------------------------------------------------------------
 # 3. Check & notify for a single vehicle
@@ -399,6 +420,12 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
 
                 milestones_changed = False
 
+                # Track whether we already dispatched a notification for this
+                # interval during this check cycle. Only one notification per
+                # interval per cycle — prevents duplicates when overdue by
+                # both miles AND time simultaneously.
+                already_dispatched = False
+
                 # -- Check miles milestones ----------------------------------
                 # Collect ALL newly-reached thresholds first, then only
                 # dispatch ONE notification for the highest one. This prevents
@@ -412,7 +439,7 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                             milestones_changed = True
 
                     # Only send notification for the highest newly-reached threshold
-                    if new_miles_thresholds:
+                    if new_miles_thresholds and not already_dispatched:
                         highest = max(new_miles_thresholds)
                         try:
                             if interval.notification_channel_ids is not None:
@@ -431,6 +458,7 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                                      days_overdue=status_info['days_overdue'],
                                      next_due_mileage=status_info['next_due_mileage'],
                                      next_due_date=status_info['next_due_date'])
+                            already_dispatched = True
                         except Exception:
                             pass  # Never let notification failures break the operation
 
@@ -447,7 +475,8 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                             milestones_changed = True
 
                     # Only send notification for the highest newly-reached threshold
-                    if new_months_thresholds:
+                    # Skip if we already dispatched for miles (prevents duplicates)
+                    if new_months_thresholds and not already_dispatched:
                         highest = max(new_months_thresholds)
                         try:
                             if interval.notification_channel_ids is not None:
@@ -466,13 +495,14 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                                      days_overdue=status_info['days_overdue'],
                                      next_due_mileage=status_info['next_due_mileage'],
                                      next_due_date=status_info['next_due_date'])
+                            already_dispatched = True
                         except Exception:
                             pass
 
                 # -- Check due_soon (one-time early warning) -----------------
                 # If the interval is approaching due and we haven't notified
                 # any milestones yet, send a single "due soon" heads-up.
-                if status_info['status'] == 'due_soon':
+                if status_info['status'] == 'due_soon' and not already_dispatched:
                     no_miles_notified = len(notified.get("miles", [])) == 0
                     no_months_notified = len(notified.get("months", [])) == 0
                     if no_miles_notified and no_months_notified:
@@ -493,6 +523,7 @@ def check_and_notify_intervals(vehicle_id, source='immediate'):
                                      days_overdue=status_info['days_overdue'],
                                      next_due_mileage=status_info['next_due_mileage'],
                                      next_due_date=status_info['next_due_date'])
+                            already_dispatched = True
                         except Exception:
                             pass
 

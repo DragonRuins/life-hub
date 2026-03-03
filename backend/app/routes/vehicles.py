@@ -361,8 +361,15 @@ def update_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     data = request.get_json()
 
+    # Track whether mileage is changing so we can check intervals after
+    mileage_changed = (
+        'current_mileage' in data
+        and data['current_mileage'] is not None
+        and data['current_mileage'] != vehicle.current_mileage
+    )
+
     # If mileage is changing, update equipped tire set BEFORE setting the new value
-    if 'current_mileage' in data and data['current_mileage'] is not None:
+    if mileage_changed:
         update_equipped_tire_mileage(vehicle, data['current_mileage'])
 
     # Update only the fields that were provided
@@ -372,6 +379,15 @@ def update_vehicle(vehicle_id):
             setattr(vehicle, field, data[field])
 
     db.session.commit()
+
+    # If mileage changed, check maintenance intervals for overdue notifications
+    if mileage_changed:
+        try:
+            from app.services.interval_checker import check_and_notify_intervals
+            check_and_notify_intervals(vehicle_id)
+        except Exception:
+            pass  # Never let interval checks break vehicle updates
+
     return jsonify(vehicle.to_dict())
 
 
@@ -612,7 +628,7 @@ def update_vehicle_interval(interval_id):
                   'notify_miles_thresholds', 'notify_months_thresholds', 'is_enabled',
                   'notification_channel_ids', 'notification_priority',
                   'notification_title_template', 'notification_body_template',
-                  'notification_timing', 'last_service_mileage'):
+                  'notification_timing', 'push_enabled', 'last_service_mileage'):
         if field in data:
             setattr(interval, field, data[field])
 

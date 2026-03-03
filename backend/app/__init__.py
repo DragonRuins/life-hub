@@ -460,6 +460,14 @@ def _run_safe_migrations(db):
         # Vehicle photo upload
         """ALTER TABLE vehicles
            ADD COLUMN IF NOT EXISTS image_filename VARCHAR(255)""",
+
+        # Per-interval push notification toggle (default True for existing intervals)
+        """ALTER TABLE vehicle_maintenance_intervals
+           ADD COLUMN IF NOT EXISTS push_enabled BOOLEAN DEFAULT TRUE""",
+
+        # Push notification delay (minutes before APNs push is delivered)
+        """ALTER TABLE notification_settings
+           ADD COLUMN IF NOT EXISTS push_delay_minutes INTEGER NOT NULL DEFAULT 5""",
     ]
 
     for sql in migrations:

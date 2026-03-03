@@ -64,6 +64,7 @@ export default function IntervalsTab() {
     notification_title_template: DEFAULT_TITLE,
     notification_body_template: DEFAULT_BODY,
     notification_timing: 'immediate',
+    push_enabled: true,
   })
 
   // Save feedback
@@ -130,6 +131,7 @@ export default function IntervalsTab() {
       notification_title_template: interval.notification_title_template || DEFAULT_TITLE,
       notification_body_template: interval.notification_body_template || DEFAULT_BODY,
       notification_timing: interval.notification_timing || 'immediate',
+      push_enabled: interval.push_enabled ?? true,
     })
   }
 
@@ -164,6 +166,7 @@ export default function IntervalsTab() {
         notification_title_template: editState.notification_title_template,
         notification_body_template: editState.notification_body_template,
         notification_timing: editState.notification_timing,
+        push_enabled: editState.push_enabled,
       })
       // Reload intervals to reflect saved state
       const updated = await vehicles.intervals.list(selectedVehicleId)
@@ -568,6 +571,32 @@ export default function IntervalsTab() {
                                 )
                               })}
                             </div>
+                          </div>
+
+                          {/* Push notification toggle */}
+                          <div style={{ marginBottom: '1rem' }}>
+                            <label style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer',
+                              padding: '0.5rem 0.75rem', borderRadius: '8px',
+                              background: editState.push_enabled ? 'rgba(137, 180, 250, 0.06)' : 'transparent',
+                              border: editState.push_enabled ? '1px solid rgba(137, 180, 250, 0.2)' : '1px solid var(--color-surface-0)',
+                              transition: 'all 0.15s ease',
+                            }}>
+                              <input
+                                type="checkbox"
+                                checked={editState.push_enabled}
+                                onChange={e => setEditState(prev => ({ ...prev, push_enabled: e.target.checked }))}
+                                style={{ width: 'auto' }}
+                              />
+                              <div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>
+                                  Send Push Notification
+                                </span>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--color-overlay-0)', margin: '0.125rem 0 0' }}>
+                                  Send push notification to Apple devices via APNs
+                                </p>
+                              </div>
+                            </label>
                           </div>
 
                           {/* Title template */}
