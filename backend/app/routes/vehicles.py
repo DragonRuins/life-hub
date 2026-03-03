@@ -54,58 +54,116 @@ def parse_component_date(value):
 
 # ── Default Components ─────────────────────────────────────────────
 
-# Note: Tires and rims are managed via Tire Sets, not included here
-DEFAULT_COMPONENTS = [
-    # Battery (1)
-    {'component_type': 'battery', 'position': 'Engine Bay'},
-    # Filters (3)
-    {'component_type': 'oil_filter', 'position': 'Engine Bay'},
-    {'component_type': 'air_filter', 'position': 'Engine Bay'},
-    {'component_type': 'fuel_filter', 'position': 'Under Vehicle'},
-    # Brakes (8: 4 pads + 4 rotors)
-    {'component_type': 'brake_pad', 'position': 'Front Left'},
-    {'component_type': 'brake_pad', 'position': 'Front Right'},
-    {'component_type': 'brake_pad', 'position': 'Rear Left'},
-    {'component_type': 'brake_pad', 'position': 'Rear Right'},
-    {'component_type': 'brake_rotor', 'position': 'Front Left'},
-    {'component_type': 'brake_rotor', 'position': 'Front Right'},
-    {'component_type': 'brake_rotor', 'position': 'Rear Left'},
-    {'component_type': 'brake_rotor', 'position': 'Rear Right'},
-    # Wiper Blades (2)
-    {'component_type': 'wiper_blade', 'position': 'Front Driver'},
-    {'component_type': 'wiper_blade', 'position': 'Front Passenger'},
-    # Spark Plugs (8 - standard V8)
-    {'component_type': 'spark_plug', 'position': 'Cylinder 1'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 2'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 3'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 4'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 5'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 6'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 7'},
-    {'component_type': 'spark_plug', 'position': 'Cylinder 8'},
-    # Engine Components (3)
-    {'component_type': 'alternator', 'position': 'Engine Bay'},
-    {'component_type': 'water_pump', 'position': 'Engine Bay'},
-    {'component_type': 'fuel_pump', 'position': 'Fuel Tank / Engine Bay'},
-]
+# 4-wheel vehicle defaults (car, truck, suv)
+FOUR_WHEEL_POSITIONS = ['Front Left', 'Front Right', 'Rear Left', 'Rear Right']
+
+# Motorcycle defaults
+MOTORCYCLE_POSITIONS = ['Front', 'Rear']
+
+# Drivetrain components by final drive type
+DRIVETRAIN_COMPONENTS = {
+    'chain': [
+        {'component_type': 'drive_chain', 'position': 'Drivetrain'},
+        {'component_type': 'front_sprocket', 'position': 'Drivetrain'},
+        {'component_type': 'rear_sprocket', 'position': 'Drivetrain'},
+    ],
+    'belt': [
+        {'component_type': 'drive_belt', 'position': 'Drivetrain'},
+        {'component_type': 'front_pulley', 'position': 'Drivetrain'},
+        {'component_type': 'rear_pulley', 'position': 'Drivetrain'},
+    ],
+    'shaft': [],  # Shaft drive has no user-serviceable drivetrain components
+}
 
 
-def create_default_components(vehicle_id):
+def get_default_components(vehicle_type='car', cylinder_count=None, dual_spark=False, final_drive_type=None):
     """
-    Create default components for a vehicle.
+    Build the list of default components based on vehicle type.
+
+    Args:
+        vehicle_type: 'car', 'truck', 'suv', or 'motorcycle'
+        cylinder_count: Number of engine cylinders (None = use legacy default)
+        dual_spark: If True, double the spark plug count (motorcycle-only)
+        final_drive_type: 'chain', 'belt', or 'shaft' (motorcycle-only)
+    """
+    components = []
+
+    if vehicle_type == 'motorcycle':
+        # Brakes: 2 pads + 2 rotors (front/rear)
+        for pos in MOTORCYCLE_POSITIONS:
+            components.append({'component_type': 'brake_pad', 'position': pos})
+            components.append({'component_type': 'brake_rotor', 'position': pos})
+
+        # Spark plugs: cylinder_count * multiplier
+        num_cylinders = cylinder_count or 2  # Default 2 for motorcycles
+        num_plugs = num_cylinders * (2 if dual_spark else 1)
+        for i in range(1, num_plugs + 1):
+            components.append({'component_type': 'spark_plug', 'position': f'Cylinder {i}'})
+
+        # Basic components
+        components.append({'component_type': 'battery', 'position': 'Under Seat'})
+        components.append({'component_type': 'oil_filter', 'position': 'Engine'})
+        components.append({'component_type': 'air_filter', 'position': 'Airbox'})
+        components.append({'component_type': 'stator', 'position': 'Engine'})
+
+        # Drivetrain components based on final drive type
+        if final_drive_type and final_drive_type in DRIVETRAIN_COMPONENTS:
+            components.extend(DRIVETRAIN_COMPONENTS[final_drive_type])
+
+    else:
+        # Car / Truck / SUV: 4-wheel defaults
+        # Brakes: 4 pads + 4 rotors
+        for pos in FOUR_WHEEL_POSITIONS:
+            components.append({'component_type': 'brake_pad', 'position': pos})
+            components.append({'component_type': 'brake_rotor', 'position': pos})
+
+        # Spark plugs: cylinder_count (default 8 for backward compat with existing V8)
+        num_cylinders = cylinder_count or 8
+        for i in range(1, num_cylinders + 1):
+            components.append({'component_type': 'spark_plug', 'position': f'Cylinder {i}'})
+
+        # Wiper blades
+        components.append({'component_type': 'wiper_blade', 'position': 'Front Driver'})
+        components.append({'component_type': 'wiper_blade', 'position': 'Front Passenger'})
+
+        # Basic components
+        components.append({'component_type': 'battery', 'position': 'Engine Bay'})
+        components.append({'component_type': 'oil_filter', 'position': 'Engine Bay'})
+        components.append({'component_type': 'air_filter', 'position': 'Engine Bay'})
+        components.append({'component_type': 'fuel_filter', 'position': 'Under Vehicle'})
+        components.append({'component_type': 'alternator', 'position': 'Engine Bay'})
+        components.append({'component_type': 'water_pump', 'position': 'Engine Bay'})
+        components.append({'component_type': 'fuel_pump', 'position': 'Fuel Tank / Engine Bay'})
+
+    return components
+
+
+def create_default_components(vehicle):
+    """
+    Create default components for a vehicle based on its type.
     Skips components that already exist (type+position match).
+
+    Args:
+        vehicle: Vehicle model instance (needs vehicle_type, cylinder_count, etc.)
     """
-    existing = VehicleComponent.query.filter_by(vehicle_id=vehicle_id).all()
+    defaults = get_default_components(
+        vehicle_type=vehicle.vehicle_type or 'car',
+        cylinder_count=vehicle.cylinder_count,
+        dual_spark=vehicle.dual_spark or False,
+        final_drive_type=vehicle.final_drive_type,
+    )
+
+    existing = VehicleComponent.query.filter_by(vehicle_id=vehicle.id).all()
     existing_keys = {(c.component_type, c.position) for c in existing}
 
     created = []
-    for default in DEFAULT_COMPONENTS:
+    for default in defaults:
         key = (default['component_type'], default['position'])
         if key in existing_keys:
             continue
 
         component = VehicleComponent(
-            vehicle_id=vehicle_id,
+            vehicle_id=vehicle.id,
             **default,
             is_active=True,
         )
@@ -318,12 +376,16 @@ def create_vehicle():
         license_plate=data.get('license_plate'),
         current_mileage=data.get('current_mileage'),
         notes=data.get('notes'),
+        vehicle_type=data.get('vehicle_type', 'car'),
+        cylinder_count=data.get('cylinder_count'),
+        dual_spark=data.get('dual_spark', False),
+        final_drive_type=data.get('final_drive_type'),
     )
     db.session.add(vehicle)
     db.session.commit()
 
     # Auto-create default components for new vehicle
-    create_default_components(vehicle.id)
+    create_default_components(vehicle)
 
     # Notify: new vehicle added
     try:
@@ -374,7 +436,8 @@ def update_vehicle(vehicle_id):
 
     # Update only the fields that were provided
     for field in ('year', 'make', 'model', 'trim', 'color', 'vin',
-                  'license_plate', 'current_mileage', 'notes'):
+                  'license_plate', 'current_mileage', 'notes',
+                  'cylinder_count', 'dual_spark'):
         if field in data:
             setattr(vehicle, field, data[field])
 
@@ -1070,8 +1133,8 @@ def add_default_components(vehicle_id):
     Manually add default components to an existing vehicle.
     Skips components that already exist (type+position match).
     """
-    Vehicle.query.get_or_404(vehicle_id)
-    created = create_default_components(vehicle_id)
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    created = create_default_components(vehicle)
     return jsonify(created), 201
 
 
