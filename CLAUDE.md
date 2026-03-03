@@ -427,18 +427,15 @@ This project runs in Docker with volume mounts. The `node_modules` directory liv
 - **Editing `package.json` on the host does NOT install packages inside the container.** The container's `node_modules` is isolated from the host filesystem.
 - **Editing `requirements.txt` on the host does NOT install Python packages inside the container.** Same principle.
 
-**When adding new npm dependencies:**
+**When adding new npm or Python dependencies:**
 
-1. Edit `frontend/package.json` to add the dependency
-2. Tell the user to run: `docker compose exec frontend npm install` (or rebuild with `docker compose up --build`)
-3. The Vite dev server will then have access to the new package
+1. Edit `frontend/package.json` (npm) or `backend/requirements.txt` (pip) to add the dependency
+2. Commit and push to `main` — GitHub Actions will rebuild the Docker images with the new dependency
+3. In Dockge, pull the updated images and restart the stack
 
-**When adding new Python (pip) dependencies:**
+**Never assume that editing a dependency manifest file is sufficient.** Dependencies are installed during the Docker image build, so the image must be rebuilt and redeployed. Remind the user to push, wait for the GitHub Actions build, and redeploy in Dockge.
 
-1. Edit `backend/requirements.txt` to add the dependency
-2. Tell the user to rebuild: `docker compose up --build` (pip install runs during the Docker build step, so `exec pip install` won't persist — a rebuild is required)
-
-**Never assume that editing a dependency manifest file is sufficient.** Always remind the user to install/rebuild after dependency changes.
+**Important:** Verify pip package names carefully. The PyPI package name (what you `pip install`) is not always the same as the import name (what you `import` in Python). For example, the `apns2` module is installed via `pip install apns2`, NOT `pip install PyAPNs2` (which is a different package).
 
 ## Key Technical Decisions
 
@@ -450,32 +447,61 @@ This project runs in Docker with volume mounts. The `node_modules` directory liv
 - **Mobile viewport:** Uses `100dvh` (not `100vh`) to account for mobile browser chrome (Safari toolbar).
 - **Responsive grids:** CSS utility classes (`.form-grid-2col`, `.form-grid-3col`) instead of inline styles, so `@media` queries can collapse columns on mobile.
 
-## Running Locally
+## Infrastructure & Deployment
+
+**We do NOT test locally.** All testing and deployment happens on the live production server.
+
+### Server Setup
+
+- **Server:** HexOS (TrueNAS SCALE-based)
+- **Container orchestration:** Dockge (installed as a HexOS app), running Docker Compose
+- **Image registry:** GitHub Container Registry (GHCR) — images are built by GitHub Actions on push to `main`
+- **Stack name in Dockge:** `life-hub-main`
+
+### Container Names
+
+| Container | Name |
+|-----------|------|
+| Database (PostgreSQL) | `life-hub-main-db-1` |
+| Backend (Flask/Gunicorn) | `life-hub-main-backend-1` |
+| Frontend (Vite/Nginx) | `life-hub-main-frontend-1` |
+
+### Deployment Workflow
+
+1. Make code changes locally and push to `main`
+2. GitHub Actions builds Docker images and pushes to GHCR
+3. In Dockge, pull the latest images and restart the stack
+4. Check backend logs for errors: `docker logs life-hub-main-backend-1 --tail 100`
+
+### Useful Commands (run on the HexOS server or via Dockge terminal)
 
 ```bash
-# First time setup
-cp .env.example .env
-docker compose up --build
+# View backend logs (most common for debugging)
+docker logs life-hub-main-backend-1 --tail 100 -f
 
-# After code changes (hot-reload handles most, but if you change dependencies):
-docker compose up --build
+# View frontend logs
+docker logs life-hub-main-frontend-1 --tail 50
 
-# Just start/stop
-docker compose up -d
-docker compose down
+# Check if all containers are healthy
+docker ps --filter "name=life-hub-main"
+
+# Execute a command inside the backend container
+docker exec -it life-hub-main-backend-1 <command>
+
+# Check database connectivity
+docker exec life-hub-main-db-1 pg_isready -U lifehub
 ```
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000/api/health
-- Database: localhost:5432 (user: lifehub, db: lifehub)
+### Volume Mounts (Production)
 
-## Deployment to HexOS
+The backend container has these host mounts configured in Dockge:
+- `uploads:/app/uploads` — User-uploaded files (vehicle images, etc.)
+- `/mnt/SSDs/datacore/apns-certs:/app/certs:ro` — APNs .p8 key file for push notifications
+- `/var/run/docker.sock:/var/run/docker.sock` — Docker API access for infrastructure module
+- `/proc:/host/proc:ro` — Host /proc for system stats
+- `/sys:/host/sys:ro` — Host /sys for hardware detection
 
-1. Push to `main` branch -> GitHub Actions builds images -> pushed to GHCR
-2. In Dockge on HexOS, create a stack using `docker-compose.prod.yml` contents
-3. Replace `YOUR_GITHUB_USERNAME` with actual username
-4. Set `DB_PASSWORD` and `SECRET_KEY` in Dockge environment variables
-5. Deploy the stack
+**Important:** When adding features that require host files (certificates, keys, data files), always ensure a volume mount exists in the Dockge compose config. Setting an env var pointing to a host path is not enough — the file must be mounted into the container.
 
 ## Current Status
 

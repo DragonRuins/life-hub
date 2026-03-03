@@ -6,6 +6,7 @@ APNs is built-in infrastructure. Credentials come from environment
 variables, and push delivery fires automatically for every notification
 when device tokens are registered.
 
+Uses aioapns (async HTTP/2 client) for Python 3.10+ compatibility.
 Auth: Token-based (.p8 key file) — see https://developer.apple.com/documentation/usernotifications
 
 Required environment variables:
@@ -15,7 +16,9 @@ Required environment variables:
     APNS_BUNDLE_ID  — App bundle identifier (default: com.chaseburrell.Datacore)
     APNS_USE_SANDBOX — "true" for development, "false" for production (default: true)
 """
+import asyncio
 import logging
+import os
 
 from flask import current_app
 
@@ -50,10 +53,28 @@ def send_push(title, body, priority, **kwargs):
         image_url (str): URL of image attachment for rich notifications.
         interruption_level (str): 'passive', 'active', 'time-sensitive', 'critical'.
     """
-    import os
-    from apns2.client import APNsClient, NotificationPriority
-    from apns2.payload import Payload
-    from apns2.credentials import TokenCredentials
+    # Run the async send in a new event loop (called from sync Flask context)
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If there's already a running loop (e.g., inside an async context),
+            # create a new thread to run our coroutine
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, _send_push_async(title, body, priority, **kwargs))
+                future.result()  # Block until done, propagate exceptions
+        else:
+            loop.run_until_complete(_send_push_async(title, body, priority, **kwargs))
+    except RuntimeError:
+        # No event loop exists — create one
+        asyncio.run(_send_push_async(title, body, priority, **kwargs))
+
+
+async def _send_push_async(title, body, priority, **kwargs):
+    """
+    Async implementation of push notification delivery using aioapns.
+    """
+    from aioapns import APNs, NotificationRequest, PushType
     from app.models.device_token import DeviceToken
 
     # Load credentials from environment (via Flask config)
@@ -67,25 +88,18 @@ def send_push(title, body, priority, **kwargs):
     if not os.path.exists(key_file):
         raise Exception(f"APNs key file not found: {key_file}")
 
-    credentials = TokenCredentials(
-        auth_key_path=key_file,
-        auth_key_id=key_id,
-        team_id=team_id,
-    )
+    # Read the .p8 key file
+    with open(key_file) as f:
+        key_data = f.read()
 
-    client = APNsClient(
-        credentials=credentials,
+    # Create the aioapns client
+    client = APNs(
+        key=key_data,
+        key_id=key_id,
+        team_id=team_id,
+        topic=bundle_id,
         use_sandbox=use_sandbox,
     )
-
-    # Map Datacore priority to APNs
-    priority_map = {
-        'low': NotificationPriority.Delayed,
-        'normal': NotificationPriority.Immediate,
-        'high': NotificationPriority.Immediate,
-        'critical': NotificationPriority.Immediate,
-    }
-    apns_priority = priority_map.get(priority, NotificationPriority.Immediate)
 
     # Map Datacore priority to iOS interruption level
     interruption_level = kwargs.get('interruption_level')
@@ -98,22 +112,27 @@ def send_push(title, body, priority, **kwargs):
         }
         interruption_level = interruption_map.get(priority, 'active')
 
-    # Build APNs payload
-    custom_data = {}
-    if kwargs.get('deep_link'):
-        custom_data['link'] = kwargs['deep_link']
-    if kwargs.get('image_url'):
-        custom_data['image_url'] = kwargs['image_url']
+    # Build APNs payload (raw dict format for aioapns)
+    aps_payload = {
+        'alert': {'title': title or 'Datacore', 'body': body},
+        'sound': 'default',
+        'interruption-level': interruption_level,
+    }
 
-    payload = Payload(
-        alert={'title': title or 'Datacore', 'body': body},
-        sound='default',
-        badge=None,  # Let the app manage badge count
-        category=kwargs.get('category'),
-        thread_id=kwargs.get('thread_id'),
-        custom=custom_data if custom_data else None,
-        mutable_content=bool(kwargs.get('image_url')),
-    )
+    if kwargs.get('category'):
+        aps_payload['category'] = kwargs['category']
+    if kwargs.get('thread_id'):
+        aps_payload['thread-id'] = kwargs['thread_id']
+    if kwargs.get('image_url'):
+        aps_payload['mutable-content'] = 1
+
+    message = {'aps': aps_payload}
+
+    # Add custom data outside 'aps' key
+    if kwargs.get('deep_link'):
+        message['link'] = kwargs['deep_link']
+    if kwargs.get('image_url'):
+        message['image_url'] = kwargs['image_url']
 
     # Send to all registered devices
     tokens = DeviceToken.query.all()
@@ -125,12 +144,14 @@ def send_push(title, body, priority, **kwargs):
     failed_count = 0
     for device in tokens:
         try:
-            response = client.send_notification(
-                token_hex=device.token,
-                notification=payload,
-                topic=bundle_id,
-                priority=apns_priority,
+            request = NotificationRequest(
+                device_token=device.token,
+                message=message,
+                push_type=PushType.ALERT,
             )
+
+            response = await client.send_notification(request)
+
             if not response.is_successful:
                 logger.error(
                     f"APNs delivery failed for {device.platform} "
@@ -146,6 +167,8 @@ def send_push(title, body, priority, **kwargs):
         except Exception as e:
             logger.error(f"APNs error for {device.device_id[:8]}: {e}")
             failed_count += 1
+
+    await client.close()
 
     if failed_count == len(tokens):
         raise Exception(f"APNs: All {failed_count} device deliveries failed")
