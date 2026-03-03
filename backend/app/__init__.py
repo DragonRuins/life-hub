@@ -468,11 +468,60 @@ def _run_safe_migrations(db):
         # Push notification delay (minutes before APNs push is delivered)
         """ALTER TABLE notification_settings
            ADD COLUMN IF NOT EXISTS push_delay_minutes INTEGER NOT NULL DEFAULT 5""",
+
+        # Vehicle types & motorcycle mode
+        """ALTER TABLE vehicles
+           ADD COLUMN IF NOT EXISTS vehicle_type VARCHAR(20) NOT NULL DEFAULT 'car'""",
+        """ALTER TABLE vehicles
+           ADD COLUMN IF NOT EXISTS cylinder_count INTEGER""",
+        """ALTER TABLE vehicles
+           ADD COLUMN IF NOT EXISTS dual_spark BOOLEAN NOT NULL DEFAULT FALSE""",
+        """ALTER TABLE vehicles
+           ADD COLUMN IF NOT EXISTS final_drive_type VARCHAR(20)""",
+
+        # Maintenance item vehicle type filter (for motorcycle-specific items)
+        """ALTER TABLE maintenance_items
+           ADD COLUMN IF NOT EXISTS vehicle_types VARCHAR(100)""",
     ]
 
     for sql in migrations:
         try:
             db.session.execute(text(sql))
+        except Exception:
+            db.session.rollback()
+            continue
+    db.session.commit()
+
+    # Seed motorcycle-specific maintenance presets (idempotent: skips existing)
+    _seed_motorcycle_presets(db)
+
+
+def _seed_motorcycle_presets(db):
+    """Insert motorcycle maintenance presets if they don't already exist."""
+    from sqlalchemy import text
+
+    presets = [
+        ('Chain Lubrication', 'Drivetrain', 500, 1, 910, 'motorcycle'),
+        ('Chain Adjustment', 'Drivetrain', 3000, 6, 920, 'motorcycle'),
+        ('Chain Replacement', 'Drivetrain', 20000, 48, 930, 'motorcycle'),
+        ('Belt Inspection', 'Drivetrain', 5000, 12, 940, 'motorcycle'),
+        ('Belt Replacement', 'Drivetrain', 50000, 60, 950, 'motorcycle'),
+        ('Valve Clearance Check', 'Engine', 15000, 24, 960, 'motorcycle'),
+        ('Fork Oil Change', 'Suspension', 15000, 24, 970, 'motorcycle'),
+        ('Tire Replacement', 'Tires', 10000, 36, 540, 'motorcycle'),
+    ]
+
+    for name, category, miles, months, sort_order, vehicle_types in presets:
+        try:
+            db.session.execute(text("""
+                INSERT INTO maintenance_items (name, category, default_miles_interval,
+                    default_months_interval, is_preset, sort_order, vehicle_types)
+                SELECT :name, :category, :miles, :months, TRUE, :sort_order, :vehicle_types
+                WHERE NOT EXISTS (SELECT 1 FROM maintenance_items WHERE name = :name)
+            """), {
+                'name': name, 'category': category, 'miles': miles,
+                'months': months, 'sort_order': sort_order, 'vehicle_types': vehicle_types,
+            })
         except Exception:
             db.session.rollback()
             continue
