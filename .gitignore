@@ -11,3 +11,4 @@ dist/
 *.bak
 *.csv
 .worktrees/
+backend/certs/*.p8
