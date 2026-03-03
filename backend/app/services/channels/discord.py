@@ -116,7 +116,7 @@ class DiscordChannel(BaseChannel):
         },
     ]
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         Send a notification to Discord via webhook with a rich embed.
 

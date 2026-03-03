@@ -32,7 +32,7 @@ class InAppChannel(BaseChannel):
         },
     ]
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         No-op send for in-app notifications.
 

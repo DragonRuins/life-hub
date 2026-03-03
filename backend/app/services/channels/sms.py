@@ -66,7 +66,7 @@ class SMSChannel(BaseChannel):
         },
     ]
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         SMS sending is not yet implemented.
 

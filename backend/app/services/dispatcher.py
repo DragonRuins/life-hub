@@ -53,7 +53,14 @@ def dispatch(rule, data):
 
         try:
             handler = get_channel_handler(channel.channel_type)
-            handler.send(config, title, body, rule.priority)
+            handler.send(
+                config, title, body, rule.priority,
+                category=data.get('_category'),
+                thread_id=data.get('_thread_id'),
+                deep_link=data.get('_deep_link'),
+                image_url=data.get('_image_url'),
+                interruption_level=data.get('_interruption_level'),
+            )
 
             duration_ms = int((time.time() - start_time) * 1000)
 

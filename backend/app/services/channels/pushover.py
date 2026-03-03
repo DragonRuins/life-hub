@@ -129,7 +129,7 @@ class PushoverChannel(BaseChannel):
         },
     ]
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         Send a push notification via the Pushover API.
 

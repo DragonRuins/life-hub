@@ -106,7 +106,7 @@ class EmailChannel(BaseChannel):
         },
     ]
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         Send a notification email via SMTP.
 

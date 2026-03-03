@@ -40,7 +40,7 @@ class BaseChannel:
     DISPLAY_NAME = None   # e.g. 'Pushover'
     CONFIG_SCHEMA = []    # List of field-definition dicts
 
-    def send(self, config, title, body, priority):
+    def send(self, config, title, body, priority, **kwargs):
         """
         Send a notification through this channel.
 
@@ -49,6 +49,9 @@ class BaseChannel:
             title  (str):  Notification title / subject line.
             body   (str):  Notification body / message content.
             priority (str): One of 'low', 'normal', 'high', 'critical'.
+            **kwargs: Additional metadata (e.g., category, thread_id, deep_link,
+                      image_url, interruption_level) passed from the dispatcher.
+                      Channel handlers that don't need these can safely ignore them.
 
         Must be overridden by every subclass.
         """
