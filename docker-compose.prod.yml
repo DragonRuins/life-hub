@@ -32,8 +32,15 @@ services:
       - WEATHER_LON=${WEATHER_LON:--87.2}
       - FUEL_API_KEY=${FUEL_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # APNs (Apple Push Notifications) — leave blank to disable
+      - APNS_KEY_FILE=/app/certs/apns-key.p8
+      - APNS_KEY_ID=${APNS_KEY_ID}
+      - APNS_TEAM_ID=${APNS_TEAM_ID}
+      - APNS_BUNDLE_ID=${APNS_BUNDLE_ID:-com.chaseburrell.Datacore}
+      - APNS_USE_SANDBOX=${APNS_USE_SANDBOX:-false}
     volumes:
       - uploads:/app/uploads
+      - ${APNS_CERTS_PATH:-/mnt/datacore/apns-certs}:/app/certs:ro  # APNs .p8 key file
       - /var/run/docker.sock:/var/run/docker.sock  # Docker API access for infrastructure module
       - /proc:/host/proc:ro  # Host /proc for system stats (CPU, RAM, load)
       - /sys:/host/sys:ro    # Host /sys for hardware detection (GPU)

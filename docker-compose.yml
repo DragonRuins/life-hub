@@ -35,6 +35,11 @@ services:
       - WEATHER_LON=${WEATHER_LON:--87.2}
       - FUEL_API_KEY=${FUEL_API_KEY:-send-fuel-logs-here}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - APNS_KEY_FILE=${APNS_KEY_FILE:-}
+      - APNS_KEY_ID=${APNS_KEY_ID:-}
+      - APNS_TEAM_ID=${APNS_TEAM_ID:-}
+      - APNS_BUNDLE_ID=${APNS_BUNDLE_ID:-com.chaseburrell.Datacore}
+      - APNS_USE_SANDBOX=${APNS_USE_SANDBOX:-true}
     volumes:
       - ./backend:/app  # Hot-reload: edit files, see changes instantly
       - uploads:/app/uploads  # Persistent file storage for note attachments

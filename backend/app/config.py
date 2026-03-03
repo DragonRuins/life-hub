@@ -30,6 +30,15 @@ class Config:
     ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
     AI_DEFAULT_MODEL = os.environ.get('AI_DEFAULT_MODEL', 'claude-sonnet-4-20250514')
 
+    # APNs (Apple Push Notification service) — server credentials
+    # These are only needed if you want native push notifications to Apple devices.
+    # Generate a .p8 key at https://developer.apple.com/account/resources/authkeys
+    APNS_KEY_FILE = os.environ.get('APNS_KEY_FILE', '')
+    APNS_KEY_ID = os.environ.get('APNS_KEY_ID', '')
+    APNS_TEAM_ID = os.environ.get('APNS_TEAM_ID', '')
+    APNS_BUNDLE_ID = os.environ.get('APNS_BUNDLE_ID', 'com.chaseburrell.Datacore')
+    APNS_USE_SANDBOX = os.environ.get('APNS_USE_SANDBOX', 'true').lower() == 'true'
+
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_UPLOAD_SIZE', 50 * 1024 * 1024))  # 50MB default

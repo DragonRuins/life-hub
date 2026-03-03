@@ -33,12 +33,21 @@ def dispatch(rule, data):
     title = render_template(rule.title_template or '', data)
     body = render_template(rule.body_template, data)
 
-    # Get all channel links for this rule
+    # Collect kwargs for APNs / channel handlers
+    extra_kwargs = {
+        'category': data.get('_category'),
+        'thread_id': data.get('_thread_id'),
+        'deep_link': data.get('_deep_link'),
+        'image_url': data.get('_image_url'),
+        'interruption_level': data.get('_interruption_level'),
+    }
+
+    # ── 1. Send through user-configured channels (Pushover, Discord, etc.) ──
+
     channel_links = NotificationRuleChannel.query.filter_by(rule_id=rule.id).all()
 
     if not channel_links:
-        logger.warning(f"Rule '{rule.name}' has no channels assigned")
-        return
+        logger.info(f"Rule '{rule.name}' has no user-configured channels")
 
     for link in channel_links:
         channel = link.channel
@@ -53,14 +62,7 @@ def dispatch(rule, data):
 
         try:
             handler = get_channel_handler(channel.channel_type)
-            handler.send(
-                config, title, body, rule.priority,
-                category=data.get('_category'),
-                thread_id=data.get('_thread_id'),
-                deep_link=data.get('_deep_link'),
-                image_url=data.get('_image_url'),
-                interruption_level=data.get('_interruption_level'),
-            )
+            handler.send(config, title, body, rule.priority, **extra_kwargs)
 
             duration_ms = int((time.time() - start_time) * 1000)
 
@@ -103,6 +105,70 @@ def dispatch(rule, data):
             db.session.commit()
 
             logger.error(f"Notification failed: rule='{rule.name}' channel='{channel.name}': {e}")
+
+    # ── 2. Built-in APNs push (fires automatically if configured) ──
+
+    _send_apns_push(rule, title, body, data, extra_kwargs)
+
+
+def _send_apns_push(rule, title, body, data, extra_kwargs):
+    """
+    Send push notification via APNs if environment is configured.
+
+    APNs is built-in infrastructure — it fires for every notification
+    automatically, independent of user-configured channels.
+    """
+    from app import db
+    from app.models.notification import NotificationLog
+    from app.services.channels import apns
+
+    if not apns.is_configured():
+        return
+
+    start_time = time.time()
+
+    try:
+        apns.send_push(title, body, rule.priority, **extra_kwargs)
+
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        log_entry = NotificationLog(
+            rule_id=rule.id,
+            channel_id=None,
+            channel_type='apns',
+            title=title,
+            body=body,
+            priority=rule.priority,
+            status='sent',
+            delivery_duration_ms=duration_ms,
+            event_data=data,
+            sent_at=datetime.now(timezone.utc),
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+
+        logger.info(f"APNs push sent for rule '{rule.name}' ({duration_ms}ms)")
+
+    except Exception as e:
+        duration_ms = int((time.time() - start_time) * 1000)
+
+        log_entry = NotificationLog(
+            rule_id=rule.id,
+            channel_id=None,
+            channel_type='apns',
+            title=title,
+            body=body,
+            priority=rule.priority,
+            status='failed',
+            error_message=str(e),
+            delivery_duration_ms=duration_ms,
+            event_data=data,
+            sent_at=datetime.now(timezone.utc),
+        )
+        db.session.add(log_entry)
+        db.session.commit()
+
+        logger.error(f"APNs push failed for rule '{rule.name}': {e}")
 
 
 def render_template(template, data):

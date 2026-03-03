@@ -444,6 +444,14 @@ def _run_safe_migrations(db):
 
         # Normalize "mid-grade" → "midgrade" in fuel_type
         """UPDATE fuel_logs SET fuel_type = 'midgrade' WHERE fuel_type = 'mid-grade'""",
+
+        # APNs snooze support: per-rule snooze duration
+        """ALTER TABLE notification_rules
+           ADD COLUMN IF NOT EXISTS snooze_duration_hours INTEGER""",
+
+        # APNs snooze support: global default snooze duration
+        """ALTER TABLE notification_settings
+           ADD COLUMN IF NOT EXISTS default_snooze_hours INTEGER DEFAULT 168""",
     ]
 
     for sql in migrations:

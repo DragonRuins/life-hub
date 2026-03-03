@@ -149,4 +149,6 @@ def get_all_schemas():
 # to use them.
 # ---------------------------------------------------------------------------
 
-from . import in_app, pushover, discord, email_channel, sms, apns  # noqa: E402, F401
+from . import in_app, pushover, discord, email_channel, sms  # noqa: E402, F401
+# Note: APNs is NOT a registered channel — it's built-in infrastructure.
+# See app/services/channels/apns.py (called directly by the dispatcher).
