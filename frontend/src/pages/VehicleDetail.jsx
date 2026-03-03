@@ -596,6 +596,7 @@ export default function VehicleDetail() {
               <div className="card" style={{ width: '100%', maxWidth: 'min(500px, calc(100vw - 2rem))', margin: '1rem' }}>
                 <ComponentForm
                   vehicleId={vehicle.id}
+                  vehicleType={vehicle.vehicle_type}
                   component={selectedComponent}
                   onSubmit={selectedComponent ? handleUpdateComponent : handleAddComponent}
                   onCancel={() => {

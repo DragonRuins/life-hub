@@ -5,9 +5,9 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { vehicles } from '../api/client'
-import { COMPONENT_TYPES, getComponentType } from '../constants/componentTypes'
+import { COMPONENT_TYPES, getComponentType, getComponentTypesForVehicle } from '../constants/componentTypes'
 
-export default function ComponentForm({ vehicleId, component, onSubmit, onCancel }) {
+export default function ComponentForm({ vehicleId, vehicleType, component, onSubmit, onCancel }) {
   const isEditing = !!component
   const typeConfig = getComponentType(component?.component_type || 'tire')
 
@@ -86,7 +86,7 @@ export default function ComponentForm({ vehicleId, component, onSubmit, onCancel
         <div>
           <label>Component Type</label>
           <select name="component_type" value={form.component_type} onChange={handleChange}>
-            {COMPONENT_TYPES.map(t => (
+            {getComponentTypesForVehicle(vehicleType).map(t => (
               <option key={t.value} value={t.value}>
                 {t.icon} {t.label}
               </option>

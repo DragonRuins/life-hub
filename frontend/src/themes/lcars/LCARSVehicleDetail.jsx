@@ -576,6 +576,7 @@ export default function LCARSVehicleDetail() {
             <LCARSModalOverlay title={selectedComponent ? 'Edit Component' : 'Add Component'} onClose={() => { setShowComponentForm(false); setSelectedComponent(null) }}>
               <ComponentForm
                 vehicleId={vehicle.id}
+                vehicleType={vehicle.vehicle_type}
                 component={selectedComponent}
                 onSubmit={selectedComponent ? handleUpdateComponent : handleAddComponent}
                 onCancel={() => { setShowComponentForm(false); setSelectedComponent(null) }}
