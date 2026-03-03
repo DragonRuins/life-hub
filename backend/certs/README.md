@@ -29,6 +29,7 @@ Place the `.p8` file in this directory (`backend/certs/`). The `./backend:/app` 
 mount in `docker-compose.yml` makes it available at `/app/certs/` inside the container.
 
 Set in `.env`:
+
 ```
 APNS_KEY_FILE=/app/certs/AuthKey_ABC123XYZ.p8
 ```
@@ -48,12 +49,15 @@ The production compose file bind-mounts a host directory to `/app/certs:ro` (rea
    - Rename it to `apns-key.p8` (the name the compose file expects)
 
 3. In Dockge, set the `APNS_CERTS_PATH` env var to the dataset path:
+
    ```
    APNS_CERTS_PATH=/mnt/datacore/apns-certs
    ```
+
    (defaults to `/mnt/datacore/apns-certs` if not set)
 
 4. Set the remaining env vars in Dockge:
+
    ```
    APNS_KEY_ID=your_key_id
    APNS_TEAM_ID=your_team_id
