@@ -857,6 +857,10 @@ def schedule_delayed_push(title, body, priority, **kwargs):
     If delay is 0, sends immediately. Otherwise uses APScheduler one-shot
     'date' trigger to fire after the configured delay.
 
+    This function is called from request handlers (dispatcher, interval_checker),
+    so it uses current_app for the request context. Only _fire_delayed_push needs
+    the global _app (because it runs from APScheduler outside a request).
+
     Args:
         title: Push notification title
         body: Push notification body
@@ -864,27 +868,40 @@ def schedule_delayed_push(title, body, priority, **kwargs):
         **kwargs: Extra APNs params (thread_id, category, deep_link, etc.)
     """
     global scheduler, _app
-    logger.info(f"schedule_delayed_push called: title='{title}', priority='{priority}', "
-                f"kwargs={kwargs}, scheduler={'yes' if scheduler else 'NO'}, app={'yes' if _app else 'NO'}")
+    from flask import current_app
 
-    if not _app:
-        logger.warning("App not initialized, cannot schedule delayed push")
+    # Use current_app (available during requests on any worker) rather than
+    # _app (only set on the scheduler worker). Fall back to _app for
+    # APScheduler-initiated calls (e.g., when called from _fire_delayed_push).
+    try:
+        app = current_app._get_current_object()
+    except RuntimeError:
+        app = _app
+
+    logger.info(f"schedule_delayed_push called: title='{title}', priority='{priority}', "
+                f"kwargs={kwargs}, scheduler={'yes' if scheduler else 'NO'}, app={'yes' if app else 'NO'}")
+
+    if not app:
+        logger.warning("No app context available, cannot schedule delayed push")
         return
 
     # Read the delay setting from the database
-    with _app.app_context():
+    with app.app_context():
         from app.models.notification import NotificationSettings
         settings = NotificationSettings.get_settings()
         delay_minutes = settings.push_delay_minutes or 0
         logger.info(f"Push delay setting: {delay_minutes} minutes")
 
     if delay_minutes <= 0 or not scheduler:
-        # Send immediately (no delay configured or scheduler unavailable)
+        # Send immediately (no delay configured or scheduler unavailable).
+        # Pass the app reference so _fire_delayed_push has a context to use.
         logger.info(f"Sending APNs push immediately (delay={delay_minutes}, scheduler={'yes' if scheduler else 'NO'})")
-        _fire_delayed_push(title, body, priority, kwargs)
+        _fire_delayed_push(title, body, priority, kwargs, app)
         return
 
-    # Schedule a one-shot job to fire after the delay
+    # Schedule a one-shot job to fire after the delay.
+    # The scheduled job runs on the scheduler worker (which has _app set),
+    # so it doesn't need the app reference passed as an argument.
     try:
         import uuid
         job_id = f"apns_delayed_{uuid.uuid4().hex[:12]}"
@@ -901,11 +918,10 @@ def schedule_delayed_push(title, body, priority, **kwargs):
         logger.info(f"Scheduled delayed APNs push '{job_id}' for {fire_at.isoformat()} ({delay_minutes}min delay)")
     except Exception as e:
         logger.error(f"Failed to schedule delayed APNs push, sending immediately: {e}")
-        # Fall back to immediate send if scheduling fails
-        _fire_delayed_push(title, body, priority, kwargs)
+        _fire_delayed_push(title, body, priority, kwargs, app)
 
 
-def _fire_delayed_push(title, body, priority, extra_kwargs):
+def _fire_delayed_push(title, body, priority, extra_kwargs, app=None):
     """
     Called by APScheduler after the delay (or immediately if delay is 0).
     Sends the actual APNs push and logs the result to notification_log.
@@ -915,16 +931,21 @@ def _fire_delayed_push(title, body, priority, extra_kwargs):
         body: Push notification body
         priority: 'low', 'normal', 'high', 'critical'
         extra_kwargs: Dict of extra APNs params
+        app: Flask app instance (passed when called immediately; when called
+             by APScheduler, this is None and we fall back to the global _app)
     """
     global _app
-    logger.info(f"_fire_delayed_push called: title='{title}', priority='{priority}', app={'yes' if _app else 'NO'}")
 
-    if not _app:
-        logger.error("_fire_delayed_push: _app is None, cannot send push")
+    # Use the passed app, or fall back to the global _app (set on scheduler worker)
+    app = app or _app
+    logger.info(f"_fire_delayed_push called: title='{title}', priority='{priority}', app={'yes' if app else 'NO'}")
+
+    if not app:
+        logger.error("_fire_delayed_push: no app available, cannot send push")
         return
 
     import time as time_mod
-    with _app.app_context():
+    with app.app_context():
         from app import db
         from app.models.notification import NotificationLog
         from app.services.channels import apns
