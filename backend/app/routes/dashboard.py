@@ -417,20 +417,22 @@ def get_fleet_status():
         if valid_mpg_all else None
     )
 
-    # Sparkline: last 20 fuel entries with MPG, in chronological order
-    sparkline_entries = sorted(
-        [fl for fl in all_fuel_logs if fl.mpg is not None],
-        key=lambda fl: (fl.date or datetime.min, fl.id),
-        reverse=True,
-    )[:20]
-    sparkline_data = [
-        {
-            'date': fl.date.isoformat() if fl.date else None,
-            'mpg': round(fl.mpg, 1),
-            'vehicle_id': fl.vehicle_id,
-        }
-        for fl in reversed(sparkline_entries)  # Chronological for chart
-    ]
+    # Sparkline: last 15 fuel entries per vehicle with MPG, in chronological order
+    sparkline_data = []
+    for v in vehicles_list:
+        v_entries = sorted(
+            [fl for fl in v.fuel_logs if fl.mpg is not None],
+            key=lambda fl: (fl.date or datetime.min, fl.id),
+            reverse=True,
+        )[:15]
+        sparkline_data.extend(
+            {
+                'date': fl.date.isoformat() if fl.date else None,
+                'mpg': round(fl.mpg, 1),
+                'vehicle_id': fl.vehicle_id,
+            }
+            for fl in reversed(v_entries)
+        )
 
     fuel_cost_30d = round(sum(fl.total_cost or 0 for fl in fuel_30d), 2)
     fuel_cost_ytd = round(sum(fl.total_cost or 0 for fl in fuel_ytd), 2)
