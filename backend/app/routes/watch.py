@@ -247,7 +247,7 @@ def ingest_health():
                 'end_date': _parse_dt(s.get('end_date')),
                 'source_device': s.get('source_device'),
                 'source_app': s.get('source_app'),
-                'metadata': s.get('metadata', {}),
+                'sample_metadata': s.get('metadata', {}),
                 'created_at': datetime.now(timezone.utc),
             })
         except (ValueError, TypeError):
@@ -477,7 +477,7 @@ def ingest_sync():
                     'end_date': _parse_dt(s.get('end_date')),
                     'source_device': s.get('source_device'),
                     'source_app': s.get('source_app'),
-                    'metadata': s.get('metadata', {}),
+                    'sample_metadata': s.get('metadata', {}),
                     'created_at': datetime.now(timezone.utc),
                 })
             except (ValueError, TypeError):

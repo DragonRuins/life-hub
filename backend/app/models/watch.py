@@ -37,7 +37,7 @@ class WatchHealthSample(db.Model):
     end_date = db.Column(db.DateTime)                                # Sample end timestamp (same as start for instantaneous)
     source_device = db.Column(db.String(200))                        # e.g., "Apple Watch Series 10"
     source_app = db.Column(db.String(200))                           # e.g., "com.apple.health"
-    metadata = db.Column('metadata', JSONB, default=dict)            # Extra HealthKit metadata
+    sample_metadata = db.Column('metadata', JSONB, default=dict)      # Extra HealthKit metadata
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -52,7 +52,7 @@ class WatchHealthSample(db.Model):
             'end_date': self.end_date.isoformat() if self.end_date else None,
             'source_device': self.source_device,
             'source_app': self.source_app,
-            'metadata': self.metadata or {},
+            'metadata': self.sample_metadata or {},
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -180,7 +180,7 @@ class WatchNFCTimer(db.Model):
     started_at = db.Column(db.DateTime, nullable=False)              # Timer start timestamp
     ended_at = db.Column(db.DateTime)                                # Timer end timestamp (null = active)
     duration_seconds = db.Column(db.Integer)                         # Computed on stop, null while active
-    metadata = db.Column('metadata', JSONB, default=dict)            # Extra context (location, notes, etc.)
+    timer_metadata = db.Column('metadata', JSONB, default=dict)       # Extra context (location, notes, etc.)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -192,7 +192,7 @@ class WatchNFCTimer(db.Model):
             'ended_at': self.ended_at.isoformat() if self.ended_at else None,
             'duration_seconds': self.duration_seconds,
             'is_active': self.ended_at is None,
-            'metadata': self.metadata or {},
+            'metadata': self.timer_metadata or {},
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -243,7 +243,7 @@ class WatchSyncStatus(db.Model):
     last_sync_at = db.Column(db.DateTime)                             # Last successful sync timestamp
     samples_synced = db.Column(db.Integer, default=0)                 # Cumulative count of synced samples
     last_error = db.Column(db.Text)                                   # Last error message (null = healthy)
-    metadata = db.Column('metadata', JSONB, default=dict)             # Extra sync context
+    sync_metadata = db.Column('metadata', JSONB, default=dict)        # Extra sync context
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))
 
@@ -255,6 +255,6 @@ class WatchSyncStatus(db.Model):
             'last_sync_at': self.last_sync_at.isoformat() if self.last_sync_at else None,
             'samples_synced': self.samples_synced or 0,
             'last_error': self.last_error,
-            'metadata': self.metadata or {},
+            'metadata': self.sync_metadata or {},
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
         }
