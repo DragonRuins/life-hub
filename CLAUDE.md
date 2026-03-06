@@ -503,6 +503,60 @@ The backend container has these host mounts configured in Dockge:
 
 **Important:** When adding features that require host files (certificates, keys, data files), always ensure a volume mount exists in the Dockge compose config. Setting an env var pointing to a host path is not enough — the file must be mounted into the container.
 
+## Watch Data Pipeline
+
+The Watch Data Pipeline is a full-stack system for collecting health/sensor data from Apple Watch and displaying it across all platforms.
+
+**Architecture:** Watch sensors → iPhone relay (WCSession) → Flask Backend API → React Frontend + Native SwiftUI views
+
+**Database Tables (7):**
+- `watch_health_samples` — HealthKit data (heart rate, SpO2, steps, etc.)
+- `watch_barometer_readings` — Atmospheric pressure + altitude
+- `watch_nfc_events` — NFC tag scan history
+- `watch_nfc_action_definitions` — User-defined NFC tag → action mappings
+- `watch_nfc_timers` — Active timers triggered by NFC scans
+- `watch_spatial_readings` — UWB/NearbyInteraction proximity data
+- `watch_sync_status` — Per-device sync tracking and diagnostics
+
+**API Endpoints:** 14 endpoints under `/api/watch/` (see `backend/app/routes/watch.py`)
+
+**React Routes (7):**
+- `/watch` — Overview dashboard
+- `/watch/health` — Health metrics list
+- `/watch/health/:metricType` — Per-metric detail view
+- `/watch/nfc` — NFC tag management
+- `/watch/barometer` — Barometer readings
+- `/watch/spatial` — Spatial proximity data
+- `/watch/sync` — Sync status and diagnostics
+
+**Key File Locations:**
+| Layer | Path |
+|-------|------|
+| Backend models | `backend/app/models/watch.py` |
+| Backend routes | `backend/app/routes/watch.py` |
+| Migration | `backend/migrations/versions/add_watch_tables.py` |
+| React API client | `frontend/src/api/watchApi.js` |
+| Catppuccin pages | `frontend/src/pages/Watch*.jsx` |
+| LCARS pages | `frontend/src/themes/lcars/LCARSWatch*.jsx` |
+| iOS/iPad/Mac views | `Datacore-Apple/Datacore/Views/Watch/` |
+| iOS ViewModel | `Datacore-Apple/Datacore/ViewModels/WatchPipelineViewModel.swift` |
+| watchOS sensors | `Datacore-Apple/DatacoreWatch/Sensors/` |
+| watchOS views | `Datacore-Apple/DatacoreWatch/Views/Watch*.swift` |
+| Shared models | `Datacore-Apple/DatacoreShared/Models/` |
+| Shared components | `Datacore-Apple/DatacoreShared/ViewComponents/` |
+| Shared constants | `Datacore-Apple/DatacoreShared/Constants.swift` |
+| iPhone sync engine | `Datacore-Apple/Datacore/Sync/PhoneSessionManager.swift` |
+| Background tasks | `Datacore-Apple/Datacore/Sync/BackgroundTaskManager.swift` |
+| HealthKit manager | `Datacore-Apple/Datacore/HealthKit/HealthKitManager.swift` |
+
+**Key Design Decisions:**
+- UUID-based deduplication — every sample has a UUID; backend uses upsert to prevent duplicates
+- Batch sync — samples are buffered and sent in batches to reduce API calls
+- No foreign keys to other modules — watch data is self-contained, no FK to vehicles/notes/etc.
+- Idempotent upserts — all sync endpoints use INSERT ON CONFLICT UPDATE for safe retries
+- WatchConnectivity relay — watch sends data to iPhone via WCSession, iPhone forwards to Flask API
+- Offline queue — failed API calls are queued locally and retried on next sync cycle
+
 ## Current Status
 
 ### What's built:
@@ -519,6 +573,7 @@ The backend container has these host mounts configured in Dockge:
 - Docker Compose for dev and prod
 - GitHub Actions CI/CD pipeline
 - **Apple Watch companion app:** 4 modules (Vehicle Health, Fuel Economy, Launch Countdown, Work Hours), WidgetKit complications (4 types), WatchConnectivity iPhone↔Watch data relay, offline caching via App Group UserDefaults, hub-and-spoke navigation, write actions (log fuel, mark service done, log work hours)
+- **Watch Data Pipeline:** Full-stack health/sensor data system — HealthKit, barometer, NFC, UWB spatial — flowing from Watch → iPhone → Flask API → React + native SwiftUI views across all 4 Apple platforms
 
 ### Planned future modules/features:
 

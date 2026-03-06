@@ -9,7 +9,7 @@
  * on screen. Each pill has a minimum width to stay legible.
  */
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library, Settings, Clock } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, Server, Telescope, Library, Settings, Clock, Watch } from 'lucide-react'
 
 const NAV_ITEMS = [
   {
@@ -73,6 +73,13 @@ const NAV_ITEMS = [
     label: 'Hrs',
     icon: Clock,
     color: 'var(--lcars-tanoi)',
+    activeColor: 'var(--lcars-butterscotch)',
+  },
+  {
+    to: '/watch',
+    label: 'Watch',
+    icon: Watch,
+    color: 'var(--lcars-coral)',
     activeColor: 'var(--lcars-butterscotch)',
   },
   {

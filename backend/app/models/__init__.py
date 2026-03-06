@@ -23,3 +23,8 @@ from .ai_chat import Conversation, Message, AISettings
 from .work_hours import WorkHoursLog
 from .device_token import DeviceToken
 from .notification_snooze import NotificationSnooze
+from .watch import (
+    WatchHealthSample, WatchBarometerReading, WatchNFCEvent,
+    WatchNFCActionDefinition, WatchNFCTimer,
+    WatchSpatialReading, WatchSyncStatus,
+)

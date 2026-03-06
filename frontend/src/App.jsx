@@ -6,7 +6,7 @@
  * Standalone pages (like FuelEntry) render without the sidebar.
  */
 import { BrowserRouter, Routes, Route, NavLink, Link } from 'react-router-dom'
-import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Maximize, Minimize, MessageSquare, Clock } from 'lucide-react'
+import { LayoutDashboard, Car, StickyNote, FolderKanban, BookOpen, ChevronLeft, ChevronRight, Settings, Menu, X, Server, Telescope, Library, Maximize, Minimize, MessageSquare, Clock, Watch } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from './themes/lcars/ThemeProvider'
 import useIsMobile from './hooks/useIsMobile'
@@ -20,6 +20,13 @@ import Notifications from './pages/Notifications'
 import FuelEconomy from './pages/FuelEconomy'
 import FuelEntry from './pages/FuelEntry'
 import WorkHours from './pages/WorkHours'
+import WatchOverview from './pages/WatchOverview'
+import WatchHealth from './pages/WatchHealth'
+import WatchHealthDetail from './pages/WatchHealthDetail'
+import WatchNFC from './pages/WatchNFC'
+import WatchBarometer from './pages/WatchBarometer'
+import WatchSpatial from './pages/WatchSpatial'
+import WatchSync from './pages/WatchSync'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import NotificationBell from './components/NotificationBell'
@@ -69,6 +76,13 @@ import LCARSTrekSearch from './themes/lcars/LCARSTrekSearch'
 import LCARSTrekFavorites from './themes/lcars/LCARSTrekFavorites'
 import SettingsPage from './pages/Settings'
 import LCARSWorkHours from './themes/lcars/LCARSWorkHours'
+import LCARSWatchOverview from './themes/lcars/LCARSWatchOverview'
+import LCARSWatchHealth from './themes/lcars/LCARSWatchHealth'
+import LCARSWatchHealthDetail from './themes/lcars/LCARSWatchHealthDetail'
+import LCARSWatchNFC from './themes/lcars/LCARSWatchNFC'
+import LCARSWatchBarometer from './themes/lcars/LCARSWatchBarometer'
+import LCARSWatchSpatial from './themes/lcars/LCARSWatchSpatial'
+import LCARSWatchSync from './themes/lcars/LCARSWatchSync'
 import LCARSSettings from './themes/lcars/LCARSSettings'
 import ChatWidget from './components/ChatWidget'
 import LCARSChatTerminal from './themes/lcars/LCARSChatTerminal'
@@ -159,6 +173,13 @@ function LCARSAppShell({ chat }) {
         <Route path="/trek/:entityType/:uid" element={<LCARSTrekDetail />} />
         <Route path="/trek/:entityType" element={<LCARSTrekBrowse />} />
         <Route path="/work-hours" element={<LCARSWorkHours />} />
+        <Route path="/watch" element={<LCARSWatchOverview />} />
+        <Route path="/watch/health" element={<LCARSWatchHealth />} />
+        <Route path="/watch/health/:metricType" element={<LCARSWatchHealthDetail />} />
+        <Route path="/watch/nfc" element={<LCARSWatchNFC />} />
+        <Route path="/watch/barometer" element={<LCARSWatchBarometer />} />
+        <Route path="/watch/spatial" element={<LCARSWatchSpatial />} />
+        <Route path="/watch/sync" element={<LCARSWatchSync />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<LCARSSettings />} />
         <Route path="/settings/vehicles" element={<LCARSVehicleSettings />} />
@@ -241,6 +262,7 @@ function AppShell({ chat }) {
             <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={sidebarCollapsed} />
             <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={sidebarCollapsed} />
             <SidebarLink to="/work-hours" icon={<Clock size={20} />} label="Work Hours" collapsed={sidebarCollapsed} />
+            <SidebarLink to="/watch" icon={<Watch size={20} />} label="Watch" collapsed={sidebarCollapsed} />
           </div>
 
           {/* Collapse Toggle */}
@@ -338,6 +360,7 @@ function AppShell({ chat }) {
               <SidebarLink to="/astrometrics" icon={<Telescope size={20} />} label="Astrometrics" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/trek" icon={<Library size={20} />} label="Database" collapsed={false} onClick={() => setDrawerOpen(false)} />
               <SidebarLink to="/work-hours" icon={<Clock size={20} />} label="Work Hours" collapsed={false} onClick={() => setDrawerOpen(false)} />
+              <SidebarLink to="/watch" icon={<Watch size={20} />} label="Watch" collapsed={false} onClick={() => setDrawerOpen(false)} />
             </div>
           </nav>
         </div>
@@ -386,6 +409,13 @@ function AppShell({ chat }) {
             <Route path="/trek/:entityType/:uid" element={<TrekDetail />} />
             <Route path="/trek/:entityType" element={<TrekBrowse />} />
             <Route path="/work-hours" element={<WorkHours />} />
+            <Route path="/watch" element={<WatchOverview />} />
+            <Route path="/watch/health" element={<WatchHealth />} />
+            <Route path="/watch/health/:metricType" element={<WatchHealthDetail />} />
+            <Route path="/watch/nfc" element={<WatchNFC />} />
+            <Route path="/watch/barometer" element={<WatchBarometer />} />
+            <Route path="/watch/spatial" element={<WatchSpatial />} />
+            <Route path="/watch/sync" element={<WatchSync />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/settings/vehicles" element={<VehicleSettings />} />
