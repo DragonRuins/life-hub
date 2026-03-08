@@ -86,6 +86,9 @@ def create_app():
     from app.routes.watch import watch_bp
     app.register_blueprint(watch_bp, url_prefix='/api/watch')
 
+    from app.routes.obd import obd_bp
+    app.register_blueprint(obd_bp, url_prefix='/api/obd')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -94,7 +97,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, watch  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, watch, obd  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
