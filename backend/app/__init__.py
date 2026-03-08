@@ -488,6 +488,10 @@ def _run_safe_migrations(db):
         # Maintenance item vehicle type filter (for motorcycle-specific items)
         """ALTER TABLE maintenance_items
            ADD COLUMN IF NOT EXISTS vehicle_types VARCHAR(100)""",
+
+        # OBD snapshot new sensor columns
+        """ALTER TABLE obd_snapshots ADD COLUMN IF NOT EXISTS battery_voltage_v DOUBLE PRECISION""",
+        """ALTER TABLE obd_snapshots ADD COLUMN IF NOT EXISTS odometer_km DOUBLE PRECISION""",
     ]
 
     for sql in migrations:

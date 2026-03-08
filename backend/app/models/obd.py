@@ -35,6 +35,8 @@ class OBDSnapshot(db.Model):
     maf_rate_gs = db.Column(db.Float)                                   # Mass Air Flow rate in grams/second
     fuel_level_pct = db.Column(db.Float)                                # Fuel tank level percentage
     short_fuel_trim_pct = db.Column(db.Float)                           # Short-term fuel trim percentage
+    battery_voltage_v = db.Column(db.Float)                              # Control module voltage in volts
+    odometer_km = db.Column(db.Float)                                    # ECU odometer reading in km
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -52,6 +54,8 @@ class OBDSnapshot(db.Model):
             'maf_rate_gs': self.maf_rate_gs,
             'fuel_level_pct': self.fuel_level_pct,
             'short_fuel_trim_pct': self.short_fuel_trim_pct,
+            'battery_voltage_v': self.battery_voltage_v,
+            'odometer_km': self.odometer_km,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
 

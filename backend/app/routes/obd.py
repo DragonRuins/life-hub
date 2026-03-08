@@ -60,7 +60,16 @@ SNAPSHOT_SENSOR_FIELDS = (
     'rpm', 'speed_kph', 'coolant_temp_c', 'engine_load_pct',
     'throttle_pct', 'intake_air_temp_c', 'maf_rate_gs',
     'fuel_level_pct', 'short_fuel_trim_pct',
+    'battery_voltage_v', 'odometer_km',
 )
+
+# Maps snapshot column names to their display unit strings (for trend responses).
+SENSOR_FIELD_UNITS = {
+    'rpm': 'rpm', 'speed_kph': 'km/h', 'coolant_temp_c': '°C',
+    'engine_load_pct': '%', 'throttle_pct': '%', 'intake_air_temp_c': '°C',
+    'maf_rate_gs': 'g/s', 'fuel_level_pct': '%', 'short_fuel_trim_pct': '%',
+    'battery_voltage_v': 'V', 'odometer_km': 'km',
+}
 
 
 # ── Ingestion Endpoints ────────────────────────────────────────
@@ -136,6 +145,68 @@ def ingest_snapshots():
     return jsonify({
         'ingested': ingested,
         'rejected': rejected,
+    })
+
+
+# ── Odometer Endpoint ──────────────────────────────────────────
+
+@obd_bp.route('/vehicles/<int:vehicle_id>/odometer', methods=['POST'])
+def update_odometer(vehicle_id):
+    """Update the vehicle's current mileage from the ECU odometer reading.
+
+    Expects: {"odometer_km": 80000.5}
+
+    Converts km to miles, guards against rollback (only updates if new > current),
+    cascades tire mileage and maintenance interval checks.
+
+    Returns: {"updated": true, "new_mileage_miles": N}
+             or {"updated": false, "reason": "..."}
+    """
+    from app.models.vehicle import Vehicle
+    from app.services.tire_mileage import update_equipped_tire_mileage
+
+    data = request.get_json(silent=True) or {}
+    odometer_km = data.get('odometer_km')
+
+    if odometer_km is None:
+        return jsonify({'error': 'odometer_km is required'}), 400
+    try:
+        odometer_km = float(odometer_km)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'odometer_km must be a number'}), 400
+
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    odometer_miles = odometer_km * 0.621371
+
+    # Guard: only update if the new reading is greater than current mileage
+    current = vehicle.current_mileage or 0
+    if odometer_miles <= current:
+        return jsonify({
+            'updated': False,
+            'reason': f'New reading ({odometer_miles:.1f} mi) is not greater than current ({current:.1f} mi)',
+        })
+
+    try:
+        # Update tire mileage BEFORE setting new vehicle mileage
+        update_equipped_tire_mileage(vehicle, odometer_miles)
+
+        vehicle.current_mileage = odometer_miles
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to update odometer for vehicle {vehicle_id}: {e}")
+        return jsonify({'error': 'Database error updating odometer'}), 500
+
+    # Fire maintenance interval checks (non-blocking — never fails the response)
+    try:
+        from app.services.interval_checker import check_and_notify_intervals
+        check_and_notify_intervals(vehicle_id)
+    except Exception as e:
+        logger.warning(f"Interval check after odometer update failed: {e}")
+
+    return jsonify({
+        'updated': True,
+        'new_mileage_miles': round(odometer_miles, 1),
     })
 
 
@@ -358,4 +429,81 @@ def query_trips(vehicle_id):
     return jsonify({
         'trips': [t.to_dict() for t in trips],
         'total': total,
+    })
+
+
+# ── Trend Endpoint ─────────────────────────────────────────────
+
+@obd_bp.route('/vehicles/<int:vehicle_id>/snapshots/trend', methods=['GET'])
+def query_trend(vehicle_id):
+    """Get time-series data for a single sensor field, optimized for charting.
+
+    Required params:
+      - field (string): column name from OBDSnapshot (e.g. "rpm", "coolant_temp_c")
+
+    Optional params:
+      - start (ISO datetime)
+      - end (ISO datetime)
+      - trip_id (int) — if provided, uses the trip's start/end as the date range
+      - limit (int, default 500, max 2000) — returns evenly spaced points if total exceeds limit
+
+    Returns: {"field": "rpm", "unit": "rpm", "points": [{"t": "ISO", "v": 1250.0}, ...]}
+    """
+    from sqlalchemy import text as sql_text
+
+    field = request.args.get('field')
+    if not field or field not in SENSOR_FIELD_UNITS:
+        return jsonify({'error': f'field is required and must be one of: {", ".join(SENSOR_FIELD_UNITS.keys())}'}), 400
+
+    limit = _parse_limit(request.args.get('limit', 500), default=500, max_limit=2000)
+
+    # Date range — either from params or from a trip record
+    trip_id = request.args.get('trip_id')
+    if trip_id:
+        try:
+            trip = OBDTrip.query.get(int(trip_id))
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Invalid trip_id'}), 400
+        if not trip:
+            return jsonify({'error': 'Trip not found'}), 404
+        start = trip.start_time
+        end = trip.end_time
+    else:
+        start = _parse_dt(request.args.get('start'))
+        end = _parse_dt(request.args.get('end'))
+
+    # Build query for just the two columns we need
+    col = getattr(OBDSnapshot, field)
+    query = db.session.query(OBDSnapshot.recorded_at, col) \
+        .filter(OBDSnapshot.vehicle_id == vehicle_id) \
+        .filter(col.isnot(None))
+
+    if start:
+        query = query.filter(OBDSnapshot.recorded_at >= start)
+    if end:
+        query = query.filter(OBDSnapshot.recorded_at <= end)
+
+    query = query.order_by(OBDSnapshot.recorded_at.asc())
+
+    # Count total rows to decide if downsampling is needed
+    total = query.count()
+
+    if total <= limit:
+        rows = query.all()
+    else:
+        # Modulo-based downsampling: take every Nth row to stay under limit
+        step = total // limit
+        # Use a subquery with row_number for even spacing
+        all_rows = query.all()
+        rows = all_rows[::step][:limit]
+
+    points = [
+        {'t': row[0].isoformat(), 'v': round(row[1], 2)}
+        for row in rows
+    ]
+
+    return jsonify({
+        'field': field,
+        'unit': SENSOR_FIELD_UNITS.get(field, ''),
+        'points': points,
     })
