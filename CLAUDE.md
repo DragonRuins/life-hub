@@ -4,9 +4,9 @@
 
 Datacore has TWO codebases (three targets) that share the same Flask backend API:
 
-| Project         | Path                                                                | Tech                              | Purpose                                          |
-| --------------- | ------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------ |
-| **Web App**     | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL        | The main web dashboard (this repo)               |
+| Project         | Path                                                                | Tech                             | Purpose                                          |
+| --------------- | ------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------ |
+| **Web App**     | `/Users/chaseburrell/Documents/VisualStudioCode/Personal_Database/` | React + Flask + PostgreSQL       | The main web dashboard (this repo)               |
 | **iOS/Mac App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (iOS 26+, Swift 6, MVVM) | Native Apple client consuming the same Flask API |
 | **watchOS App** | `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/`    | SwiftUI (watchOS 26+, Swift 6)   | Apple Watch companion app (same Xcode project)   |
 
@@ -68,20 +68,21 @@ The iOS build also compiles the watchOS and widget extension targets. If no `err
 
 The iOS app has two fundamentally different design philosophies based on device class, detected via `@Environment(\.horizontalSizeClass)` (`.regular` = iPad, `.compact` = iPhone). **No `UIDevice` checks** — only size class.
 
-| Aspect | iPhone (`.compact`) | iPad (`.regular`) |
-|--------|-------------------|-----------------|
-| **Philosophy** | Standard iOS mobile app | **Command Center** — dense, everything visible at a glance |
-| **Navigation** | `TabView` with tab bar | `CommandRail` (60pt icon-only rail) + `LiveStatusBar` (36pt status strip) |
-| **Dashboard** | Single-column scroll with hero card, weather, activity | **Bento grid** with 8-10 HUD-style panels covering every module |
-| **List modules** (Vehicles, Notes) | `NavigationLink` push to detail | Persistent list + inline detail split (no push, detail updates in-place) |
-| **Data-heavy modules** (Fuel, Infra) | Single-column stacked sections | Side-by-side panels, taller charts, all sections visible simultaneously |
-| **Grid modules** (Projects, Knowledge) | Single-column `List` | 2-column `LazyVGrid` card grid |
-| **Astrometrics** | Segmented picker, one section at a time | Full-width tabbed layout with labeled segments |
-| **Title style** | `.navigationBarTitleDisplayMode(.large)` | `.navigationBarTitleDisplayMode(.inline)` to save vertical space |
-| **Drill-down** | Standard push navigation | Inline detail panes or popovers |
-| **Data refresh** | Pull-to-refresh + silent 5-min auto-refresh | Same, plus cross-module panel refresh (Astro, Trek, Infra) |
+| Aspect                                 | iPhone (`.compact`)                                    | iPad (`.regular`)                                                         |
+| -------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------- |
+| **Philosophy**                         | Standard iOS mobile app                                | **Command Center** — dense, everything visible at a glance                |
+| **Navigation**                         | `TabView` with tab bar                                 | `CommandRail` (60pt icon-only rail) + `LiveStatusBar` (36pt status strip) |
+| **Dashboard**                          | Single-column scroll with hero card, weather, activity | **Bento grid** with 8-10 HUD-style panels covering every module           |
+| **List modules** (Vehicles, Notes)     | `NavigationLink` push to detail                        | Persistent list + inline detail split (no push, detail updates in-place)  |
+| **Data-heavy modules** (Fuel, Infra)   | Single-column stacked sections                         | Side-by-side panels, taller charts, all sections visible simultaneously   |
+| **Grid modules** (Projects, Knowledge) | Single-column `List`                                   | 2-column `LazyVGrid` card grid                                            |
+| **Astrometrics**                       | Segmented picker, one section at a time                | Full-width tabbed layout with labeled segments                            |
+| **Title style**                        | `.navigationBarTitleDisplayMode(.large)`               | `.navigationBarTitleDisplayMode(.inline)` to save vertical space          |
+| **Drill-down**                         | Standard push navigation                               | Inline detail panes or popovers                                           |
+| **Data refresh**                       | Pull-to-refresh + silent 5-min auto-refresh            | Same, plus cross-module panel refresh (Astro, Trek, Infra)                |
 
 **Key iPad architectural components:**
+
 - **`CommandRail`** (`Views/Shared/CommandRail.swift`) — Narrow 60pt icon-only navigation rail replacing the sidebar. Badge dots for actionable states (red = overdue maintenance, etc.). Selection persisted via `@SceneStorage`.
 - **`LiveStatusBar`** (`Views/Shared/LiveStatusBar.swift`) — Persistent 36pt bar showing weather, next launch countdown (`TimelineView`), infra health dot, notification count, clock.
 - **`iPadSplitLayout`** (`Views/Shared/iPadSplitLayout.swift`) — Reusable left/right pane split helper for list+detail patterns.
@@ -89,6 +90,7 @@ The iOS app has two fundamentally different design philosophies based on device 
 
 **iPad implementation pattern for new modules:**
 Every view that needs iPad adaptation should branch in the `body`:
+
 ```swift
 @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -103,9 +105,11 @@ var body: some View {
     .navigationBarTitleDisplayMode(sizeClass == .regular ? .inline : .large)
 }
 ```
+
 iPhone layouts must remain completely unchanged when adding iPad layouts. Extract shared subviews and recompose them differently per device.
 
 **iPad glass effect pitfalls:**
+
 - `.glassEffect(.regular.interactive())` creates Liquid Glass bubbles that **intercept taps** — don't use on cards that contain `NavigationLink`. Use `.background(.ultraThinMaterial, in: .rect(cornerRadius: 12))` instead for tap-through cards.
 - Separate `.glassEffect()` calls on adjacent views create **visible background seams**. Use `.ultraThinMaterial` for elements that need to look continuous (e.g., CommandRail + LiveStatusBar).
 
@@ -113,14 +117,15 @@ iPhone layouts must remain completely unchanged when adding iPad layouts. Extrac
 
 The Apple app has FOUR first-class platforms that must stay in sync:
 
-| Platform | Shell | Navigation | Styling |
-|----------|-------|------------|---------|
-| **Mac** | `NavigationSplitView` + `MacSidebar` + `MacToolbar` | Sidebar with sections, HSplitView for list+detail modules | Native AppKit materials |
-| **iPad** | `NavigationSplitView` + `iPadSidebar` + `iPadToolbar` | Identical to Mac — same sidebar, same toolbar, same split layouts | Liquid Glass (automatic via iOS 26) |
-| **iPhone** | `TabView` (5 tabs + More) | Standard push navigation | Liquid Glass (automatic via iOS 26) |
-| **Apple Watch** | `NavigationStack` (hub-and-spoke) | ContentView hub → detail views | Compact watchOS styling |
+| Platform        | Shell                                                 | Navigation                                                        | Styling                             |
+| --------------- | ----------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------- |
+| **Mac**         | `NavigationSplitView` + `MacSidebar` + `MacToolbar`   | Sidebar with sections, HSplitView for list+detail modules         | Native AppKit materials             |
+| **iPad**        | `NavigationSplitView` + `iPadSidebar` + `iPadToolbar` | Identical to Mac — same sidebar, same toolbar, same split layouts | Liquid Glass (automatic via iOS 26) |
+| **iPhone**      | `TabView` (5 tabs + More)                             | Standard push navigation                                          | Liquid Glass (automatic via iOS 26) |
+| **Apple Watch** | `NavigationStack` (hub-and-spoke)                     | ContentView hub → detail views                                    | Compact watchOS styling             |
 
 **Key rules:**
+
 - Mac and iPad share identical layout patterns (sidebar, toolbar, split panes, context menus). Any change to one must be applied to the other.
 - iPhone is a separate mobile-first design and does NOT need to match Mac/iPad.
 - Apple Watch is a minimal companion — only core data-at-a-glance modules (Vehicles, Fuel, Launches, Work Hours). Not every module needs a watch variant, but data-centric modules should be considered.
@@ -130,6 +135,7 @@ The Apple app has FOUR first-class platforms that must stay in sync:
 - Module views with list+detail patterns: use `HSplitView` on Mac, `HStack` on iPad (same visual result).
 
 **Apple Watch implementation pattern for new modules:**
+
 - Add a new `WatchEndpoint` case in `DatacoreWatch/Network/WatchEndpoint.swift`
 - Add a loader method in `WatchViewModel` with WatchConnectivity fallback
 - Add a cache accessor in `WatchDataCache` for offline persistence
@@ -483,11 +489,11 @@ This project runs in Docker with volume mounts. The `node_modules` directory liv
 
 ### Container Names
 
-| Container | Name |
-|-----------|------|
-| Database (PostgreSQL) | `life-hub-main-db-1` |
-| Backend (Flask/Gunicorn) | `life-hub-main-backend-1` |
-| Frontend (Vite/Nginx) | `life-hub-main-frontend-1` |
+| Container                | Name                       |
+| ------------------------ | -------------------------- |
+| Database (PostgreSQL)    | `life-hub-main-db-1`       |
+| Backend (Flask/Gunicorn) | `life-hub-main-backend-1`  |
+| Frontend (Vite/Nginx)    | `life-hub-main-frontend-1` |
 
 ### Deployment Workflow
 
@@ -518,6 +524,7 @@ docker exec life-hub-main-db-1 pg_isready -U lifehub
 ### Volume Mounts (Production)
 
 The backend container has these host mounts configured in Dockge:
+
 - `uploads:/app/uploads` — User-uploaded files (vehicle images, etc.)
 - `/mnt/SSDs/datacore/apns-certs:/app/certs:ro` — APNs .p8 key file for push notifications
 - `/var/run/docker.sock:/var/run/docker.sock` — Docker API access for infrastructure module
@@ -533,6 +540,7 @@ The Watch Data Pipeline is a full-stack system for collecting health/sensor data
 **Architecture:** Watch sensors → iPhone relay (WCSession) → Flask Backend API → React Frontend + Native SwiftUI views
 
 **Database Tables (7):**
+
 - `watch_health_samples` — HealthKit data (heart rate, SpO2, steps, etc.)
 - `watch_barometer_readings` — Atmospheric pressure + altitude
 - `watch_nfc_events` — NFC tag scan history
@@ -544,6 +552,7 @@ The Watch Data Pipeline is a full-stack system for collecting health/sensor data
 **API Endpoints:** 14 endpoints under `/api/watch/` (see `backend/app/routes/watch.py`)
 
 **React Routes (7):**
+
 - `/watch` — Overview dashboard
 - `/watch/health` — Health metrics list
 - `/watch/health/:metricType` — Per-metric detail view
@@ -573,6 +582,7 @@ The Watch Data Pipeline is a full-stack system for collecting health/sensor data
 | HealthKit manager | `Datacore-Apple/Datacore/HealthKit/HealthKitManager.swift` |
 
 **Key Design Decisions:**
+
 - UUID-based deduplication — every sample has a UUID; backend uses upsert to prevent duplicates
 - Batch sync — samples are buffered and sent in batches to reduce API calls
 - No foreign keys to other modules — watch data is self-contained, no FK to vehicles/notes/etc.
