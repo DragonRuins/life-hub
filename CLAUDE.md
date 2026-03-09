@@ -18,8 +18,31 @@ Datacore has TWO codebases (three targets) that share the same Flask backend API
 - When exploring iOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/Datacore/`.
 - When exploring watchOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/DatacoreWatch/`.
 - The project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
-- To type-check iOS code without a simulator: use `swiftc -typecheck -sdk ...iPhoneSimulator.sdk -target arm64-apple-ios26.0-simulator`.
-- To type-check watchOS code without a simulator: use `swiftc -typecheck -sdk ...WatchSimulator.sdk -target arm64-apple-watchos26.0-simulator`.
+
+**Building and verifying Apple app changes:**
+
+After modifying Swift files, always regenerate and build to catch compile errors:
+
+```bash
+cd /Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple
+
+# 1. Regenerate Xcode project (required after adding/removing files)
+xcodegen generate
+
+# 2. Build iOS target (catches all Swift errors)
+xcodebuild build -project Datacore.xcodeproj -scheme Datacore \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:" | head -20
+
+# 3. Build macOS target (catches #if os(macOS) compilation issues)
+xcodebuild build -project Datacore.xcodeproj -target DatacoreMac \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:" | head -20
+```
+
+The iOS build also compiles the watchOS and widget extension targets. If no `error:` lines appear, the build is clean. Warnings are expected (unused variables, deprecations) and can be ignored unless they indicate real issues.
+
+**Available simulator destinations:** iPhone 17 Pro, iPhone 17 Pro Max, iPhone Air, iPad Air 11-inch (M3), iPad Pro 13-inch (M5). Use `xcodebuild -project Datacore.xcodeproj -scheme Datacore -showdestinations` for the full list.
 
 **iOS App Architecture (quick reference):**
 

@@ -142,8 +142,8 @@ def check_interval_status(interval, current_mileage, current_date=None):
         "days_overdue": days_overdue,
         "next_due_mileage": next_due_mileage,
         "next_due_date": next_due_date.isoformat() if next_due_date else None,
-        "percent_miles": round(percent_miles, 1),
-        "percent_time": round(percent_time, 1),
+        "percent_miles": int(round(percent_miles)),
+        "percent_time": int(round(percent_time)),
     }
 
 
