@@ -136,7 +136,7 @@ def start_timer():
 @timecard_bp.route('/stop', methods=['POST'])
 def stop_timer():
     """Stop the currently running timer."""
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
 
     active = _get_active_timer()
     if not active:
