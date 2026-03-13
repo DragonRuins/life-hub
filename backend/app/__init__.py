@@ -89,6 +89,9 @@ def create_app():
     from app.routes.debts import debts_bp
     app.register_blueprint(debts_bp, url_prefix='/api/debts')
 
+    from app.routes.timecard import timecard_bp
+    app.register_blueprint(timecard_bp, url_prefix='/api/timecard')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.

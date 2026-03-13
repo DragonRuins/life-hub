@@ -197,6 +197,37 @@ AVAILABLE_EVENTS = [
         'description': 'When all debts are paid off',
         'fields': ['total_interest_saved', 'total_debts_paid'],
     },
+    # ── Timecard Events ────────────────────────────────────────
+    {
+        'name': 'timecard.clock_in',
+        'module': 'timecard',
+        'description': 'When you clock in to start tracking time',
+        'fields': ['work_type_label', 'time'],
+    },
+    {
+        'name': 'timecard.clock_out',
+        'module': 'timecard',
+        'description': 'When you clock out and stop tracking time',
+        'fields': ['work_type_label', 'duration'],
+    },
+    {
+        'name': 'timecard.auto_stop',
+        'module': 'timecard',
+        'description': 'When a running timer is auto-stopped by starting a new one',
+        'fields': ['old_type', 'old_duration', 'new_type'],
+    },
+    {
+        'name': 'timecard.quick_day',
+        'module': 'timecard',
+        'description': 'When a holiday or vacation day is logged',
+        'fields': ['day_type', 'date'],
+    },
+    {
+        'name': 'timecard.forgotten_timer',
+        'module': 'timecard',
+        'description': 'Alert when a timer has been running for 8+ hours',
+        'fields': ['work_type_label', 'duration'],
+    },
 ]
 
 
