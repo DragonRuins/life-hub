@@ -21,7 +21,7 @@ class TimeEntry(db.Model):
     duration_seconds = db.Column(db.Integer, nullable=True)
     notes = db.Column(db.Text, nullable=True)
     forgotten_alert_sent = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Valid work types
     TIMER_TYPES = ('in_office', 'wfh', 'support_call', 'business_travel')
