@@ -6,7 +6,7 @@ history, stats, and entry management.
 
 Endpoints:
   Timer:
-    POST   /api/timecard/start         -> Start a timer (auto-stops running one)
+    POST   /api/timecard/start         -> Start a timer (409 if one is running)
     POST   /api/timecard/stop          -> Stop the running timer
     GET    /api/timecard/status        -> Current timer state
 
@@ -21,6 +21,7 @@ Endpoints:
     PUT    /api/timecard/entry/<id>    -> Edit a time entry
     DELETE /api/timecard/entry/<id>    -> Delete a time entry
 """
+from calendar import monthrange
 from datetime import datetime, timezone, date, timedelta
 
 from flask import Blueprint, request, jsonify
@@ -28,6 +29,7 @@ from sqlalchemy import func, cast, Date, text
 
 from app import db
 from app.models.timecard import TimeEntry
+from app.models.monthly_total import MonthlyTotal
 from app.services.event_bus import emit
 
 import pytz
@@ -77,7 +79,7 @@ def _format_time_chicago(dt):
 
 @timecard_bp.route('/start', methods=['POST'])
 def start_timer():
-    """Start a new timer. Auto-stops any running timer first."""
+    """Start a new timer. Rejects if a timer is already running (409)."""
     data = request.get_json() or {}
     work_type = data.get('work_type')
 
@@ -86,25 +88,9 @@ def start_timer():
             'error': f'work_type must be one of: {", ".join(TimeEntry.TIMER_TYPES)}'
         }), 400
 
-    stopped_entry = None
-    active = _get_active_timer()
-
-    if active:
-        _stop_timer(active)
-        stopped_entry = active
-        db.session.flush()
-
-        # Emit auto-stop event
-        try:
-            emit('timecard.auto_stop',
-                 old_type=TimeEntry.TYPE_LABELS.get(active.work_type, active.work_type),
-                 old_duration=_format_duration(active.duration_seconds),
-                 new_type=TimeEntry.TYPE_LABELS.get(work_type, work_type),
-                 _category='TIMECARD_CLOCK_OUT',
-                 _thread_id='timecard',
-                 _deep_link='datacore://timecard')
-        except Exception:
-            pass
+    # Reject if a timer is already running — user must clock out first
+    if _get_active_timer():
+        return jsonify({'error': 'A timer is already running. Clock out first.'}), 409
 
     # Start new timer
     new_entry = TimeEntry(
@@ -126,11 +112,7 @@ def start_timer():
     except Exception:
         pass
 
-    result = {'entry': new_entry.to_dict()}
-    if stopped_entry:
-        result['stopped_entry'] = stopped_entry.to_dict()
-
-    return jsonify(result), 201
+    return jsonify({'entry': new_entry.to_dict()}), 201
 
 
 @timecard_bp.route('/stop', methods=['POST'])
@@ -442,6 +424,151 @@ def update_entry(entry_id):
 def delete_entry(entry_id):
     """Delete a time entry."""
     entry = TimeEntry.query.get_or_404(entry_id)
+    db.session.delete(entry)
+    db.session.commit()
+    return jsonify({'deleted': True})
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Monthly Totals (manual fallback for historical months)
+# ═══════════════════════════════════════════════════════════════════
+
+def _count_weekdays(year, month):
+    """Count Monday-Friday days in a given month."""
+    _, num_days = monthrange(year, month)
+    count = 0
+    for day in range(1, num_days + 1):
+        if date(year, month, day).weekday() < 5:  # 0=Mon ... 4=Fri
+            count += 1
+    return count
+
+
+@timecard_bp.route('/monthly-totals', methods=['GET'])
+def get_monthly_totals():
+    """
+    Return 12 months of hour data for a given year.
+
+    For each month:
+      - expected_hours = weekdays × 8
+      - actual_hours from completed TimeEntry records (converted to Chicago TZ)
+      - If no real entries, fall back to MonthlyTotal manual entry
+      - source: "calculated" | "manual" | "none"
+    """
+    year_str = request.args.get('year')
+    if not year_str:
+        return jsonify({'error': 'year query parameter is required'}), 400
+
+    try:
+        year = int(year_str)
+    except ValueError:
+        return jsonify({'error': 'year must be an integer'}), 400
+
+    # Fetch all completed entries for the entire year (Jan 1 – Dec 31 Chicago)
+    year_start_utc = CHICAGO_TZ.localize(
+        datetime(year, 1, 1)
+    ).astimezone(timezone.utc)
+    year_end_utc = CHICAGO_TZ.localize(
+        datetime(year + 1, 1, 1)
+    ).astimezone(timezone.utc)
+
+    entries = TimeEntry.query.filter(
+        TimeEntry.end_time.isnot(None),
+        TimeEntry.start_time >= year_start_utc,
+        TimeEntry.start_time < year_end_utc,
+    ).all()
+
+    # Bucket entries by Chicago-local month
+    month_seconds = {}  # month (1-12) -> total seconds
+    for e in entries:
+        local_month = e.start_time.astimezone(CHICAGO_TZ).month
+        month_seconds[local_month] = month_seconds.get(local_month, 0) + (e.duration_seconds or 0)
+
+    # Fetch all manual entries for this year
+    manual_entries = MonthlyTotal.query.filter_by(year=year).all()
+    manual_map = {m.month: m for m in manual_entries}
+
+    # Build response for all 12 months
+    result = []
+    for month in range(1, 13):
+        expected_hours = _count_weekdays(year, month) * 8
+        real_seconds = month_seconds.get(month, 0)
+        real_hours = round(real_seconds / 3600, 2)
+
+        manual = manual_map.get(month)
+
+        if real_seconds > 0:
+            actual_hours = real_hours
+            source = 'calculated'
+            manual_entry_id = None
+        elif manual:
+            actual_hours = manual.hours
+            source = 'manual'
+            manual_entry_id = manual.id
+        else:
+            actual_hours = 0
+            source = 'none'
+            manual_entry_id = None
+
+        result.append({
+            'month': month,
+            'year': year,
+            'expected_hours': expected_hours,
+            'actual_hours': actual_hours,
+            'deficit_or_surplus': round(actual_hours - expected_hours, 2),
+            'source': source,
+            'manual_entry_id': manual_entry_id,
+        })
+
+    return jsonify(result)
+
+
+@timecard_bp.route('/monthly-totals', methods=['POST'])
+def upsert_monthly_total():
+    """
+    Create or update a manual monthly hour total.
+
+    Body: { year: int, month: int (1-12), hours: float }
+    Upserts: if an entry already exists for that year+month, update it.
+    """
+    data = request.get_json() or {}
+
+    year = data.get('year')
+    month = data.get('month')
+    hours = data.get('hours')
+
+    if year is None or month is None or hours is None:
+        return jsonify({'error': 'year, month, and hours are required'}), 400
+
+    try:
+        year = int(year)
+        month = int(month)
+        hours = float(hours)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'year and month must be integers, hours must be a number'}), 400
+
+    if month < 1 or month > 12:
+        return jsonify({'error': 'month must be between 1 and 12'}), 400
+
+    if hours < 0:
+        return jsonify({'error': 'hours must be non-negative'}), 400
+
+    # Upsert: update existing or create new
+    existing = MonthlyTotal.query.filter_by(year=year, month=month).first()
+    if existing:
+        existing.hours = hours
+        db.session.commit()
+        return jsonify(existing.to_dict())
+    else:
+        entry = MonthlyTotal(year=year, month=month, hours=hours)
+        db.session.add(entry)
+        db.session.commit()
+        return jsonify(entry.to_dict()), 201
+
+
+@timecard_bp.route('/monthly-totals/<int:entry_id>', methods=['DELETE'])
+def delete_monthly_total(entry_id):
+    """Delete a manual monthly total entry."""
+    entry = MonthlyTotal.query.get_or_404(entry_id)
     db.session.delete(entry)
     db.session.commit()
     return jsonify({'deleted': True})

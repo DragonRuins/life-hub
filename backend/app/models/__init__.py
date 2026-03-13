@@ -21,6 +21,7 @@ from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings, AstroLau
 from .trek import TrekDailyEntry, TrekFavorite, TrekSettings
 from .ai_chat import Conversation, Message, AISettings
 from .timecard import TimeEntry
+from .monthly_total import MonthlyTotal
 from .device_token import DeviceToken
 from .notification_snooze import NotificationSnooze
 from .debt import Debt, DebtPayment, SnowballSavings
