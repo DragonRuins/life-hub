@@ -86,6 +86,9 @@ def create_app():
     from app.routes.obd import obd_bp
     app.register_blueprint(obd_bp, url_prefix='/api/obd')
 
+    from app.routes.debts import debts_bp
+    app.register_blueprint(debts_bp, url_prefix='/api/debts')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -94,7 +97,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, obd  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, obd, debt  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
@@ -134,6 +137,12 @@ def create_app():
         # Auto-seed smart home / printer notification rules (all disabled by default).
         try:
             _seed_smarthome_notification_rules(db)
+        except Exception:
+            pass  # Don't break startup if seeding fails
+
+        # Auto-seed debt payoff notification rules (all disabled by default).
+        try:
+            _seed_debt_notification_rules(db)
         except Exception:
             pass  # Don't break startup if seeding fails
 
@@ -363,6 +372,72 @@ def _seed_smarthome_notification_rules(db):
     ]
 
     for rule_data in smarthome_rules:
+        existing = NotificationRule.query.filter_by(
+            event_name=rule_data['event_name']
+        ).first()
+        if not existing:
+            db.session.add(NotificationRule(
+                name=rule_data['name'],
+                description=rule_data['description'],
+                module=rule_data['module'],
+                rule_type='event',
+                event_name=rule_data['event_name'],
+                title_template=rule_data['title_template'],
+                body_template=rule_data['body_template'],
+                priority='normal',
+                is_enabled=False,
+            ))
+    db.session.commit()
+
+
+def _seed_debt_notification_rules(db):
+    """Seed default debt payoff notification rules on first startup."""
+    from app.models.notification import NotificationRule
+
+    debt_rules = [
+        {
+            'name': 'Debt Paid Off',
+            'event_name': 'debt.paid_off',
+            'module': 'debts',
+            'description': 'When a debt is fully paid off',
+            'title_template': 'Debt Paid Off: {{debt_label}}',
+            'body_template': '{{debt_label}} is paid off! You\'ve freed up ${{monthly_payment}}/mo. Total freed: ${{total_freed_monthly}}/mo.',
+        },
+        {
+            'name': 'Autopay Logged',
+            'event_name': 'debt.autopay_logged',
+            'module': 'debts',
+            'description': 'When an autopay deduction is recorded',
+            'title_template': 'Autopay: {{debt_label}}',
+            'body_template': 'Autopay: ${{amount_paid}} applied to {{debt_label}}. Remaining balance: ${{remaining_balance}}.',
+        },
+        {
+            'name': 'Savings Ready to Pay Off',
+            'event_name': 'debt.savings_ready',
+            'module': 'debts',
+            'description': 'When savings balance can cover the next target debt',
+            'title_template': 'Ready to Pay Off: {{debt_label}}',
+            'body_template': 'Your savings (${{savings_balance}}) can now cover {{debt_label}} (${{debt_balance}}). Ready to pay it off?',
+        },
+        {
+            'name': 'Savings Approaching Target',
+            'event_name': 'debt.savings_approaching',
+            'module': 'debts',
+            'description': 'When savings reaches 80% of the next target debt',
+            'title_template': 'Almost There: {{debt_label}}',
+            'body_template': 'You\'re 80%+ of the way to paying off {{debt_label}}. ~${{shortfall}} more to go.',
+        },
+        {
+            'name': 'All Debts Cleared',
+            'event_name': 'debt.all_cleared',
+            'module': 'debts',
+            'description': 'When the last active debt is paid off',
+            'title_template': 'All Debts Paid Off!',
+            'body_template': 'All debts are paid off! Total interest saved: ${{total_interest_saved}}.',
+        },
+    ]
+
+    for rule_data in debt_rules:
         existing = NotificationRule.query.filter_by(
             event_name=rule_data['event_name']
         ).first()

@@ -166,6 +166,37 @@ AVAILABLE_EVENTS = [
         'description': 'When a new Astronomy Picture of the Day is available',
         'fields': ['title', 'date', 'media_type'],
     },
+    # ── Debt Payoff Events ─────────────────────────────────────
+    {
+        'name': 'debt.paid_off',
+        'module': 'debts',
+        'description': 'When a debt is fully paid off',
+        'fields': ['debt_label', 'monthly_payment', 'total_freed_monthly'],
+    },
+    {
+        'name': 'debt.autopay_logged',
+        'module': 'debts',
+        'description': 'When an autopay payment is recorded',
+        'fields': ['debt_label', 'amount_paid', 'remaining_balance'],
+    },
+    {
+        'name': 'debt.savings_ready',
+        'module': 'debts',
+        'description': 'When savings balance can cover the next target debt',
+        'fields': ['savings_balance', 'debt_label', 'debt_balance'],
+    },
+    {
+        'name': 'debt.savings_approaching',
+        'module': 'debts',
+        'description': 'When savings reaches 80% of the next target debt',
+        'fields': ['savings_balance', 'debt_label', 'debt_balance', 'shortfall'],
+    },
+    {
+        'name': 'debt.all_cleared',
+        'module': 'debts',
+        'description': 'When all debts are paid off',
+        'fields': ['total_interest_saved', 'total_debts_paid'],
+    },
 ]
 
 
