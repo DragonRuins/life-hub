@@ -28,3 +28,4 @@ from .watch import (
     WatchNFCActionDefinition, WatchNFCTimer,
     WatchSpatialReading, WatchSyncStatus,
 )
+from .debt import Debt, DebtPayment, SnowballSavings
