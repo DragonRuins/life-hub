@@ -495,28 +495,31 @@ def get_monthly_totals():
         real_hours = round(real_seconds / 3600, 2)
 
         manual = manual_map.get(month)
+        manual_hours = manual.hours if manual else 0
 
-        if real_seconds > 0:
-            actual_hours = real_hours
+        # Add real tracked hours + manual hours together
+        # (manual entries supplement tracked time, e.g. partial month coverage)
+        actual_hours = round(real_hours + manual_hours, 2)
+
+        if real_hours > 0 and manual_hours > 0:
+            source = 'combined'
+        elif real_hours > 0:
             source = 'calculated'
-            manual_entry_id = None
-        elif manual:
-            actual_hours = manual.hours
+        elif manual_hours > 0:
             source = 'manual'
-            manual_entry_id = manual.id
         else:
-            actual_hours = 0
             source = 'none'
-            manual_entry_id = None
 
         result.append({
             'month': month,
             'year': year,
             'expected_hours': expected_hours,
             'actual_hours': actual_hours,
+            'tracked_hours': real_hours,
+            'manual_hours': manual_hours,
             'deficit_or_surplus': round(actual_hours - expected_hours, 2),
             'source': source,
-            'manual_entry_id': manual_entry_id,
+            'manual_entry_id': manual.id if manual else None,
         })
 
     return jsonify(result)
