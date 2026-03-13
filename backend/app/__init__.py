@@ -97,7 +97,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, obd, debt  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, work_hours, obd, debt, timecard  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
@@ -145,6 +145,12 @@ def create_app():
             _seed_debt_notification_rules(db)
         except Exception:
             pass  # Don't break startup if seeding fails
+
+        # Auto-seed timecard notification rules (all disabled by default).
+        try:
+            _seed_timecard_notification_rules(db)
+        except Exception:
+            pass
 
     # ── Initialize notification scheduler ─────────────────────
     # APScheduler runs scheduled notification rules in the background.
@@ -456,6 +462,72 @@ def _seed_debt_notification_rules(db):
     db.session.commit()
 
 
+def _seed_timecard_notification_rules(db):
+    """Seed default timecard notification rules on first startup."""
+    from app.models.notification import NotificationRule
+
+    timecard_rules = [
+        {
+            'name': 'Clock In',
+            'event_name': 'timecard.clock_in',
+            'module': 'timecard',
+            'description': 'When you clock in to start tracking time',
+            'title_template': 'Clocked In',
+            'body_template': '{{work_type_label}} at {{time}}',
+        },
+        {
+            'name': 'Clock Out',
+            'event_name': 'timecard.clock_out',
+            'module': 'timecard',
+            'description': 'When you clock out and stop tracking time',
+            'title_template': 'Clocked Out',
+            'body_template': '{{duration}} — {{work_type_label}}',
+        },
+        {
+            'name': 'Timer Auto-Stopped',
+            'event_name': 'timecard.auto_stop',
+            'module': 'timecard',
+            'description': 'When a running timer is auto-stopped by starting a new one',
+            'title_template': 'Timer Switched',
+            'body_template': 'Stopped {{old_type}} ({{old_duration}}) → Started {{new_type}}',
+        },
+        {
+            'name': 'Quick Day Logged',
+            'event_name': 'timecard.quick_day',
+            'module': 'timecard',
+            'description': 'When a holiday or vacation day is logged',
+            'title_template': 'Day Logged',
+            'body_template': '{{day_type}} — 8h recorded for {{date}}',
+        },
+        {
+            'name': 'Forgotten Timer',
+            'event_name': 'timecard.forgotten_timer',
+            'module': 'timecard',
+            'description': 'Alert when a timer has been running for 8+ hours',
+            'title_template': 'Forgot to Clock Out?',
+            'body_template': '{{work_type_label}} timer still running — {{duration}}',
+        },
+    ]
+
+    for rule_data in timecard_rules:
+        existing = NotificationRule.query.filter_by(
+            event_name=rule_data['event_name']
+        ).first()
+        if not existing:
+            db.session.add(NotificationRule(
+                name=rule_data['name'],
+                description=rule_data['description'],
+                module=rule_data['module'],
+                rule_type='event',
+                event_name=rule_data['event_name'],
+                title_template=rule_data['title_template'],
+                body_template=rule_data['body_template'],
+                priority='normal',
+                is_enabled=False,
+            ))
+    db.session.commit()
+
+
 def _run_safe_migrations(db):
     """Run idempotent ALTER TABLE statements for columns added after initial table creation.
 
@@ -564,6 +636,19 @@ def _run_safe_migrations(db):
         # OBD snapshot new sensor columns
         """ALTER TABLE obd_snapshots ADD COLUMN IF NOT EXISTS battery_voltage_v DOUBLE PRECISION""",
         """ALTER TABLE obd_snapshots ADD COLUMN IF NOT EXISTS odometer_km DOUBLE PRECISION""",
+
+        # Timecard: partial unique index for one active timer
+        """DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes WHERE indexname = 'idx_one_active_timer'
+    ) THEN
+        CREATE UNIQUE INDEX idx_one_active_timer ON time_entries ((TRUE)) WHERE end_time IS NULL;
+    END IF;
+END $$""",
+
+        # Timecard: index on start_time for date-range queries
+        """CREATE INDEX IF NOT EXISTS idx_time_entries_start ON time_entries (start_time)""",
     ]
 
     for sql in migrations:
