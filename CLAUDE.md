@@ -19,28 +19,37 @@ Datacore has TWO codebases (three targets) that share the same Flask backend API
 - When exploring watchOS code, read files from `/Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple/DatacoreWatch/`.
 - The project uses `xcodegen` to generate the `.xcodeproj` from `project.yml`. After adding/removing Swift files, run `xcodegen generate` from the `Datacore-Apple` directory.
 
-**Building and verifying Apple app changes:**
+**IMPORTANT: Apple App Commit Workflow (mandatory steps in order):**
 
-After modifying Swift files, always regenerate and build to catch compile errors:
+Before committing any Apple app changes, you MUST complete these steps sequentially. Do NOT skip to committing/pushing without a clean build.
 
+**Step 1: Regenerate + Build**
 ```bash
 cd /Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple
 
-# 1. Regenerate Xcode project (required after adding/removing files)
+# Regenerate Xcode project (required after adding/removing files)
 xcodegen generate
 
-# 2. Build iOS target (catches all Swift errors)
+# Build iOS target (catches all Swift errors)
 xcodebuild build -project Datacore.xcodeproj -scheme Datacore \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:" | head -20
 
-# 3. Build macOS target (catches #if os(macOS) compilation issues)
+# Build macOS target (catches #if os(macOS) compilation issues)
 xcodebuild build -project Datacore.xcodeproj -target DatacoreMac \
   -destination 'platform=macOS' \
   CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "error:" | head -20
 ```
 
-The iOS build also compiles the watchOS and widget extension targets. If no `error:` lines appear, the build is clean. Warnings are expected (unused variables, deprecations) and can be ignored unless they indicate real issues.
+**Step 2: Fix errors until clean** — If any `error:` lines appear, fix them and rebuild. Repeat until both iOS and macOS builds produce zero errors. Warnings are expected and can be ignored.
+
+**Step 3: Ask about version bump** — Before committing, always ask the user whether to increment the version number. Versioning is managed in `project.yml` (propagated to all targets by xcodegen):
+- `MARKETING_VERSION` (e.g., `1.3`) — User-facing version (shown in App Store / Settings). Bump for new features (minor) or breaking changes (major).
+- `CURRENT_PROJECT_VERSION` (e.g., `4`) — Internal build number. Bump for any new build pushed to TestFlight or a device.
+- Never assume which part to bump — always ask. Example: "Should I bump the version? Currently 1.3 (build 4). Options: patch → 1.3.1, minor → 1.4, just build number → build 5, or no change."
+- If the user bumps the version, re-run `xcodegen generate` to update the project file before committing.
+
+**Step 4: Commit + Push** — Only after a clean build and version confirmation.
 
 **Available simulator destinations:** iPhone 17 Pro, iPhone 17 Pro Max, iPhone Air, iPad Air 11-inch (M3), iPad Pro 13-inch (M5). Use `xcodebuild -project Datacore.xcodeproj -scheme Datacore -showdestinations` for the full list.
 
