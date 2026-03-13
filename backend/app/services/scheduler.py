@@ -70,6 +70,7 @@ def init_scheduler(app):
             _add_launch_notification_cleanup_job()
             _reconcile_launch_reminders()
             _add_debt_autopay_job()
+            _add_timecard_forgotten_timer_job()
 
         logger.info("Notification scheduler started")
 
@@ -1125,3 +1126,67 @@ def _run_debt_autopay():
         except Exception as e:
             db.session.rollback()
             logger.error(f"Debt autopay check failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Timecard Forgotten Timer Check
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _add_timecard_forgotten_timer_job():
+    """Add an hourly job to check for timers running 8+ hours."""
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _check_forgotten_timers,
+        trigger='interval',
+        id='timecard_forgotten_timer_check',
+        hours=1,
+        replace_existing=True,
+    )
+    logger.info("Timecard forgotten timer check scheduled (hourly)")
+
+
+def _check_forgotten_timers():
+    """Check for timers running 8+ hours and send forgotten-timer notification."""
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.timecard import TimeEntry
+        from app.services.event_bus import emit
+
+        try:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=8)
+
+            forgotten = TimeEntry.query.filter(
+                TimeEntry.end_time.is_(None),
+                TimeEntry.start_time < cutoff,
+                TimeEntry.forgotten_alert_sent == False,  # noqa: E712
+            ).all()
+
+            for entry in forgotten:
+                elapsed = int((datetime.now(timezone.utc) - entry.start_time).total_seconds())
+                try:
+                    emit('timecard.forgotten_timer',
+                         work_type_label=TimeEntry.TYPE_LABELS.get(entry.work_type, entry.work_type),
+                         duration=TimeEntry._format_duration(elapsed),
+                         _category='TIMECARD_CLOCK_OUT',
+                         _thread_id='timecard',
+                         _deep_link='datacore://timecard',
+                         _interruption_level='time-sensitive')
+                except Exception:
+                    pass
+
+                entry.forgotten_alert_sent = True
+
+            if forgotten:
+                db.session.commit()
+                logger.info(f"Timecard: sent forgotten-timer alerts for {len(forgotten)} entry(ies)")
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Timecard forgotten timer check failed: {e}")
