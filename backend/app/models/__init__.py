@@ -20,7 +20,7 @@ from .kb import (
 from .astrometrics import AstroCache, AstroApodFavorite, AstroSettings, AstroLaunchNotification
 from .trek import TrekDailyEntry, TrekFavorite, TrekSettings
 from .ai_chat import Conversation, Message, AISettings
-from .work_hours import WorkHoursLog
+from .timecard import TimeEntry
 from .device_token import DeviceToken
 from .notification_snooze import NotificationSnooze
 from .watch import (
