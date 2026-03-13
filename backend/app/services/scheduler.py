@@ -69,6 +69,7 @@ def init_scheduler(app):
             _add_trek_prefetch_job()
             _add_launch_notification_cleanup_job()
             _reconcile_launch_reminders()
+            _add_debt_autopay_job()
 
         logger.info("Notification scheduler started")
 
@@ -992,3 +993,135 @@ def _fire_delayed_push(title, body, priority, extra_kwargs, app=None):
             db.session.add(log_entry)
             db.session.commit()
             logger.error(f"Delayed APNs push failed: '{title}': {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Debt Autopay Daily Check
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _add_debt_autopay_job():
+    """Add a daily job at 1 AM Central to process autopay debts."""
+    global scheduler
+    if not scheduler:
+        return
+
+    scheduler.add_job(
+        _run_debt_autopay,
+        trigger='cron',
+        id='debt_autopay_check',
+        hour=7,       # 1 AM Central = 7 AM UTC (during CDT)
+        minute=0,
+        replace_existing=True,
+    )
+    logger.info("Debt autopay check job scheduled (daily at 1 AM Central / 7 AM UTC)")
+
+
+def _run_debt_autopay():
+    """Process autopay for debts due today. Idempotent — skips if already processed."""
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.debt import Debt, DebtPayment
+        from app.services.event_bus import emit
+        from datetime import date
+        from decimal import Decimal
+        from sqlalchemy import func
+
+        try:
+            today = date.today()
+            today_day = today.day
+
+            # Find autopay-eligible debts due today
+            eligible = Debt.query.filter(
+                Debt.autopay_enabled == True,      # noqa: E712
+                Debt.due_day == today_day,
+                Debt.status.in_(['active', 'targeted']),
+            ).all()
+
+            if not eligible:
+                return
+
+            processed = 0
+            for debt in eligible:
+                # Idempotent: skip if already processed today
+                existing = DebtPayment.query.filter_by(
+                    debt_id=debt.id,
+                    payment_date=today,
+                    payment_type='autopay',
+                ).first()
+                if existing:
+                    continue
+
+                # Calculate payment amount (capped at remaining balance)
+                amount = min(debt.monthly_payment, debt.current_balance)
+
+                payment = DebtPayment(
+                    debt_id=debt.id,
+                    amount_paid=amount,
+                    interest_saved=Decimal('0'),
+                    payment_date=today,
+                    payment_type='autopay',
+                    notes='Automatic payment',
+                )
+                db.session.add(payment)
+
+                # Deduct from balance
+                debt.current_balance = max(Decimal('0'), debt.current_balance - amount)
+
+                was_active = debt.status in ('active', 'targeted')
+
+                # Check if paid off
+                if debt.current_balance <= 0:
+                    debt.status = 'paid_off'
+                    debt.paid_off_date = today
+
+                db.session.flush()
+
+                # Emit autopay notification
+                try:
+                    emit('debt.autopay_logged',
+                         debt_label=debt.label,
+                         amount_paid=float(amount),
+                         remaining_balance=float(debt.current_balance))
+                except Exception:
+                    pass
+
+                # Emit paid-off notification if applicable
+                if debt.status == 'paid_off' and was_active:
+                    try:
+                        freed = db.session.query(
+                            func.coalesce(func.sum(Debt.monthly_payment), 0)
+                        ).filter(Debt.status == 'paid_off').scalar()
+
+                        emit('debt.paid_off',
+                             debt_label=debt.label,
+                             monthly_payment=float(debt.monthly_payment),
+                             total_freed_monthly=float(freed))
+
+                        # Check if all debts cleared
+                        remaining = Debt.query.filter(
+                            Debt.status.in_(['active', 'targeted'])
+                        ).count()
+                        if remaining == 0:
+                            total_interest = db.session.query(
+                                func.coalesce(func.sum(DebtPayment.interest_saved), 0)
+                            ).scalar()
+                            total_debts = Debt.query.filter_by(status='paid_off').count()
+                            emit('debt.all_cleared',
+                                 total_interest_saved=float(total_interest),
+                                 total_debts_paid=total_debts)
+                    except Exception:
+                        pass
+
+                processed += 1
+
+            db.session.commit()
+            if processed:
+                logger.info(f"Debt autopay: processed {processed} payment(s)")
+
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Debt autopay check failed: {e}")
