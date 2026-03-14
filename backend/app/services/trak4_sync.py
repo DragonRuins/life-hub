@@ -101,7 +101,10 @@ def sync_devices():
                     device.last_report_time = _parse_dt(last_report.get('CreateTime'))
                     device.last_received_time = _parse_dt(last_report.get('ReceivedTime'))
 
-                device.last_synced_at = _utcnow()
+                # Only set last_synced_at for NEW devices (24h ago so first report sync has a window)
+                # sync_reports() updates last_synced_at after fetching reports
+                if device.last_synced_at is None:
+                    device.last_synced_at = _utcnow() - timedelta(hours=24)
                 synced += 1
 
             page += 1
@@ -131,6 +134,11 @@ def sync_reports():
         try:
             # Fetch reports since last sync (or last 24h if never synced)
             since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=24))
+
+            # If device has no reports yet, always look back 24h to bootstrap
+            report_count = Trak4GPSReport.query.filter_by(device_id=device.device_id).count()
+            if report_count == 0:
+                since = _utcnow() - timedelta(hours=24)
             now = _utcnow()
 
             new_count = _fetch_and_store_reports(device.device_id, since, now)
@@ -170,6 +178,9 @@ def _fetch_and_store_reports(trak4_device_id, start_dt, end_dt):
             logger.error(f"Failed to fetch reports for device {trak4_device_id} "
                          f"({current_start} to {chunk_end}): {e}")
             break
+
+        logger.info(f"Trak-4 API returned {len(reports)} report(s) for device {trak4_device_id} "
+                     f"({current_start} to {chunk_end})")
 
         for report_data in reports:
             report_id = str(report_data.get('ReportID', ''))
