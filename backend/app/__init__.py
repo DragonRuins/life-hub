@@ -10,6 +10,9 @@ When you want to add a new module, you:
 2. Create routes in app/routes/
 3. Register the blueprint here in create_app()
 """
+import logging
+import sys
+
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -25,6 +28,14 @@ def create_app():
     """Create and configure the Flask application."""
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
+
+    # Configure Python logging so logger.info()/error() output to stdout (visible in docker logs)
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=logging.INFO,
+        format='%(asctime)s [%(name)s] %(levelname)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
 
     # Allow the React frontend to make requests to this API
     # In development, React runs on port 3000, Flask on port 5000
