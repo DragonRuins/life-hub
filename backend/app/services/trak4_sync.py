@@ -81,28 +81,23 @@ def sync_devices():
                 device.product_name = dev_data.get('ProductName')
                 device.image_url = dev_data.get('ImageURL')
 
-                # Reporting frequency
-                freq = dev_data.get('ReportingFrequency') or {}
-                device.reporting_frequency_id = freq.get('ReportingFrequencyID')
-                device.reporting_frequency_name = freq.get('Name')
+                # Reporting frequency (flat fields on device object)
+                device.reporting_frequency_id = dev_data.get('ReportingFrequencyID_Current')
+                device.reporting_frequency_name = dev_data.get('ReportingFrequency_Current')
+                device.pending_frequency_id = dev_data.get('ReportingFrequencyID_Pending')
+                device.pending_frequency_name = dev_data.get('ReportingFrequency_Pending')
 
-                pending = dev_data.get('PendingReportingFrequency') or {}
-                device.pending_frequency_id = pending.get('ReportingFrequencyID')
-                device.pending_frequency_name = pending.get('Name')
-
-                # Last known position from the API's latest report snapshot
-                # Try both key formats (API may use either)
-                last_report = dev_data.get('LatestGPSReport') or dev_data.get('LatestGPS_Report') or {}
-                lat = _sanitize_coord(last_report.get('Latitude'))
-                lng = _sanitize_coord(last_report.get('Longitude'))
+                # Last known position (flat LastReport_* fields on device object)
+                lat = _sanitize_coord(dev_data.get('LastReport_Latitude'))
+                lng = _sanitize_coord(dev_data.get('LastReport_Longitude'))
                 if lat is not None and lng is not None:
                     device.last_latitude = lat
                     device.last_longitude = lng
-                    device.last_position_source = _map_position_source(last_report.get('PositionSource'))
-                    device.last_voltage = last_report.get('Voltage')
-                    device.last_voltage_percent = last_report.get('VoltagePercent')
-                    device.last_report_time = _parse_dt(last_report.get('CreateTime'))
-                    device.last_received_time = _parse_dt(last_report.get('ReceivedTime'))
+                    device.last_position_source = _map_position_source(dev_data.get('LastReport_PositionSource'))
+                    device.last_voltage = dev_data.get('LastReport_Voltage')
+                    device.last_voltage_percent = dev_data.get('LastReport_VoltagePercent')
+                    device.last_report_time = _parse_dt(dev_data.get('LastReport_CreateTime'))
+                    device.last_received_time = _parse_dt(dev_data.get('LastReport_ReceivedTime'))
 
                 # Only set last_synced_at for NEW devices (24h ago so first report sync has a window)
                 # sync_reports() updates last_synced_at after fetching reports
