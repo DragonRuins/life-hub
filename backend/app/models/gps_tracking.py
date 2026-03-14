@@ -78,11 +78,11 @@ class Trak4Device(db.Model):
             'last_position_source': self.last_position_source,
             'last_voltage': self.last_voltage,
             'last_voltage_percent': self.last_voltage_percent,
-            'last_report_time': self.last_report_time.isoformat() if self.last_report_time else None,
-            'last_received_time': self.last_received_time.isoformat() if self.last_received_time else None,
-            'last_synced_at': self.last_synced_at.isoformat() if self.last_synced_at else None,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'last_report_time': self.last_report_time.isoformat() + 'Z' if self.last_report_time else None,
+            'last_received_time': self.last_received_time.isoformat() + 'Z' if self.last_received_time else None,
+            'last_synced_at': self.last_synced_at.isoformat() + 'Z' if self.last_synced_at else None,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
         }
 
 
@@ -132,8 +132,8 @@ class Trak4GPSReport(db.Model):
             'device_state': self.device_state,
             'report_reason': self.report_reason,
             'reporting_frequency': self.reporting_frequency,
-            'create_time': self.create_time.isoformat() if self.create_time else None,
-            'received_time': self.received_time.isoformat() if self.received_time else None,
+            'create_time': self.create_time.isoformat() + 'Z' if self.create_time else None,
+            'received_time': self.received_time.isoformat() + 'Z' if self.received_time else None,
         }
 
     def to_route_point(self):
@@ -141,7 +141,7 @@ class Trak4GPSReport(db.Model):
         return {
             'lat': self.latitude,
             'lng': self.longitude,
-            'time': self.create_time.isoformat() if self.create_time else None,
+            'time': self.create_time.isoformat() + 'Z' if self.create_time else None,
             'speed': self.speed,
             'heading': self.heading,
         }

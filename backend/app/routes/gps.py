@@ -26,7 +26,7 @@ Webhook endpoint (1):
 Blueprint is registered with url_prefix='/api/gps' in __init__.py.
 """
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify, request
 from app import db
@@ -407,6 +407,39 @@ def debug_raw_device():
 
         body = {'APIKey': _api_key()}
         resp = req.post(f"{_base_url()}/device_list", json=body, timeout=15)
+        return jsonify({'raw_response': resp.json()})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@gps_bp.route('/debug/raw-reports', methods=['GET'])
+def debug_raw_reports():
+    """Fetch raw Trak-4 gps_report_list API response for debugging. Temporary.
+
+    Query params:
+      - device_id (int, required) — Trak-4 DeviceID
+      - hours (int, default 24) — how many hours back to query
+    """
+    try:
+        import requests as req
+        from app.services.trak4_client import _api_key, _base_url
+
+        device_id = request.args.get('device_id', type=int)
+        if not device_id:
+            return jsonify({'error': 'device_id query param is required'}), 400
+
+        hours = request.args.get('hours', 24, type=int)
+        end_dt = datetime.utcnow()
+        start_dt = end_dt - timedelta(hours=hours)
+
+        body = {
+            'APIKey': _api_key(),
+            'DeviceID': device_id,
+            'DateTime_Start': start_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'DateTime_End': end_dt.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'FilterByReceivedTime': True,
+        }
+        resp = req.post(f"{_base_url()}/gps_report_list", json=body, timeout=15)
         return jsonify({'raw_response': resp.json()})
     except Exception as e:
         return jsonify({'error': str(e)}), 500

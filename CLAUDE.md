@@ -24,6 +24,7 @@ Datacore has TWO codebases (three targets) that share the same Flask backend API
 Before committing any Apple app changes, you MUST complete these steps sequentially. Do NOT skip to committing/pushing without a clean build.
 
 **Step 1: Regenerate + Build**
+
 ```bash
 cd /Users/chaseburrell/Documents/VisualStudioCode/Datacore-Apple
 
@@ -44,6 +45,7 @@ xcodebuild build -project Datacore.xcodeproj -target DatacoreMac \
 **Step 2: Fix errors until clean** — If any `error:` lines appear, fix them and rebuild. Repeat until both iOS and macOS builds produce zero errors. Warnings are expected and can be ignored.
 
 **Step 3: Ask about version bump** — Before committing, always ask the user whether to increment the version number. Versioning is managed in `project.yml` (propagated to all targets by xcodegen):
+
 - `MARKETING_VERSION` (e.g., `1.3`) — User-facing version (shown in App Store / Settings). Bump for new features (minor) or breaking changes (major).
 - `CURRENT_PROJECT_VERSION` (e.g., `4`) — Internal build number. Bump for any new build pushed to TestFlight or a device.
 - Never assume which part to bump — always ask. Example: "Should I bump the version? Currently 1.3 (build 4). Options: patch → 1.3.1, minor → 1.4, just build number → build 5, or no change."
@@ -195,27 +197,28 @@ Forgetting to add CF headers on a manual `URLRequest` will cause a **403 Forbidd
 
 All design system primitives live in `Datacore/Design/`. These are the standard building blocks for polished views — always use these instead of ad-hoc animations or plain stat displays.
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| `DatacoreSpring` | `DatacoreMotion.swift` | Animation spring presets: `.snappy` (0.3s, taps), `.smooth` (0.5s, transitions), `.bouncy` (0.6s, celebrations), `.ambient` (2.0s, idle) |
-| `.staggerReveal(index:isVisible:)` | `DatacoreMotion.swift` | Staggered fade+slide-up for list items. Toggle `isVisible` bool to trigger. Index controls delay offset (capped at 15) |
-| `CountingNumber` | `DatacoreMotion.swift` | Animated numeric display — counts from 0 to target on appear, smooth transitions on value change. Supports printf formats and comma grouping |
-| `.parallax(rate:maxOffset:)` | `DatacoreMotion.swift` | Parallax scrolling effect for hero images. Must be inside a `ScrollView` |
-| `PremiumStatCard` | `PremiumStatCard.swift` | Polished stat tile with icon badge, `CountingNumber`, optional `TrendBadge`, optional `MiniSparkline`. Drop-in replacement for plain stat displays |
-| `ShimmerView` | `ShimmerView.swift` | Shimmering placeholder rectangle for loading states. Building block for skeleton layouts |
-| `StatCardSkeleton` | `ShimmerView.swift` | Skeleton matching `StatCard` layout (icon + value + label) |
-| `ListRowSkeleton` | `ShimmerView.swift` | Skeleton matching a standard list row (icon + 2-line text + trailing value) |
-| `PanelSkeleton` | `ShimmerView.swift` | Skeleton matching a dashboard panel (title + N content lines) |
-| `ChartSkeleton` | `ShimmerView.swift` | Skeleton matching a chart (title + plot area) |
-| `.scrollReveal()` | `ScrollReveal.swift` | Fade+slide-up on first appear. Lightweight alternative to `.staggerReveal()` — no index tracking |
-| `.buttonStyle(.datacore)` | `DatacoreButtonStyle.swift` | Subtle scale (96%) + opacity (90%) on press for general buttons |
-| `.buttonStyle(.datacoreCard)` | `DatacoreButtonStyle.swift` | Scale (97%) + shadow lift on press for tappable card surfaces |
-| `ModuleAccent` | `DatacoreColors.swift` | Per-module accent colors (`.dashboard` = cyan, `.vehicles` = blue, `.fuel` = green, `.weather` = teal, `.astrometrics` = purple, etc.). Includes `.color`, `.gradient`, `.areaGradient` |
-| `StatusColor` | `DatacoreColors.swift` | Maps API status strings ("overdue", "due", "ok") to semantic colors |
-| `Trend` / `TrendBadge` | `DatacoreColors.swift` | Direction enum (`.up`, `.down`, `.flat`) + compact badge with arrow and formatted change value |
-| `.platformFeedback()` | `PlatformCompat.swift` | Cross-platform haptic wrapper. iOS: triggers `SensoryFeedback`. macOS: no-op. Use `.platformFeedback(.success, trigger: count)` or `.platformFeedback(.selection, trigger: tab)` |
+| Component                          | File                        | Purpose                                                                                                                                                                                 |
+| ---------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DatacoreSpring`                   | `DatacoreMotion.swift`      | Animation spring presets: `.snappy` (0.3s, taps), `.smooth` (0.5s, transitions), `.bouncy` (0.6s, celebrations), `.ambient` (2.0s, idle)                                                |
+| `.staggerReveal(index:isVisible:)` | `DatacoreMotion.swift`      | Staggered fade+slide-up for list items. Toggle `isVisible` bool to trigger. Index controls delay offset (capped at 15)                                                                  |
+| `CountingNumber`                   | `DatacoreMotion.swift`      | Animated numeric display — counts from 0 to target on appear, smooth transitions on value change. Supports printf formats and comma grouping                                            |
+| `.parallax(rate:maxOffset:)`       | `DatacoreMotion.swift`      | Parallax scrolling effect for hero images. Must be inside a `ScrollView`                                                                                                                |
+| `PremiumStatCard`                  | `PremiumStatCard.swift`     | Polished stat tile with icon badge, `CountingNumber`, optional `TrendBadge`, optional `MiniSparkline`. Drop-in replacement for plain stat displays                                      |
+| `ShimmerView`                      | `ShimmerView.swift`         | Shimmering placeholder rectangle for loading states. Building block for skeleton layouts                                                                                                |
+| `StatCardSkeleton`                 | `ShimmerView.swift`         | Skeleton matching `StatCard` layout (icon + value + label)                                                                                                                              |
+| `ListRowSkeleton`                  | `ShimmerView.swift`         | Skeleton matching a standard list row (icon + 2-line text + trailing value)                                                                                                             |
+| `PanelSkeleton`                    | `ShimmerView.swift`         | Skeleton matching a dashboard panel (title + N content lines)                                                                                                                           |
+| `ChartSkeleton`                    | `ShimmerView.swift`         | Skeleton matching a chart (title + plot area)                                                                                                                                           |
+| `.scrollReveal()`                  | `ScrollReveal.swift`        | Fade+slide-up on first appear. Lightweight alternative to `.staggerReveal()` — no index tracking                                                                                        |
+| `.buttonStyle(.datacore)`          | `DatacoreButtonStyle.swift` | Subtle scale (96%) + opacity (90%) on press for general buttons                                                                                                                         |
+| `.buttonStyle(.datacoreCard)`      | `DatacoreButtonStyle.swift` | Scale (97%) + shadow lift on press for tappable card surfaces                                                                                                                           |
+| `ModuleAccent`                     | `DatacoreColors.swift`      | Per-module accent colors (`.dashboard` = cyan, `.vehicles` = blue, `.fuel` = green, `.weather` = teal, `.astrometrics` = purple, etc.). Includes `.color`, `.gradient`, `.areaGradient` |
+| `StatusColor`                      | `DatacoreColors.swift`      | Maps API status strings ("overdue", "due", "ok") to semantic colors                                                                                                                     |
+| `Trend` / `TrendBadge`             | `DatacoreColors.swift`      | Direction enum (`.up`, `.down`, `.flat`) + compact badge with arrow and formatted change value                                                                                          |
+| `.platformFeedback()`              | `PlatformCompat.swift`      | Cross-platform haptic wrapper. iOS: triggers `SensoryFeedback`. macOS: no-op. Use `.platformFeedback(.success, trigger: count)` or `.platformFeedback(.selection, trigger: tab)`        |
 
 **When to use each:**
+
 - **New numeric stats** → `PremiumStatCard` (not plain `Text`)
 - **Loading states on iPhone** → shimmer skeletons (not `ProgressView` or `LoadingView()`)
 - **Lists/grids appearing** → `.staggerReveal()` on each item with a shared `@State isVisible` bool
@@ -524,20 +527,6 @@ This project runs in Docker with volume mounts. The `node_modules` directory liv
 2. Commit and push to `main` — GitHub Actions will rebuild the Docker images with the new dependency
 3. In Dockge, pull the updated images and restart the stack
 
-**Never assume that editing a dependency manifest file is sufficient.** Dependencies are installed during the Docker image build, so the image must be rebuilt and redeployed. Remind the user to push, wait for the GitHub Actions build, and redeploy in Dockge.
-
-**Important:** Verify pip package names carefully. The PyPI package name (what you `pip install`) is not always the same as the import name (what you `import` in Python). For example, the `apns2` module is installed via `pip install apns2`, NOT `pip install PyAPNs2` (which is a different package).
-
-## Key Technical Decisions
-
-- **Weather:** Uses Open-Meteo API (free, no key). Proxied through Flask so frontend doesn't make external calls directly.
-- **Tags on notes:** Stored as comma-separated string for simplicity. Can migrate to many-to-many table later if needed.
-- **Database:** Tables auto-created on Flask startup via `db.create_all()`. For production schema changes, use Flask-Migrate (alembic).
-- **No auth yet:** This is a personal, local-network-only app. Authentication can be added later if needed.
-- **Theming:** `ThemeProvider.jsx` wraps the app and manages two themes: Catppuccin and LCARS. `App.jsx` renders the appropriate AppShell (AppShell or LCARSAppShell) based on the active theme. Theme preference is stored in localStorage as `'datacore-theme'`. The `.lcars-theme` class is added to `<html>` to enable CSS overrides.
-- **Mobile viewport:** Uses `100dvh` (not `100vh`) to account for mobile browser chrome (Safari toolbar).
-- **Responsive grids:** CSS utility classes (`.form-grid-2col`, `.form-grid-3col`) instead of inline styles, so `@media` queries can collapse columns on mobile.
-
 ## Infrastructure & Deployment
 
 **We do NOT test locally.** All testing and deployment happens on the live production server.
@@ -611,12 +600,3 @@ The backend container has these host mounts configured in Dockge:
 - Docker Compose for dev and prod
 - GitHub Actions CI/CD pipeline
 - **Apple Watch companion app:** 4 modules (Vehicle Health, Fuel Economy, Launch Countdown, Work Hours), WidgetKit complications (4 types), WatchConnectivity iPhone↔Watch data relay, offline caching via App Group UserDefaults, hub-and-spoke navigation, write actions (log fuel, mark service done, log work hours)
-
-### Planned future modules/features:
-
-- Finance/expense tracking
-- Project/task management
-- Inventory/collections tracking
-- Dashboard activity feed (recent actions across all modules)
-- Data export/backup functionality
-- Inline editing on vehicle details (currently need to use API directly to edit vehicle info)
