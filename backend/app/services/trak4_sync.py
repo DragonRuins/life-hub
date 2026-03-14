@@ -91,10 +91,13 @@ def sync_devices():
                 device.pending_frequency_name = pending.get('Name')
 
                 # Last known position from the API's latest report snapshot
-                last_report = dev_data.get('LatestGPS_Report') or {}
-                if last_report.get('Latitude') is not None:
-                    device.last_latitude = last_report.get('Latitude')
-                    device.last_longitude = last_report.get('Longitude')
+                # Try both key formats (API may use either)
+                last_report = dev_data.get('LatestGPSReport') or dev_data.get('LatestGPS_Report') or {}
+                lat = _sanitize_coord(last_report.get('Latitude'))
+                lng = _sanitize_coord(last_report.get('Longitude'))
+                if lat is not None and lng is not None:
+                    device.last_latitude = lat
+                    device.last_longitude = lng
                     device.last_position_source = _map_position_source(last_report.get('PositionSource'))
                     device.last_voltage = last_report.get('Voltage')
                     device.last_voltage_percent = last_report.get('VoltagePercent')
@@ -434,13 +437,20 @@ def _update_poll_interval():
 
 # -- Helpers -------------------------------------------------------------------
 
+def _sanitize_coord(value):
+    """Return None for Trak-4's -360 sentinel (no GPS fix), else the value."""
+    if value is None or value == -360 or value == -360.0:
+        return None
+    return value
+
+
 def _parse_report(trak4_device_id, data):
     """Parse a Trak-4 API GPS report dict into a Trak4GPSReport model."""
     return Trak4GPSReport(
         device_id=trak4_device_id,
         report_id=str(data.get('ReportID', '')),
-        latitude=data.get('Latitude'),
-        longitude=data.get('Longitude'),
+        latitude=_sanitize_coord(data.get('Latitude')),
+        longitude=_sanitize_coord(data.get('Longitude')),
         heading=data.get('Heading'),
         speed=data.get('Speed'),
         temperature=data.get('Temperature'),

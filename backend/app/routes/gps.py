@@ -398,42 +398,18 @@ def trigger_sync():
 
 # -- Debug Endpoint (temporary) ------------------------------------------------
 
-@gps_bp.route('/debug/raw-reports/<int:device_id>', methods=['GET'])
-def debug_raw_reports(device_id):
-    """Fetch raw Trak-4 API response for debugging. Temporary endpoint."""
-    device = Trak4Device.query.get_or_404(device_id)
-    start_str = request.args.get('start', '')
-    end_str = request.args.get('end', '')
-
-    from datetime import timedelta
-    start = _parse_dt(start_str) if start_str else (datetime.utcnow() - timedelta(hours=24))
-    end = _parse_dt(end_str) if end_str else datetime.utcnow()
-
+@gps_bp.route('/debug/raw-device', methods=['GET'])
+def debug_raw_device():
+    """Fetch raw Trak-4 device_list API response for debugging. Temporary."""
     try:
         import requests as req
         from app.services.trak4_client import _api_key, _base_url
 
-        # Raw API call — full response, no FilterByReceivedTime
-        body = {
-            'APIKey': _api_key(),
-            'DeviceID': device.device_id,
-            'DateTime_Start': start.strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'DateTime_End': end.strftime('%Y-%m-%dT%H:%M:%SZ'),
-        }
-        resp = req.post(f"{_base_url()}/gps_report_list", json=body, timeout=15)
-
-        return jsonify({
-            'device_id': device.device_id,
-            'device_id_type': type(device.device_id).__name__,
-            'local_db_id': device.id,
-            'query_start': start.isoformat(),
-            'query_end': end.isoformat(),
-            'http_status': resp.status_code,
-            'raw_response': resp.json(),
-        })
+        body = {'APIKey': _api_key()}
+        resp = req.post(f"{_base_url()}/device_list", json=body, timeout=15)
+        return jsonify({'raw_response': resp.json()})
     except Exception as e:
-        import traceback
-        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 # -- Webhook Endpoint ---------------------------------------------------------
