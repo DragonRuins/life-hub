@@ -45,13 +45,15 @@ gps_bp = Blueprint('gps', __name__)
 # -- Helpers ------------------------------------------------------------------
 
 def _parse_dt(value):
-    """Parse an ISO datetime string, handling None and timezone."""
+    """Parse an ISO datetime string into a naive UTC datetime."""
     if not value or (isinstance(value, str) and value.strip() == ''):
         return None
     if isinstance(value, str):
         try:
             value = value.replace('Z', '+00:00')
-            return datetime.fromisoformat(value)
+            dt = datetime.fromisoformat(value)
+            # Strip timezone — DB columns are naive UTC
+            return dt.replace(tzinfo=None)
         except (ValueError, TypeError):
             return None
     return value
@@ -146,7 +148,7 @@ def get_route(device_id):
     if not start:
         return jsonify({'error': 'start parameter is required'}), 400
 
-    end = _parse_dt(request.args.get('end')) or datetime.now(timezone.utc)
+    end = _parse_dt(request.args.get('end')) or datetime.utcnow()
 
     reports = Trak4GPSReport.query.filter_by(device_id=device.device_id) \
         .filter(Trak4GPSReport.received_time >= start) \
@@ -246,7 +248,10 @@ def ping_device(device_id):
             'message': result.get('Message', 'Update requested'),
         })
     except Exception as e:
-        logger.error(f"Failed to ping device {device_id}: {e}")
+        error_msg = str(e)
+        logger.error(f"Failed to ping device {device_id}: {error_msg}")
+        if '400' in error_msg:
+            return jsonify({'error': 'This device does not support on-demand location requests'}), 400
         return jsonify({'error': 'Failed to request update from Trak-4'}), 502
 
 

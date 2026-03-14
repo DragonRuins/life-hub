@@ -45,10 +45,10 @@ class Trak4Device(db.Model):
     last_report_time = db.Column(db.DateTime)                                # device-side CreateTime
     last_received_time = db.Column(db.DateTime)                              # server-side ReceivedTime
 
-    last_synced_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
-                           onupdate=lambda: datetime.now(timezone.utc))
+    last_synced_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
 
     # Relationship
     vehicle = db.relationship('Vehicle', backref=db.backref('trak4_device', uselist=False))

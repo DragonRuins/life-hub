@@ -14,6 +14,20 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from app import db
+
+
+def _utcnow():
+    """Return current UTC time as a naive datetime (matches PostgreSQL storage)."""
+    return datetime.utcnow()
+
+
+def _ensure_naive(dt):
+    """Strip timezone info from a datetime so comparisons work with naive DB values."""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.replace(tzinfo=None)
+    return dt
 from app.models.gps_tracking import Trak4Device, Trak4GPSReport
 from app.services import trak4_client
 
@@ -87,7 +101,7 @@ def sync_devices():
                     device.last_report_time = _parse_dt(last_report.get('CreateTime'))
                     device.last_received_time = _parse_dt(last_report.get('ReceivedTime'))
 
-                device.last_synced_at = datetime.now(timezone.utc)
+                device.last_synced_at = _utcnow()
                 synced += 1
 
             page += 1
@@ -116,8 +130,8 @@ def sync_reports():
     for device in devices:
         try:
             # Fetch reports since last sync (or last 24h if never synced)
-            since = device.last_synced_at or (datetime.now(timezone.utc) - timedelta(hours=24))
-            now = datetime.now(timezone.utc)
+            since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=24))
+            now = _utcnow()
 
             new_count = _fetch_and_store_reports(device.device_id, since, now)
             total_new += new_count
@@ -185,7 +199,7 @@ def backfill_reports(trak4_device_id):
     Returns total count of new reports stored.
     """
     total_new = 0
-    end_dt = datetime.now(timezone.utc)
+    end_dt = _utcnow()
 
     # Find the earliest report we already have to avoid re-fetching
     earliest = Trak4GPSReport.query.filter_by(device_id=trak4_device_id)\
@@ -323,7 +337,7 @@ def start_sync_scheduler(app):
         _run_sync,
         trigger='date',
         id='trak4_sync_startup',
-        run_date=datetime.now(timezone.utc) + timedelta(seconds=10),
+        run_date=_utcnow() + timedelta(seconds=10),
         replace_existing=True,
     )
 
@@ -422,13 +436,15 @@ def _parse_report(trak4_device_id, data):
 
 
 def _parse_dt(dt_str):
-    """Parse a Trak-4 datetime string into a Python datetime."""
+    """Parse a Trak-4 datetime string into a naive UTC datetime."""
     if not dt_str:
         return None
     try:
         # Trak-4 uses ISO format, sometimes with 'Z' suffix
         dt_str = dt_str.replace('Z', '+00:00')
-        return datetime.fromisoformat(dt_str)
+        dt = datetime.fromisoformat(dt_str)
+        # Strip timezone — store as naive UTC to match PostgreSQL columns
+        return dt.replace(tzinfo=None)
     except (ValueError, TypeError):
         return None
 
