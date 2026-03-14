@@ -212,26 +212,38 @@ def backfill_reports(trak4_device_id):
     total_new = 0
     end_dt = _utcnow()
 
-    # Find the earliest report we already have to avoid re-fetching
+    # Find the earliest report we already have — start backfill from there
     earliest = Trak4GPSReport.query.filter_by(device_id=trak4_device_id)\
         .order_by(Trak4GPSReport.received_time.asc()).first()
 
     if earliest and earliest.received_time:
         end_dt = earliest.received_time
 
+    logger.info(f"Trak-4 backfill starting for device {trak4_device_id}, walking back from {end_dt}")
+
     # Walk backward in 24h chunks
     max_iterations = 365  # Safety limit (1 year max)
-    for _ in range(max_iterations):
+    empty_chunks = 0
+    for i in range(max_iterations):
         start_dt = end_dt - timedelta(hours=24)
 
         try:
             reports = trak4_client.get_gps_reports(trak4_device_id, start_dt, end_dt)
-        except Exception:
-            # 404 or error means we've reached the beginning
+        except Exception as e:
+            logger.info(f"Trak-4 backfill chunk {i} error (stopping): {e}")
             break
 
+        logger.info(f"Trak-4 backfill chunk {i}: {start_dt} to {end_dt} -> {len(reports)} report(s)")
+
         if not reports:
-            break
+            empty_chunks += 1
+            # Stop after 3 consecutive empty chunks (allows gaps in data)
+            if empty_chunks >= 3:
+                break
+            end_dt = start_dt
+            continue
+
+        empty_chunks = 0
 
         chunk_new = 0
         for report_data in reports:
