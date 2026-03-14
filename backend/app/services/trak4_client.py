@@ -83,7 +83,7 @@ def get_gps_reports(device_id, start_dt, end_dt=None):
         payload['DateTime_End'] = end_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     data = _post('/gps_report_list', payload)
-    return data.get('GPS_Reports', [])
+    return data.get('GPSReports', []) or data.get('GPS_Reports', [])
 
 
 # -- Reporting Frequency Endpoints --------------------------------------------

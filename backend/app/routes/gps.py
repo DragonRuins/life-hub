@@ -449,8 +449,8 @@ def webhook_gps_report():
     """
     payload = request.get_json(silent=True) or {}
 
-    # Trak-4 webhook format: {"GPS_Reports": [...]}
-    reports = payload.get('GPS_Reports', [])
+    # Trak-4 webhook format: {"GPSReports": [...]} (also check legacy key)
+    reports = payload.get('GPSReports', []) or payload.get('GPS_Reports', [])
 
     # Also handle single-report format
     if not reports and payload.get('ReportID'):
