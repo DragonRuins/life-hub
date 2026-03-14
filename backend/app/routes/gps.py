@@ -396,6 +396,33 @@ def trigger_sync():
         return jsonify({'error': f'Sync failed: {str(e)}'}), 500
 
 
+# -- Debug Endpoint (temporary) ------------------------------------------------
+
+@gps_bp.route('/debug/raw-reports/<int:device_id>', methods=['GET'])
+def debug_raw_reports(device_id):
+    """Fetch raw Trak-4 API response for debugging. Temporary endpoint."""
+    device = Trak4Device.query.get_or_404(device_id)
+    start_str = request.args.get('start', '')
+    end_str = request.args.get('end', '')
+
+    from datetime import timedelta
+    start = _parse_dt(start_str) if start_str else (datetime.utcnow() - timedelta(hours=24))
+    end = _parse_dt(end_str) if end_str else datetime.utcnow()
+
+    try:
+        raw = trak4_client.get_gps_reports(device.device_id, start, end)
+        return jsonify({
+            'device_id': device.device_id,
+            'local_db_id': device.id,
+            'query_start': start.isoformat(),
+            'query_end': end.isoformat(),
+            'report_count': len(raw),
+            'raw_reports': raw,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 # -- Webhook Endpoint ---------------------------------------------------------
 
 @gps_bp.route('/webhook/gps_report', methods=['POST'])
