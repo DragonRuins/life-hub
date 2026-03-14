@@ -410,17 +410,30 @@ def debug_raw_reports(device_id):
     end = _parse_dt(end_str) if end_str else datetime.utcnow()
 
     try:
-        raw = trak4_client.get_gps_reports(device.device_id, start, end)
+        import requests as req
+        from app.services.trak4_client import _api_key, _base_url
+
+        # Raw API call — full response, no FilterByReceivedTime
+        body = {
+            'APIKey': _api_key(),
+            'DeviceID': device.device_id,
+            'DateTime_Start': start.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            'DateTime_End': end.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        }
+        resp = req.post(f"{_base_url()}/gps_report_list", json=body, timeout=15)
+
         return jsonify({
             'device_id': device.device_id,
+            'device_id_type': type(device.device_id).__name__,
             'local_db_id': device.id,
             'query_start': start.isoformat(),
             'query_end': end.isoformat(),
-            'report_count': len(raw),
-            'raw_reports': raw,
+            'http_status': resp.status_code,
+            'raw_response': resp.json(),
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
 
 
 # -- Webhook Endpoint ---------------------------------------------------------
