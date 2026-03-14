@@ -228,6 +228,37 @@ AVAILABLE_EVENTS = [
         'description': 'Alert when a timer has been running for 8+ hours',
         'fields': ['work_type_label', 'duration'],
     },
+    # ── GPS Tracking ──────────────────────────────────────────────
+    {
+        'name': 'gps.battery_low',
+        'module': 'gps',
+        'description': 'GPS tracker battery is low (≤20%)',
+        'fields': ['device_name', 'device_id', 'vehicle_name', 'battery_percent', 'voltage', 'tier'],
+    },
+    {
+        'name': 'gps.battery_critical',
+        'module': 'gps',
+        'description': 'GPS tracker battery is critical (≤10%)',
+        'fields': ['device_name', 'device_id', 'vehicle_name', 'battery_percent', 'voltage', 'tier'],
+    },
+    {
+        'name': 'gps.battery_dead',
+        'module': 'gps',
+        'description': 'GPS tracker battery is nearly dead (≤5%)',
+        'fields': ['device_name', 'device_id', 'vehicle_name', 'battery_percent', 'voltage', 'tier'],
+    },
+    {
+        'name': 'gps.geofence_enter',
+        'module': 'gps',
+        'description': 'GPS tracker entered a geofence zone',
+        'fields': ['device_name', 'device_id', 'vehicle_name', 'zone_name', 'zone_id', 'latitude', 'longitude', 'position_source', 'direction'],
+    },
+    {
+        'name': 'gps.geofence_exit',
+        'module': 'gps',
+        'description': 'GPS tracker exited a geofence zone',
+        'fields': ['device_name', 'device_id', 'vehicle_name', 'zone_name', 'zone_id', 'latitude', 'longitude', 'position_source', 'direction'],
+    },
 ]
 
 
