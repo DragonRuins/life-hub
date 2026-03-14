@@ -214,7 +214,6 @@ def create_app():
             app.ha_ws_client = HAWebSocketClient(app)
             app.ha_ws_client.start()
         except Exception as e:
-            import logging
             logging.getLogger(__name__).error(f"Failed to start HA WebSocket client: {e}")
             app.ha_ws_client = None
 
