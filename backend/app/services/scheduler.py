@@ -1303,11 +1303,13 @@ def _reconcile_jumper_reminders():
         if not pending:
             return
 
-        now = datetime.now(timezone.utc)
+        now = datetime.utcnow()
         rescheduled = 0
         fired_late = 0
 
         for jumper in pending:
+            if not jumper.installed_at:
+                continue
             fire_at = jumper.installed_at + timedelta(hours=8)
             job_id = f"jumper_reminder_{jumper.id}"
 

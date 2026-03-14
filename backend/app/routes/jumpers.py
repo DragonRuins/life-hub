@@ -118,7 +118,11 @@ def _parse_installed_at(data):
     if data.get('installed_at'):
         try:
             raw = data['installed_at'].replace('Z', '+00:00')
-            return datetime.fromisoformat(raw)
+            dt = datetime.fromisoformat(raw)
+            # Strip timezone info — DB stores naive UTC timestamps
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)
+            return dt
         except (ValueError, AttributeError):
             pass
     return None
@@ -433,25 +437,28 @@ def get_stats():
         overdue_count: Short-term active jumpers installed >8 hours ago
         sites_by_active_count: List of {id, name, active_count} sorted desc
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
 
     # All active jumpers (removed_at IS NULL)
     active_jumpers = Jumper.query.filter(
         Jumper.removed_at.is_(None)
     ).all()
 
+    # Filter to jumpers with a valid installed_at
+    dated_jumpers = [j for j in active_jumpers if j.installed_at is not None]
+
     total_active = len(active_jumpers)
 
     # Most recent active jumper (newest installed_at)
     most_recent = None
-    if active_jumpers:
-        newest = max(active_jumpers, key=lambda j: j.installed_at)
+    if dated_jumpers:
+        newest = max(dated_jumpers, key=lambda j: j.installed_at)
         most_recent = newest.to_dict()
 
     # Oldest active jumper (earliest installed_at) with age_hours
     oldest_active = None
-    if active_jumpers:
-        oldest = min(active_jumpers, key=lambda j: j.installed_at)
+    if dated_jumpers:
+        oldest = min(dated_jumpers, key=lambda j: j.installed_at)
         age_seconds = (now - oldest.installed_at).total_seconds()
         oldest_dict = oldest.to_dict()
         oldest_dict['age_hours'] = round(age_seconds / 3600, 1)
@@ -460,7 +467,7 @@ def get_stats():
     # Overdue count: short-term active jumpers installed more than 8 hours ago
     cutoff = now - timedelta(hours=REMINDER_HOURS)
     overdue_count = sum(
-        1 for j in active_jumpers
+        1 for j in dated_jumpers
         if not j.is_long_term and j.installed_at < cutoff
     )
 
