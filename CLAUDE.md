@@ -156,6 +156,22 @@ The Apple app has FOUR first-class platforms that must stay in sync:
 **Auto-refresh:**
 The dashboard silently refreshes all data every 5 minutes via `DashboardViewModel.silentRefresh()` (no loading indicators, no error overlays). Pauses when backgrounded, resumes with an immediate refresh when the app returns to foreground. Only applies to the Dashboard — other modules refresh on pull-down or navigation.
 
+**IMPORTANT: Cloudflare Access — Remote Connection Mode (Apple App)**
+
+The Apple app supports two connection modes: **Local** (direct `http://IP:5000`) and **Remote** (Cloudflare tunnel with service token headers). When any code makes HTTP requests to the Datacore backend, it **MUST** handle both modes:
+
+- **If using `APIClient` or `WatchAPIClient`:** CF headers are injected automatically in `buildRequest()`. No action needed.
+- **If creating `URLRequest` manually** (e.g., `ConnectionMonitor.ping()`, `SSEClient.streamChat()`, `PushNotificationManager.uploadToken()`): You MUST add this after creating the request:
+  ```swift
+  if ServerConfig.requiresCFHeaders {
+      CloudflareConfig.applyHeaders(to: &request)
+  }
+  ```
+- **If using `SharedAPIClient`** (widgets/complications): CF headers are injected automatically in `buildRequest()`. No action needed.
+- **If using `WatchAPIClient`** (watchOS): CF headers are injected automatically. Uses `SharedDefaults.connectionMode` instead of `ServerConfig`.
+
+Forgetting to add CF headers on a manual `URLRequest` will cause a **403 Forbidden** from Cloudflare when the user is in remote mode. This is a silent failure — the request reaches Cloudflare but gets rejected before hitting the backend.
+
 **iOS SwiftUI Coding Standards:**
 
 - **Picker style:** Always use `.pickerStyle(.menu)` on `Picker` controls (unless you explicitly want `.segmented`). SwiftUI's default `List` row picker style hijacks row taps — tapping anywhere in a `List` row activates the first unstyled `Picker`, which causes controls to open unexpectedly. `.menu` style makes each picker handle its own taps via an inline dropdown, preventing this.
@@ -174,6 +190,43 @@ The dashboard silently refreshes all data every 5 minutes via `DashboardViewMode
 - **Shared model files:** The watchOS target shares model files with the iOS target via `project.yml` include paths (e.g., `Vehicle.swift`, `DashboardStats.swift`, `Astrometrics.swift`). Don't duplicate model code — add the file path to the `DatacoreWatch` target sources in `project.yml`.
 - **Timeout values:** Watch API calls use shorter timeouts (10s for normal requests, 20s for large payloads) since cellular/WiFi connections on watch are less reliable. See `WatchAPIClient`.
 - **App Group:** Both the iOS app and watchOS app share the `group.com.chaseburrell.datacore` App Group for UserDefaults data sharing and WatchConnectivity.
+
+**Datacore Motion Design System (Apple App):**
+
+All design system primitives live in `Datacore/Design/`. These are the standard building blocks for polished views — always use these instead of ad-hoc animations or plain stat displays.
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `DatacoreSpring` | `DatacoreMotion.swift` | Animation spring presets: `.snappy` (0.3s, taps), `.smooth` (0.5s, transitions), `.bouncy` (0.6s, celebrations), `.ambient` (2.0s, idle) |
+| `.staggerReveal(index:isVisible:)` | `DatacoreMotion.swift` | Staggered fade+slide-up for list items. Toggle `isVisible` bool to trigger. Index controls delay offset (capped at 15) |
+| `CountingNumber` | `DatacoreMotion.swift` | Animated numeric display — counts from 0 to target on appear, smooth transitions on value change. Supports printf formats and comma grouping |
+| `.parallax(rate:maxOffset:)` | `DatacoreMotion.swift` | Parallax scrolling effect for hero images. Must be inside a `ScrollView` |
+| `PremiumStatCard` | `PremiumStatCard.swift` | Polished stat tile with icon badge, `CountingNumber`, optional `TrendBadge`, optional `MiniSparkline`. Drop-in replacement for plain stat displays |
+| `ShimmerView` | `ShimmerView.swift` | Shimmering placeholder rectangle for loading states. Building block for skeleton layouts |
+| `StatCardSkeleton` | `ShimmerView.swift` | Skeleton matching `StatCard` layout (icon + value + label) |
+| `ListRowSkeleton` | `ShimmerView.swift` | Skeleton matching a standard list row (icon + 2-line text + trailing value) |
+| `PanelSkeleton` | `ShimmerView.swift` | Skeleton matching a dashboard panel (title + N content lines) |
+| `ChartSkeleton` | `ShimmerView.swift` | Skeleton matching a chart (title + plot area) |
+| `.scrollReveal()` | `ScrollReveal.swift` | Fade+slide-up on first appear. Lightweight alternative to `.staggerReveal()` — no index tracking |
+| `.buttonStyle(.datacore)` | `DatacoreButtonStyle.swift` | Subtle scale (96%) + opacity (90%) on press for general buttons |
+| `.buttonStyle(.datacoreCard)` | `DatacoreButtonStyle.swift` | Scale (97%) + shadow lift on press for tappable card surfaces |
+| `ModuleAccent` | `DatacoreColors.swift` | Per-module accent colors (`.dashboard` = cyan, `.vehicles` = blue, `.fuel` = green, `.weather` = teal, `.astrometrics` = purple, etc.). Includes `.color`, `.gradient`, `.areaGradient` |
+| `StatusColor` | `DatacoreColors.swift` | Maps API status strings ("overdue", "due", "ok") to semantic colors |
+| `Trend` / `TrendBadge` | `DatacoreColors.swift` | Direction enum (`.up`, `.down`, `.flat`) + compact badge with arrow and formatted change value |
+| `.platformFeedback()` | `PlatformCompat.swift` | Cross-platform haptic wrapper. iOS: triggers `SensoryFeedback`. macOS: no-op. Use `.platformFeedback(.success, trigger: count)` or `.platformFeedback(.selection, trigger: tab)` |
+
+**When to use each:**
+- **New numeric stats** → `PremiumStatCard` (not plain `Text`)
+- **Loading states on iPhone** → shimmer skeletons (not `ProgressView` or `LoadingView()`)
+- **Lists/grids appearing** → `.staggerReveal()` on each item with a shared `@State isVisible` bool
+- **Individual sections in scroll views** → `.scrollReveal()`
+- **Tappable cards** → `.buttonStyle(.datacoreCard)`
+- **Data refresh / tab switch / card tap** → `.platformFeedback()`
+- **Module-colored accents** → `ModuleAccent.<module>.color`
+- **All animations** → Use `DatacoreSpring` presets, not custom `Animation` values
+
+**Common pitfall — stagger reveals not triggering:**
+The `isVisible` bool must be set to `true` AFTER data is available. If using `.onChange(of: data != nil)`, it won't fire when data is already cached. Instead, set the bool in `.task` after the async load returns, or in `.onAppear` if data may already be present.
 
 ---
 

@@ -89,6 +89,9 @@ def create_app():
     from app.routes.timecard import timecard_bp
     app.register_blueprint(timecard_bp, url_prefix='/api/timecard')
 
+    from app.routes.gps import gps_bp
+    app.register_blueprint(gps_bp, url_prefix='/api/gps')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -97,7 +100,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, obd, debt, timecard  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, obd, debt, timecard, gps_tracking  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
@@ -188,6 +191,11 @@ def create_app():
     if should_start_scheduler:
         from app.services.scheduler import init_scheduler
         init_scheduler(app)
+
+        # Start Trak-4 GPS sync if API key is configured
+        if app.config.get('TRAK4_API_KEY'):
+            from app.services.trak4_sync import start_sync_scheduler
+            start_sync_scheduler(app)
 
         # Start HA WebSocket client for real-time state updates
         try:

@@ -39,6 +39,10 @@ class Config:
     APNS_BUNDLE_ID = os.environ.get('APNS_BUNDLE_ID', 'com.chaseburrell.Datacore')
     APNS_USE_SANDBOX = os.environ.get('APNS_USE_SANDBOX', 'true').lower() == 'true'
 
+    # Trak-4 GPS Tracking API
+    TRAK4_API_KEY = os.environ.get('TRAK4_API_KEY', '')
+    TRAK4_API_BASE = 'https://api-v3.trak-4.com'
+
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_UPLOAD_SIZE', 50 * 1024 * 1024))  # 50MB default
