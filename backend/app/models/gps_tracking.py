@@ -145,3 +145,47 @@ class Trak4GPSReport(db.Model):
             'speed': self.speed,
             'heading': self.heading,
         }
+
+
+class Trak4Geofence(db.Model):
+    """A geofence zone (circle or rectangle) for a GPS tracker device."""
+    __tablename__ = 'trak4_geofences'
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey('trak4_devices.id', ondelete='CASCADE'), nullable=False, index=True)
+    name = db.Column(db.String(100), nullable=False)
+    shape = db.Column(db.String(10), nullable=False, default='circle')  # 'circle' or 'rectangle'
+    center_lat = db.Column(db.Float, nullable=False)
+    center_lng = db.Column(db.Float, nullable=False)
+    radius_meters = db.Column(db.Float, nullable=True)      # circle
+    width_meters = db.Column(db.Float, nullable=True)        # rectangle east-west
+    height_meters = db.Column(db.Float, nullable=True)       # rectangle north-south
+    rotation_degrees = db.Column(db.Float, default=0)        # reserved, always 0
+    alert_on_entry = db.Column(db.Boolean, default=True)
+    alert_on_exit = db.Column(db.Boolean, default=True)
+    enabled = db.Column(db.Boolean, default=True)
+    last_state = db.Column(db.String(10), nullable=True)     # 'inside', 'outside', or None
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    device = db.relationship('Trak4Device', backref=db.backref('geofences', lazy='dynamic', cascade='all, delete-orphan'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'name': self.name,
+            'shape': self.shape,
+            'center_lat': self.center_lat,
+            'center_lng': self.center_lng,
+            'radius_meters': self.radius_meters,
+            'width_meters': self.width_meters,
+            'height_meters': self.height_meters,
+            'rotation_degrees': self.rotation_degrees,
+            'alert_on_entry': self.alert_on_entry,
+            'alert_on_exit': self.alert_on_exit,
+            'enabled': self.enabled,
+            'last_state': self.last_state,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+        }
