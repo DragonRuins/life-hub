@@ -11,6 +11,7 @@ Handles three ingestion paths:
 All reports are deduplicated on report_id (Trak-4's unique ReportID).
 """
 import logging
+import math
 from datetime import datetime, timedelta, timezone
 
 from app import db
@@ -110,6 +111,11 @@ def sync_devices():
         db.session.commit()
         logger.info(f"Trak-4 device sync: {synced} device(s) synced")
 
+        # Check geofences and battery alerts for all synced devices
+        for device in Trak4Device.query.all():
+            check_geofences(device, device.last_latitude, device.last_longitude)
+            check_battery_alerts(device, device.last_voltage_percent)
+
         # Update adaptive poll interval based on device frequencies
         _update_poll_interval()
 
@@ -143,6 +149,10 @@ def sync_reports():
             total_new += new_count
 
             device.last_synced_at = now
+
+            # Check geofences and battery after ingesting new reports
+            check_geofences(device, device.last_latitude, device.last_longitude)
+            check_battery_alerts(device, device.last_voltage_percent)
 
         except Exception as e:
             logger.error(f"Report sync failed for device {device.device_id}: {e}")
@@ -309,6 +319,10 @@ def ingest_webhook_report(payload):
         device.last_voltage_percent = report.voltage_percent
         device.last_report_time = report.create_time
         device.last_received_time = report.received_time
+
+        # Check geofences and battery on webhook report
+        check_geofences(device, device.last_latitude, device.last_longitude)
+        check_battery_alerts(device, device.last_voltage_percent)
 
     try:
         db.session.commit()
@@ -491,3 +505,127 @@ def _map_position_source(source_id):
     if isinstance(source_id, str):
         return source_id.lower()
     return 'unknown'
+
+
+# ── Geofence + Battery Alert Checks ──────────────────────────────
+
+def _haversine_meters(lat1, lng1, lat2, lng2):
+    """Calculate distance in meters between two lat/lng points using haversine formula."""
+    R = 6371000  # Earth radius in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lng2 - lng1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _point_in_rect(lat, lng, center_lat, center_lng, width_m, height_m):
+    """Check if a point is inside a rectangle defined by center + width/height in meters."""
+    lat_deg_per_m = 1.0 / 111320.0
+    lng_deg_per_m = 1.0 / (111320.0 * math.cos(math.radians(center_lat)))
+    half_h = (height_m / 2.0) * lat_deg_per_m
+    half_w = (width_m / 2.0) * lng_deg_per_m
+    return (center_lat - half_h <= lat <= center_lat + half_h and
+            center_lng - half_w <= lng <= center_lng + half_w)
+
+
+def _is_inside_geofence(lat, lng, fence):
+    """Check if a point is inside a geofence zone."""
+    if fence.shape == 'circle':
+        dist = _haversine_meters(lat, lng, fence.center_lat, fence.center_lng)
+        return dist <= (fence.radius_meters or 0)
+    elif fence.shape == 'rectangle':
+        return _point_in_rect(lat, lng, fence.center_lat, fence.center_lng,
+                              fence.width_meters or 0, fence.height_meters or 0)
+    return False
+
+
+def check_geofences(device, lat, lng):
+    """Check all enabled geofences for a device and emit events on state transitions."""
+    if lat is None or lng is None:
+        return
+
+    from app.models.gps_tracking import Trak4Geofence
+    from app.services.event_bus import emit
+
+    fences = Trak4Geofence.query.filter_by(device_id=device.id, enabled=True).all()
+    for fence in fences:
+        inside = _is_inside_geofence(lat, lng, fence)
+        new_state = 'inside' if inside else 'outside'
+
+        # First check — set state without alerting
+        if fence.last_state is None:
+            fence.last_state = new_state
+            continue
+
+        # No transition — skip
+        if fence.last_state == new_state:
+            continue
+
+        old_state = fence.last_state
+        fence.last_state = new_state
+
+        device_name = device.label or device.key_code or f'Device {device.device_id}'
+        payload = dict(
+            device_name=device_name,
+            device_id=device.id,
+            vehicle_name=device_name,
+            zone_name=fence.name,
+            zone_id=fence.id,
+            latitude=lat,
+            longitude=lng,
+            position_source=device.last_position_source,
+        )
+
+        if old_state == 'outside' and new_state == 'inside' and fence.alert_on_entry:
+            payload['direction'] = 'entered'
+            emit('gps.geofence_enter', **payload)
+            logger.info(f'Geofence ENTER: {device_name} entered "{fence.name}"')
+
+        elif old_state == 'inside' and new_state == 'outside' and fence.alert_on_exit:
+            payload['direction'] = 'exited'
+            emit('gps.geofence_exit', **payload)
+            logger.info(f'Geofence EXIT: {device_name} exited "{fence.name}"')
+
+    db.session.commit()
+
+
+# Module-level dict to track last alert times per device per tier
+_battery_alert_cache = {}  # key: (device_id, tier) -> value: datetime
+
+BATTERY_TIERS = [
+    (5,  'dead',     'gps.battery_dead'),
+    (10, 'critical', 'gps.battery_critical'),
+    (20, 'low',      'gps.battery_low'),
+]
+BATTERY_COOLDOWN_HOURS = 6
+
+
+def check_battery_alerts(device, battery_percent):
+    """Check battery level against predefined tiers and emit events with cooldown."""
+    if battery_percent is None:
+        return
+
+    from app.services.event_bus import emit
+
+    device_name = device.label or device.key_code or f'Device {device.device_id}'
+    now = datetime.utcnow()
+
+    for threshold, tier, event_name in BATTERY_TIERS:
+        if battery_percent <= threshold:
+            cache_key = (device.id, tier)
+            last_alert = _battery_alert_cache.get(cache_key)
+
+            if last_alert and (now - last_alert).total_seconds() < BATTERY_COOLDOWN_HOURS * 3600:
+                break  # Already alerted this tier recently
+
+            _battery_alert_cache[cache_key] = now
+            emit(event_name,
+                 device_name=device_name,
+                 device_id=device.id,
+                 vehicle_name=device_name,
+                 battery_percent=battery_percent,
+                 voltage=device.last_voltage,
+                 tier=tier)
+            logger.info(f'Battery {tier}: {device_name} at {battery_percent}%')
+            break  # Only fire the lowest matching tier
