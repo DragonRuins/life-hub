@@ -71,6 +71,7 @@ def init_scheduler(app):
             _reconcile_launch_reminders()
             _add_debt_autopay_job()
             _add_timecard_forgotten_timer_job()
+            _reconcile_jumper_reminders()
 
         logger.info("Notification scheduler started")
 
@@ -1190,3 +1191,147 @@ def _check_forgotten_timers():
         except Exception as e:
             db.session.rollback()
             logger.error(f"Timecard forgotten timer check failed: {e}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Jumper 8-Hour Reminder Jobs
+# ═══════════════════════════════════════════════════════════════════════════
+
+def schedule_jumper_reminder(jumper_id, fire_at):
+    """
+    Schedule a one-shot APScheduler job to remind about an active jumper
+    after 8 hours.
+    """
+    global scheduler
+    if not scheduler:
+        logger.warning("Scheduler not initialized, cannot schedule jumper reminder")
+        return
+
+    job_id = f"jumper_reminder_{jumper_id}"
+    scheduler.add_job(
+        _fire_jumper_reminder,
+        trigger='date',
+        id=job_id,
+        run_date=fire_at,
+        args=[jumper_id],
+        replace_existing=True,
+    )
+    logger.info(f"Scheduled jumper reminder job '{job_id}' for {fire_at.isoformat()}")
+
+
+def cancel_jumper_reminder(jumper_id):
+    """Cancel a scheduled jumper reminder. Safe if job doesn't exist."""
+    global scheduler
+    if not scheduler:
+        return
+
+    job_id = f"jumper_reminder_{jumper_id}"
+    try:
+        scheduler.remove_job(job_id)
+        logger.info(f"Cancelled jumper reminder job '{job_id}'")
+    except Exception:
+        pass
+
+
+def _fire_jumper_reminder(jumper_id):
+    """Called by APScheduler at installed_at + 8 hours."""
+    global _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        from app import db
+        from app.models.jumper import Jumper
+
+        try:
+            jumper = db.session.get(Jumper, jumper_id)
+            if not jumper:
+                logger.warning(f"Jumper {jumper_id} not found at reminder time")
+                return
+
+            if jumper.removed_at is not None:
+                logger.debug(f"Jumper {jumper_id} already removed, skipping reminder")
+                return
+            if jumper.is_long_term:
+                logger.debug(f"Jumper {jumper_id} is long-term, skipping reminder")
+                return
+
+            site_name = jumper.site.name if jumper.site else 'Unknown Site'
+            cpu_name = jumper.cpu.name if jumper.cpu else 'Unknown CPU'
+            title = "Jumper Still Active"
+            body = (
+                f"Jumper at {site_name} / {cpu_name} — {jumper.location} "
+                f"has been in place for 8 hours. Reason: {jumper.reason}"
+            )
+
+            schedule_delayed_push(
+                title, body, 'high',
+                thread_id='jumpers',
+                category='JUMPER_REMINDER',
+                deep_link='datacore://jumpers',
+                interruption_level='time-sensitive',
+            )
+
+            jumper.notified_at = datetime.now(timezone.utc)
+            db.session.commit()
+            logger.info(f"Fired jumper reminder: {site_name} / {cpu_name} — {jumper.location}")
+
+        except Exception as e:
+            logger.error(f"Failed to fire jumper reminder {jumper_id}: {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+
+def _reconcile_jumper_reminders():
+    """Startup reconciliation for jumper reminders that may have been missed."""
+    global scheduler
+    if not scheduler:
+        return
+
+    from app import db
+    from app.models.jumper import Jumper
+
+    try:
+        pending = Jumper.query.filter(
+            Jumper.removed_at.is_(None),
+            Jumper.is_long_term == False,  # noqa: E712
+            Jumper.notified_at.is_(None),
+        ).all()
+
+        if not pending:
+            return
+
+        now = datetime.now(timezone.utc)
+        rescheduled = 0
+        fired_late = 0
+
+        for jumper in pending:
+            fire_at = jumper.installed_at + timedelta(hours=8)
+            job_id = f"jumper_reminder_{jumper.id}"
+
+            existing_job = None
+            try:
+                existing_job = scheduler.get_job(job_id)
+            except Exception:
+                pass
+
+            if existing_job:
+                continue
+
+            if fire_at > now:
+                schedule_jumper_reminder(jumper.id, fire_at)
+                rescheduled += 1
+            else:
+                # Overdue — fire immediately (jumper safety is critical)
+                _fire_jumper_reminder(jumper.id)
+                fired_late += 1
+
+        logger.info(
+            f"Jumper reminder reconciliation: {rescheduled} rescheduled, "
+            f"{fired_late} fired late"
+        )
+
+    except Exception as e:
+        logger.error(f"Jumper reminder reconciliation failed: {e}")

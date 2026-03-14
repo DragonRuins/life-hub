@@ -103,6 +103,9 @@ def create_app():
     from app.routes.gps import gps_bp
     app.register_blueprint(gps_bp, url_prefix='/api/gps')
 
+    from app.routes.jumpers import jumpers_bp
+    app.register_blueprint(jumpers_bp, url_prefix='/api/jumpers')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -111,7 +114,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, obd, debt, timecard, gps_tracking  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, obd, debt, timecard, gps_tracking, jumper  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
@@ -163,6 +166,12 @@ def create_app():
         # Auto-seed timecard notification rules (all disabled by default).
         try:
             _seed_timecard_notification_rules(db)
+        except Exception:
+            pass
+
+        # Auto-seed jumper notification rules.
+        try:
+            _seed_jumper_notification_rules(db)
         except Exception:
             pass
 
@@ -542,6 +551,40 @@ def _seed_timecard_notification_rules(db):
                 body_template=rule_data['body_template'],
                 priority='normal',
                 is_enabled=False,
+            ))
+    db.session.commit()
+
+
+def _seed_jumper_notification_rules(db):
+    """Seed default jumper notification rule on first startup."""
+    from app.models.notification import NotificationRule
+
+    rules = [
+        {
+            'name': 'Jumper 8-Hour Reminder',
+            'event_name': 'jumper.reminder',
+            'module': 'jumpers',
+            'description': 'Reminder when a short-term jumper has been in place for 8+ hours',
+            'title_template': 'Jumper Still Active',
+            'body_template': 'Jumper at {{site_name}} / {{cpu_name}} — {{location}} has been in place for 8 hours.',
+        },
+    ]
+
+    for rule_data in rules:
+        existing = NotificationRule.query.filter_by(
+            event_name=rule_data['event_name']
+        ).first()
+        if not existing:
+            db.session.add(NotificationRule(
+                name=rule_data['name'],
+                description=rule_data['description'],
+                module=rule_data['module'],
+                rule_type='event',
+                event_name=rule_data['event_name'],
+                title_template=rule_data['title_template'],
+                body_template=rule_data['body_template'],
+                priority='high',
+                is_enabled=True,
             ))
     db.session.commit()
 
