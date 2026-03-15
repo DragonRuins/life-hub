@@ -838,7 +838,7 @@ def create_maintenance(vehicle_id):
         vehicle_id=vehicle_id,
         service_type=service_type,
         description=data.get('description'),
-        date=date.fromisoformat(data['date']),
+        date=datetime.fromisoformat(data['date']),
         mileage=data.get('mileage'),
         cost=data.get('cost', 0.0),
         shop_name=data.get('shop_name'),
@@ -930,7 +930,7 @@ def update_maintenance(log_id):
             setattr(log, field, data[field])
 
     if 'date' in data:
-        log.date = date.fromisoformat(data['date'])
+        log.date = datetime.fromisoformat(data['date'])
     if 'next_service_date' in data:
         log.next_service_date = (
             date.fromisoformat(data['next_service_date'])

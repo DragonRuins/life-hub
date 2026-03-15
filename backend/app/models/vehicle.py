@@ -107,8 +107,8 @@ class MaintenanceLog(db.Model):
     # What was done
     service_type = db.Column(db.String(100), nullable=False)  # e.g., "Oil Change"
     description = db.Column(db.Text)                           # Detailed notes
-    date = db.Column(db.Date, nullable=False)                  # When it was done
-    mileage = db.Column(db.Integer)                            # Mileage at service
+    date = db.Column(db.DateTime, nullable=False)               # When it was done
+    mileage = db.Column(db.Float)                              # Mileage at service (supports decimals)
 
     # Cost tracking
     cost = db.Column(db.Float, default=0.0)
