@@ -25,12 +25,13 @@ Webhook endpoint (1):
 
 Blueprint is registered with url_prefix='/api/gps' in __init__.py.
 """
+import json
 import logging
 from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, jsonify, request
 from app import db
-from app.models.gps_tracking import Trak4Device, Trak4Geofence, Trak4GPSReport
+from app.models.gps_tracking import Trak4Device, Trak4Geofence, Trak4GPSReport, Trak4WebhookLog
 from app.models.vehicle import Vehicle
 from app.services import trak4_client
 from app.services.trak4_sync import (
@@ -545,29 +546,119 @@ def debug_raw_reports():
 def webhook_gps_report():
     """Receive GPS report pushes from Trak-4.
 
-    Trak-4 sends an array of GPS reports in a container object.
-    Each report is deduplicated on report_id.
+    Trak-4 webhook format (per their docs):
+      {"EventType": "gps_report", "GPS_Report": {...}, "Mode": "live"}
 
+    Also handles legacy batch format: {"GPSReports": [...]}
+    and bare single-report format: {"ReportID": ..., ...}
+
+    Authenticated via x-api-key header (configured in Trak-4 org/user settings).
+    Every delivery is logged to trak4_webhook_logs for debugging.
     Returns: 200 with count of new reports ingested.
     """
+    from flask import current_app
+
+    # -- Authenticate via x-api-key header ------------------------------------
+    webhook_secret = current_app.config.get('TRAK4_WEBHOOK_SECRET', '')
+    if webhook_secret:
+        provided_key = request.headers.get('x-api-key', '')
+        if provided_key != webhook_secret:
+            logger.warning("Webhook rejected: invalid x-api-key header")
+            # Log the rejected delivery
+            log_entry = Trak4WebhookLog(
+                source_ip=request.remote_addr,
+                success=False,
+                report_count=0,
+                new_count=0,
+                error_message='Invalid x-api-key header',
+                raw_payload=request.get_data(as_text=True)[:10000],
+            )
+            db.session.add(log_entry)
+            db.session.commit()
+            return jsonify({'error': 'unauthorized'}), 401
+
     payload = request.get_json(silent=True) or {}
 
-    # Trak-4 webhook format: {"GPSReports": [...]} (also check legacy key)
-    reports = payload.get('GPSReports', []) or payload.get('GPS_Reports', [])
+    # -- Extract report(s) from the payload -----------------------------------
+    reports = []
 
-    # Also handle single-report format
-    if not reports and payload.get('ReportID'):
+    # Trak-4 documented format: single report under "GPS_Report" key
+    if payload.get('GPS_Report') and isinstance(payload['GPS_Report'], dict):
+        reports = [payload['GPS_Report']]
+    # Legacy batch format: array under "GPSReports" or "GPS_Reports"
+    elif payload.get('GPSReports'):
+        reports = payload['GPSReports']
+    elif payload.get('GPS_Reports') and isinstance(payload['GPS_Reports'], list):
+        reports = payload['GPS_Reports']
+    # Bare single-report format (report fields at top level)
+    elif payload.get('ReportID'):
         reports = [payload]
 
     new_count = 0
+    error_messages = []
     for report_data in reports:
         try:
             if ingest_webhook_report(report_data):
                 new_count += 1
         except Exception as e:
+            error_messages.append(str(e))
             logger.error(f"Webhook report ingestion error: {e}")
+
+    # -- Log the delivery -----------------------------------------------------
+    log_entry = Trak4WebhookLog(
+        source_ip=request.remote_addr,
+        success=len(error_messages) == 0,
+        report_count=len(reports),
+        new_count=new_count,
+        error_message='; '.join(error_messages) if error_messages else None,
+        event_type=payload.get('EventType'),
+        mode=payload.get('Mode'),
+        raw_payload=json.dumps(payload)[:10000],  # cap at 10KB
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+
+    logger.info(f"Webhook received {len(reports)} report(s), {new_count} new")
 
     return jsonify({
         'received': len(reports),
         'new': new_count,
+    })
+
+
+# -- Webhook Log Endpoint -----------------------------------------------------
+
+@gps_bp.route('/webhook/logs', methods=['GET'])
+def webhook_logs():
+    """List webhook delivery logs, newest-first.
+
+    Query params:
+      - limit (int, default 50, max 200)
+      - offset (int, default 0)
+
+    Returns: {logs: [...], total: int, stats: {total_deliveries, success_count,
+              fail_count, success_rate, last_received_at}}
+    """
+    limit = min(request.args.get('limit', 50, type=int), 200)
+    offset = request.args.get('offset', 0, type=int)
+
+    query = Trak4WebhookLog.query.order_by(Trak4WebhookLog.received_at.desc())
+    total = query.count()
+    logs = query.offset(offset).limit(limit).all()
+
+    # Summary stats
+    success_count = Trak4WebhookLog.query.filter_by(success=True).count()
+    fail_count = total - success_count
+    latest = Trak4WebhookLog.query.order_by(Trak4WebhookLog.received_at.desc()).first()
+
+    return jsonify({
+        'logs': [log.to_dict() for log in logs],
+        'total': total,
+        'stats': {
+            'total_deliveries': total,
+            'success_count': success_count,
+            'fail_count': fail_count,
+            'success_rate': round(success_count / total * 100, 1) if total > 0 else 0,
+            'last_received_at': latest.received_at.isoformat() + 'Z' if latest else None,
+        },
     })

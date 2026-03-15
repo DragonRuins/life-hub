@@ -29,7 +29,7 @@ def _ensure_naive(dt):
     if dt.tzinfo is not None:
         return dt.replace(tzinfo=None)
     return dt
-from app.models.gps_tracking import Trak4Device, Trak4GPSReport
+from app.models.gps_tracking import Trak4Device, Trak4GPSReport, Trak4WebhookLog
 from app.services import trak4_client
 
 logger = logging.getLogger(__name__)
@@ -397,8 +397,18 @@ def _run_sync():
         try:
             sync_devices()
             sync_reports()
+            purge_old_webhook_logs()
         except Exception as e:
             logger.error(f"Trak-4 sync cycle failed: {e}")
+
+
+def purge_old_webhook_logs(days=30):
+    """Delete webhook log entries older than `days` days."""
+    cutoff = _utcnow() - timedelta(days=days)
+    deleted = Trak4WebhookLog.query.filter(Trak4WebhookLog.received_at < cutoff).delete()
+    if deleted:
+        db.session.commit()
+        logger.info(f"Purged {deleted} webhook log(s) older than {days} days")
 
 
 def _update_poll_interval():

@@ -1,9 +1,10 @@
 """
 GPS Tracking Module - Database Models
 
-Two tables:
+Tables:
   - trak4_devices: Mirrors Trak-4 device objects, linked 1:1 to vehicles
   - trak4_gps_reports: Every GPS report ever received, stored permanently
+  - trak4_webhook_logs: Raw webhook delivery log (auto-purged after 30 days)
 
 The backend proxies the Trak-4 REST API. The API key is stored as an
 env var (TRAK4_API_KEY) and never exposed to the iOS app.
@@ -188,4 +189,34 @@ class Trak4Geofence(db.Model):
             'last_state': self.last_state,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
             'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+        }
+
+
+class Trak4WebhookLog(db.Model):
+    """Raw webhook delivery log entry. Auto-purged after 30 days."""
+    __tablename__ = 'trak4_webhook_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    received_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, index=True)
+    source_ip = db.Column(db.String(45))                           # IPv4 or IPv6
+    success = db.Column(db.Boolean, nullable=False, default=True)
+    report_count = db.Column(db.Integer, nullable=False, default=0)
+    new_count = db.Column(db.Integer, nullable=False, default=0)   # how many were actually new
+    error_message = db.Column(db.Text, nullable=True)
+    event_type = db.Column(db.String(50), nullable=True)           # e.g. "gps_report"
+    mode = db.Column(db.String(10), nullable=True)                 # "live" or "test"
+    raw_payload = db.Column(db.Text, nullable=True)                # full JSON body
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'received_at': self.received_at.isoformat() + 'Z' if self.received_at else None,
+            'source_ip': self.source_ip,
+            'success': self.success,
+            'report_count': self.report_count,
+            'new_count': self.new_count,
+            'error_message': self.error_message,
+            'event_type': self.event_type,
+            'mode': self.mode,
+            'raw_payload': self.raw_payload,
         }
