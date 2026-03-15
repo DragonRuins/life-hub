@@ -42,7 +42,6 @@ class Config:
     # Trak-4 GPS Tracking API
     TRAK4_API_KEY = os.environ.get('TRAK4_API_KEY', '')
     TRAK4_API_BASE = 'https://api-v3.trak-4.com'
-    TRAK4_WEBHOOK_SECRET = os.environ.get('TRAK4_WEBHOOK_SECRET', '')
 
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')

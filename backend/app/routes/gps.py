@@ -552,31 +552,10 @@ def webhook_gps_report():
     Also handles legacy batch format: {"GPSReports": [...]}
     and bare single-report format: {"ReportID": ..., ...}
 
-    Authenticated via x-api-key header (configured in Trak-4 org/user settings).
+    Protected by Cloudflare Access bypass (only this path is open).
     Every delivery is logged to trak4_webhook_logs for debugging.
     Returns: 200 with count of new reports ingested.
     """
-    from flask import current_app
-
-    # -- Authenticate via x-api-key header ------------------------------------
-    webhook_secret = current_app.config.get('TRAK4_WEBHOOK_SECRET', '')
-    if webhook_secret:
-        provided_key = request.headers.get('x-api-key', '')
-        if provided_key != webhook_secret:
-            logger.warning("Webhook rejected: invalid x-api-key header")
-            # Log the rejected delivery
-            log_entry = Trak4WebhookLog(
-                source_ip=request.remote_addr,
-                success=False,
-                report_count=0,
-                new_count=0,
-                error_message='Invalid x-api-key header',
-                raw_payload=request.get_data(as_text=True)[:10000],
-            )
-            db.session.add(log_entry)
-            db.session.commit()
-            return jsonify({'error': 'unauthorized'}), 401
-
     payload = request.get_json(silent=True) or {}
 
     # -- Extract report(s) from the payload -----------------------------------

@@ -40,7 +40,6 @@ services:
       - APNS_USE_SANDBOX=${APNS_USE_SANDBOX:-false}
       # Trak-4 GPS Tracking API
       - TRAK4_API_KEY=${TRAK4_API_KEY}
-      - TRAK4_WEBHOOK_SECRET=${TRAK4_WEBHOOK_SECRET}
     volumes:
       - uploads:/app/uploads
       - ${APNS_CERTS_PATH:-/mnt/datacore/apns-certs}:/app/certs:ro  # APNs .p8 key file
