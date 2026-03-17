@@ -29,6 +29,13 @@ from app.services.interval_checker import check_interval_status
 dashboard_bp = Blueprint('dashboard', __name__)
 
 
+def _to_date(value):
+    """Normalise a date or datetime to a plain date for comparison."""
+    if isinstance(value, datetime):
+        return value.date()
+    return value
+
+
 @dashboard_bp.route('/weather')
 def get_weather():
     """
@@ -450,8 +457,8 @@ def get_fleet_status():
     for v in vehicles_list:
         all_maintenance_logs.extend(v.maintenance_logs)
 
-    maint_30d = [ml for ml in all_maintenance_logs if ml.date and ml.date >= thirty_days_ago]
-    maint_ytd = [ml for ml in all_maintenance_logs if ml.date and ml.date >= year_start]
+    maint_30d = [ml for ml in all_maintenance_logs if ml.date and _to_date(ml.date) >= thirty_days_ago]
+    maint_ytd = [ml for ml in all_maintenance_logs if ml.date and _to_date(ml.date) >= year_start]
 
     # Parts cost: components with a purchase_date in range
     all_components = []
