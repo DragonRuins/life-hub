@@ -703,6 +703,30 @@ END $$""",
 
         # Timecard: index on start_time for date-range queries
         """CREATE INDEX IF NOT EXISTS idx_time_entries_start ON time_entries (start_time)""",
+
+        # Maintenance log: Date → DateTime (preserves existing dates at midnight)
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'maintenance_logs' AND column_name = 'date'
+                  AND data_type = 'date'
+            ) THEN
+                ALTER TABLE maintenance_logs ALTER COLUMN date TYPE TIMESTAMP USING date::timestamp;
+            END IF;
+        END $$""",
+
+        # Maintenance log: mileage Integer → Float
+        """DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'maintenance_logs' AND column_name = 'mileage'
+                  AND data_type = 'integer'
+            ) THEN
+                ALTER TABLE maintenance_logs ALTER COLUMN mileage TYPE DOUBLE PRECISION USING mileage::double precision;
+            END IF;
+        END $$""",
     ]
 
     for sql in migrations:

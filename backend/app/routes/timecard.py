@@ -20,6 +20,9 @@ Endpoints:
   Entry Management:
     PUT    /api/timecard/entry/<id>    -> Edit a time entry
     DELETE /api/timecard/entry/<id>    -> Delete a time entry
+
+  Overtime:
+    GET    /api/timecard/overtime-balance -> Live month-to-date OT balance
 """
 from calendar import monthrange
 from datetime import datetime, timezone, date, timedelta
@@ -575,3 +578,93 @@ def delete_monthly_total(entry_id):
     db.session.delete(entry)
     db.session.commit()
     return jsonify({'deleted': True})
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Overtime Balance
+# ═══════════════════════════════════════════════════════════════════
+
+def _count_weekdays_through_today(year, month):
+    """Count Monday-Friday days from the 1st through today (inclusive) in Chicago TZ."""
+    today_chicago = datetime.now(CHICAGO_TZ).date()
+    # If querying a different month/year, count the full month
+    if year != today_chicago.year or month != today_chicago.month:
+        return _count_weekdays(year, month)
+    count = 0
+    for day in range(1, today_chicago.day + 1):
+        if date(year, month, day).weekday() < 5:
+            count += 1
+    return count
+
+
+@timecard_bp.route('/overtime-balance', methods=['GET'])
+def overtime_balance():
+    """
+    Return the live month-to-date overtime balance.
+
+    Response:
+      balance_seconds  — int, positive = ahead, negative = behind
+      expected_hours   — float, weekdays_through_today * 8
+      actual_hours     — float, completed entries + manual + active timer
+      weekdays_elapsed — int, weekdays from 1st through today (inclusive)
+      is_clocked_in    — bool
+      clock_in_time    — ISO string or null
+    """
+    now_utc = datetime.now(timezone.utc)
+    today_chicago = now_utc.astimezone(CHICAGO_TZ).date()
+    year = today_chicago.year
+    month = today_chicago.month
+
+    # 1. Weekdays through today (inclusive)
+    weekdays = _count_weekdays_through_today(year, month)
+    expected_hours = weekdays * 8
+
+    # 2. Sum completed entries this month (Chicago-local month boundaries)
+    month_start_utc = CHICAGO_TZ.localize(
+        datetime(year, month, 1)
+    ).astimezone(timezone.utc)
+
+    if month == 12:
+        next_month_utc = CHICAGO_TZ.localize(
+            datetime(year + 1, 1, 1)
+        ).astimezone(timezone.utc)
+    else:
+        next_month_utc = CHICAGO_TZ.localize(
+            datetime(year, month + 1, 1)
+        ).astimezone(timezone.utc)
+
+    completed_entries = TimeEntry.query.filter(
+        TimeEntry.end_time.isnot(None),
+        TimeEntry.start_time >= month_start_utc,
+        TimeEntry.start_time < next_month_utc,
+    ).all()
+
+    tracked_seconds = sum(e.duration_seconds or 0 for e in completed_entries)
+    tracked_hours = tracked_seconds / 3600
+
+    # 3. Manual monthly total (if any)
+    manual = MonthlyTotal.query.filter_by(year=year, month=month).first()
+    manual_hours = manual.hours if manual else 0
+
+    # 4. Active timer contribution
+    active = _get_active_timer()
+    is_clocked_in = active is not None
+    clock_in_time = None
+    active_hours = 0
+
+    if is_clocked_in:
+        clock_in_time = active.start_time.isoformat()
+        active_seconds = (now_utc - active.start_time).total_seconds()
+        active_hours = active_seconds / 3600
+
+    actual_hours = round(tracked_hours + manual_hours + active_hours, 4)
+    balance_seconds = int((actual_hours - expected_hours) * 3600)
+
+    return jsonify({
+        'balance_seconds': balance_seconds,
+        'expected_hours': round(expected_hours, 2),
+        'actual_hours': round(actual_hours, 2),
+        'weekdays_elapsed': weekdays,
+        'is_clocked_in': is_clocked_in,
+        'clock_in_time': clock_in_time,
+    })
