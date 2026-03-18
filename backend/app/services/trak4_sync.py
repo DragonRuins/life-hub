@@ -340,6 +340,12 @@ def get_sync_status():
     device_count = Trak4Device.query.count()
     total_reports = Trak4GPSReport.query.count()
 
+    # Reports received today (UTC midnight boundary)
+    today_start = datetime.combine(datetime.utcnow().date(), datetime.min.time())
+    reports_today = Trak4GPSReport.query.filter(
+        Trak4GPSReport.received_time >= today_start
+    ).count()
+
     # Most recent sync time across all devices
     latest_device = Trak4Device.query.order_by(
         Trak4Device.last_synced_at.desc()
@@ -349,6 +355,7 @@ def get_sync_status():
     return {
         'last_synced_at': last_synced.isoformat() if last_synced else None,
         'total_reports': total_reports,
+        'reports_today': reports_today,
         'device_count': device_count,
         'polling_interval_seconds': _poll_interval,
     }
