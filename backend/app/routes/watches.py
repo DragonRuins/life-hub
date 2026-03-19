@@ -109,8 +109,10 @@ def _recalculate_rates(period):
             elapsed_seconds = (reading.reference_time - prev_ref_time).total_seconds()
             elapsed_days = elapsed_seconds / 86400.0
 
-            if elapsed_days > 0:
-                # Rate = change in offset per day (sec/day)
+            # Require at least 1 hour between readings for a meaningful rate.
+            # Extrapolating from seconds/minutes to sec/day produces wildly
+            # inaccurate numbers (e.g., 0.5s offset over 30 seconds = 1440 s/d).
+            if elapsed_seconds >= 3600:
                 reading.rate = (reading.offset_seconds - prev_offset) / elapsed_days
             else:
                 reading.rate = None
