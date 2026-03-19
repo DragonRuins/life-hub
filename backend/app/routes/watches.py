@@ -62,10 +62,18 @@ def _parse_date(value):
 
 
 def _parse_datetime(value):
-    """Parse an ISO datetime string, returning None for empty/missing values."""
+    """Parse an ISO datetime string, returning None for empty/missing values.
+
+    Always returns a timezone-naive datetime (UTC assumed) to avoid
+    offset-naive vs offset-aware comparison errors in SQLAlchemy.
+    """
     if not value or (isinstance(value, str) and value.strip() == ''):
         return None
-    return datetime.fromisoformat(value)
+    dt = datetime.fromisoformat(value)
+    # Strip timezone info — store as naive UTC (consistent with other models)
+    if dt.tzinfo is not None:
+        dt = dt.replace(tzinfo=None)
+    return dt
 
 
 def _parse_float(value):
@@ -345,13 +353,13 @@ def create_period(watch_id):
     # Auto-close any existing active period
     active = watch.active_period()
     if active:
-        active.ended_at = datetime.now(timezone.utc)
+        active.ended_at = datetime.utcnow()
         active.compute_stats()
 
     # Create the new period
     period = TimekeepingPeriod(
         watch_id=watch.id,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.utcnow(),
         notes=data.get('notes'),
     )
 
@@ -381,7 +389,7 @@ def close_active_period(watch_id):
         active.notes = data['notes']
 
     # Close period and compute stats
-    active.ended_at = datetime.now(timezone.utc)
+    active.ended_at = datetime.utcnow()
     active.compute_stats()
 
     db.session.commit()
@@ -619,7 +627,7 @@ def get_stats(watch_id):
     total_readings = 0
     total_tracking_days = 0.0
     completed_periods = 0
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
 
     for period in watch.periods:
         # Collect rates from this period's readings
