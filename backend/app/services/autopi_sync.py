@@ -444,8 +444,8 @@ def validate_webhook_token(auth_header):
     logger.info(f"AutoPi webhook auth: scheme='{parts[0]}' token_len={len(parts[1]) if len(parts) > 1 else 0}")
     if len(parts) != 2:
         return False
-    # Accept both "Bearer" and "Token" schemes (AutoPi may use either)
-    if parts[0] not in ('Bearer', 'Token'):
+    # Accept Bearer, Token, or token schemes (AutoPi sends lowercase "token")
+    if parts[0].lower() not in ('bearer', 'token'):
         return False
     return parts[1] == expected
 
