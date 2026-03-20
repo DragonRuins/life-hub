@@ -124,7 +124,12 @@ def sync_positions(device, since=None):
     Returns count of new records stored.
     """
     if since is None:
-        since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=1))
+        # If no existing records, look back 24h to bootstrap (same as Trak-4 pattern)
+        report_count = AutoPiPositionReport.query.filter_by(device_id=device.id).count()
+        if report_count == 0:
+            since = _utcnow() - timedelta(hours=24)
+        else:
+            since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=1))
 
     device_uuid = autopi_client._device_id()
     from_utc = since.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -284,7 +289,12 @@ def sync_obd_snapshots(device, since=None):
     Returns count of new records stored.
     """
     if since is None:
-        since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=1))
+        # If no existing snapshots, look back 24h to bootstrap
+        snapshot_count = AutoPiOBDSnapshot.query.filter_by(device_id=device.id).count()
+        if snapshot_count == 0:
+            since = _utcnow() - timedelta(hours=24)
+        else:
+            since = _ensure_naive(device.last_synced_at) or (_utcnow() - timedelta(hours=1))
 
     device_uuid = autopi_client._device_id()
     from_utc = since.strftime('%Y-%m-%dT%H:%M:%SZ')
