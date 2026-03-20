@@ -25,6 +25,6 @@ from .monthly_total import MonthlyTotal
 from .device_token import DeviceToken
 from .notification_snooze import NotificationSnooze
 from .debt import Debt, DebtPayment, SnowballSavings
-from .gps_tracking import Trak4Device, Trak4GPSReport, Trak4Geofence
+from .gps_tracking import Trak4Device, Trak4GPSReport, Trak4Geofence, AutoPiDevice, AutoPiPositionReport
 from .jumper import JumperSite, JumperCPU, JumperTag, Jumper
 from .watch import Watch, TimekeepingPeriod, TimekeepingReading, WatchServiceLog

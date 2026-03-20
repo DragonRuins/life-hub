@@ -5,6 +5,8 @@ Tables:
   - trak4_devices: Mirrors Trak-4 device objects, linked 1:1 to vehicles
   - trak4_gps_reports: Every GPS report ever received, stored permanently
   - trak4_webhook_logs: Raw webhook delivery log (auto-purged after 30 days)
+  - autopi_devices: AutoPi TMU CM4 devices, linked 1:1 to vehicles
+  - autopi_position_reports: GPS position reports from AutoPi devices
 
 The backend proxies the Trak-4 REST API. The API key is stored as an
 env var (TRAK4_API_KEY) and never exposed to the iOS app.
@@ -219,4 +221,103 @@ class Trak4WebhookLog(db.Model):
             'event_type': self.event_type,
             'mode': self.mode,
             'raw_payload': self.raw_payload,
+        }
+
+
+class AutoPiDevice(db.Model):
+    """An AutoPi TMU CM4 device, optionally linked to a vehicle."""
+    __tablename__ = 'autopi_devices'
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.String(64), unique=True, nullable=False)   # AutoPi's device UUID
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id', ondelete='SET NULL'),
+                           nullable=True, unique=True)                   # 1:1 assignment
+    unit_id = db.Column(db.String(64))                                   # AutoPi unit identifier
+    token = db.Column(db.String(64))                                     # device token for API access
+    label = db.Column(db.String(100))                                    # user-friendly name (display field)
+    hw_revision = db.Column(db.String(20))                               # hardware revision (e.g. "7.0")
+    firmware = db.Column(db.String(20))                                  # release version (e.g. "1.28.0")
+    imei = db.Column(db.String(20))                                      # cellular IMEI
+    sim_state = db.Column(db.String(20))                                 # SIM status (e.g. "activated")
+
+    # Last known position (from latest poll)
+    last_latitude = db.Column(db.Float)
+    last_longitude = db.Column(db.Float)
+    last_report_time = db.Column(db.DateTime)
+
+    last_synced_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    # Relationship
+    vehicle = db.relationship('Vehicle', backref=db.backref('autopi_device', uselist=False))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'vehicle_id': self.vehicle_id,
+            'vehicle_name': self.vehicle.to_dict().get('display_name') if self.vehicle else None,
+            'vehicle_type': self.vehicle.vehicle_type if self.vehicle else None,
+            'unit_id': self.unit_id,
+            'token': self.token,
+            'label': self.label,
+            'hw_revision': self.hw_revision,
+            'firmware': self.firmware,
+            'imei': self.imei,
+            'sim_state': self.sim_state,
+            'last_latitude': self.last_latitude,
+            'last_longitude': self.last_longitude,
+            'last_report_time': self.last_report_time.isoformat() + 'Z' if self.last_report_time else None,
+            'last_synced_at': self.last_synced_at.isoformat() + 'Z' if self.last_synced_at else None,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+        }
+
+
+class AutoPiPositionReport(db.Model):
+    """A single GPS position report from an AutoPi device. Stored permanently."""
+    __tablename__ = 'autopi_position_reports'
+    __table_args__ = (
+        db.Index('idx_autopi_pos_device_recorded', 'device_id', 'recorded_at'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey('autopi_devices.id', ondelete='CASCADE'),
+                          nullable=False)
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    speed = db.Column(db.Float)                                          # speed over ground (track.pos.sog)
+    heading = db.Column(db.Float)                                        # course over ground (track.pos.loc.cog)
+    altitude = db.Column(db.Float)                                       # meters (track.pos.alt)
+    satellites = db.Column(db.Integer)                                   # number of satellites (track.pos.nsat)
+    recorded_at = db.Column(db.DateTime, nullable=False)                 # device-side timestamp (ts field)
+    received_at = db.Column(db.DateTime, default=datetime.utcnow)       # when Datacore ingested it
+
+    # Relationship
+    device = db.relationship('AutoPiDevice', backref=db.backref('position_reports', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'speed': self.speed,
+            'heading': self.heading,
+            'altitude': self.altitude,
+            'satellites': self.satellites,
+            'recorded_at': self.recorded_at.isoformat() + 'Z' if self.recorded_at else None,
+            'received_at': self.received_at.isoformat() + 'Z' if self.received_at else None,
+        }
+
+    def to_route_point(self):
+        """Lightweight dict for route polyline rendering (lat/lng/time/speed only)."""
+        return {
+            'lat': self.latitude,
+            'lng': self.longitude,
+            'time': self.recorded_at.isoformat() + 'Z' if self.recorded_at else None,
+            'speed': self.speed,
+            'heading': self.heading,
         }
