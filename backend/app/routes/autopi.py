@@ -298,30 +298,114 @@ def webhook():
     """Receive data pushes directly from the AutoPi device.
 
     The device sends a JSON array of records with @t (type) and @ts (timestamp).
-    Validates the Bearer token, ingests data, then forwards to AutoPi Cloud.
+    Validates the Bearer token, ingests data, forwards to AutoPi Cloud,
+    and logs the delivery for debugging.
 
     Returns: 200 on success (tells device to delete its local copy).
     """
+    import json as json_lib
     from app.services.autopi_sync import validate_webhook_token, forward_to_autopi_cloud
+    from app.models.autopi import AutoPiWebhookLog
 
     # Validate auth token
     auth_header = request.headers.get('Authorization', '')
     if not validate_webhook_token(auth_header):
+        # Log failed auth attempts too
+        log_entry = AutoPiWebhookLog(
+            source_ip=request.remote_addr,
+            success=False,
+            error_message='Unauthorized: invalid or missing token',
+        )
+        db.session.add(log_entry)
+        db.session.commit()
         return jsonify({'error': 'Unauthorized'}), 401
 
     payload = request.get_json(silent=True) or []
+    records = payload if isinstance(payload, list) else [payload]
+
+    # Count record types for the log
+    record_types = set()
+    position_count = 0
+    obd_count = 0
+    event_count = 0
+    for record in records:
+        rt = record.get('@t', 'unknown')
+        record_types.add(rt)
+        if rt == 'track.pos':
+            position_count += 1
+        elif rt.startswith('obd.') or rt in ('speed', 'rpm', 'odometer', 'coolant_temp', 'engine_load', 'fuel_level', 'intake_temp', 'ambiant_air_temp'):
+            obd_count += 1
+        elif rt.startswith('event.'):
+            event_count += 1
 
     # Ingest into our database
+    error_msg = None
     try:
         count = ingest_webhook(payload)
     except Exception as e:
         logger.error(f"AutoPi webhook ingestion error: {e}")
+        error_msg = str(e)
         count = 0
 
     # Forward to AutoPi Cloud (non-blocking, errors logged but don't fail)
     forward_to_autopi_cloud(payload, auth_header)
 
+    # Log the delivery
+    log_entry = AutoPiWebhookLog(
+        source_ip=request.remote_addr,
+        success=error_msg is None,
+        record_count=len(records),
+        new_count=count,
+        position_count=position_count,
+        obd_count=obd_count,
+        event_count=event_count,
+        record_types=', '.join(sorted(record_types)),
+        error_message=error_msg,
+        raw_payload=json_lib.dumps(payload)[:20000],  # cap at 20KB
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+
     return jsonify({
         'received': True,
         'new': count,
+    })
+
+
+# -- Webhook Log Endpoints ----------------------------------------------------
+
+@autopi_bp.route('/webhook/logs', methods=['GET'])
+def webhook_logs():
+    """List webhook delivery logs, newest-first.
+
+    Query params:
+      - limit (int, default 50, max 200)
+      - offset (int, default 0)
+
+    Returns: {logs: [...], total: int, stats: {...}}
+    """
+    from app.models.autopi import AutoPiWebhookLog
+
+    limit = min(request.args.get('limit', 50, type=int), 200)
+    offset = request.args.get('offset', 0, type=int)
+
+    query = AutoPiWebhookLog.query.order_by(AutoPiWebhookLog.received_at.desc())
+    total = query.count()
+    logs = query.offset(offset).limit(limit).all()
+
+    # Summary stats
+    success_count = AutoPiWebhookLog.query.filter_by(success=True).count()
+    fail_count = total - success_count
+    latest = AutoPiWebhookLog.query.order_by(AutoPiWebhookLog.received_at.desc()).first()
+
+    return jsonify({
+        'logs': [log.to_dict() for log in logs],
+        'total': total,
+        'stats': {
+            'total_deliveries': total,
+            'success_count': success_count,
+            'fail_count': fail_count,
+            'success_rate': round(success_count / total * 100, 1) if total > 0 else 0,
+            'last_received_at': latest.received_at.isoformat() + 'Z' if latest else None,
+        },
     })

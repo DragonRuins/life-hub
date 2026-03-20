@@ -791,6 +791,16 @@ def start_sync_scheduler(app):
     logger.info("AutoPi startup device sync scheduled (webhook mode — no recurring poll)")
 
 
+def purge_old_webhook_logs(days=30):
+    """Delete webhook log entries older than `days` days."""
+    from app.models.autopi import AutoPiWebhookLog
+    cutoff = _utcnow() - timedelta(days=days)
+    deleted = AutoPiWebhookLog.query.filter(AutoPiWebhookLog.received_at < cutoff).delete()
+    if deleted:
+        db.session.commit()
+        logger.info(f"Purged {deleted} AutoPi webhook log(s) older than {days} days")
+
+
 def _run_startup_sync():
     """Sync device info on startup so the AutoPiDevice record exists for webhooks."""
     from app.services.scheduler import _app
@@ -800,6 +810,7 @@ def _run_startup_sync():
     with _app.app_context():
         try:
             sync_device()
+            purge_old_webhook_logs()
         except Exception as e:
             logger.error(f"AutoPi startup sync failed: {e}")
 
