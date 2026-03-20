@@ -114,7 +114,7 @@ def create_app():
     # existing tables. The entrypoint.sh runs `flask db upgrade` before
     # the app starts to handle migrations in production.
     with app.app_context():
-        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, debt, timecard, gps_tracking, jumper, watch  # noqa: F401
+        from app.models import vehicle, note, notification, maintenance_interval, folder, tag, attachment, project, kb, infrastructure, astrometrics, trek, ai_chat, debt, timecard, gps_tracking, jumper, watch, autopi  # noqa: F401
         db.create_all()
 
         # ── Safe column migrations ──────────────────────────────
