@@ -320,6 +320,13 @@ def webhook():
         db.session.commit()
         return jsonify({'error': 'Unauthorized'}), 401
 
+    # Log raw request details for debugging
+    content_type = request.headers.get('Content-Type', 'none')
+    content_length = request.headers.get('Content-Length', '0')
+    content_encoding = request.headers.get('Content-Encoding', 'none')
+    raw_data = request.get_data(as_text=True)
+    logger.info(f"AutoPi webhook: type={content_type} len={content_length} encoding={content_encoding} raw_len={len(raw_data)} raw_preview={raw_data[:200]}")
+
     payload = request.get_json(silent=True) or []
     records = payload if isinstance(payload, list) else [payload]
 
