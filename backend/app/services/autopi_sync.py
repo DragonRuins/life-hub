@@ -437,10 +437,15 @@ def validate_webhook_token(auth_header):
     if not expected:
         return True  # No token configured = accept all (dev mode)
     if not auth_header:
+        logger.warning(f"AutoPi webhook: no Authorization header received")
         return False
-    # AutoPi sends "Bearer <token>"
+    # Log the header format for debugging (mask the token value)
     parts = auth_header.split(' ', 1)
-    if len(parts) != 2 or parts[0] != 'Bearer':
+    logger.info(f"AutoPi webhook auth: scheme='{parts[0]}' token_len={len(parts[1]) if len(parts) > 1 else 0}")
+    if len(parts) != 2:
+        return False
+    # Accept both "Bearer" and "Token" schemes (AutoPi may use either)
+    if parts[0] not in ('Bearer', 'Token'):
         return False
     return parts[1] == expected
 
