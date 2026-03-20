@@ -106,6 +106,9 @@ def create_app():
     from app.routes.watches import watches_bp
     app.register_blueprint(watches_bp, url_prefix='/api/watches')
 
+    from app.routes.autopi import autopi_bp
+    app.register_blueprint(autopi_bp, url_prefix='/api/autopi')
+
     # ── Create database tables ─────────────────────────────────
     # Import all models so SQLAlchemy knows about them,
     # then create any tables that don't exist yet.
@@ -216,6 +219,11 @@ def create_app():
         if app.config.get('TRAK4_API_KEY'):
             from app.services.trak4_sync import start_sync_scheduler
             start_sync_scheduler(app)
+
+        # Start AutoPi sync if API token is configured
+        if app.config.get('AUTOPI_API_TOKEN'):
+            from app.services.autopi_sync import start_sync_scheduler as start_autopi_sync
+            start_autopi_sync(app)
 
         # Start HA WebSocket client for real-time state updates
         try:
