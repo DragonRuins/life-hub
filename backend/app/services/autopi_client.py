@@ -2,11 +2,11 @@
 AutoPi Cloud API Client
 
 Thin wrapper around the AutoPi REST API (https://api.autopi.io).
-Uses Bearer token authentication via the AUTOPI_API_TOKEN env var.
+Uses APIToken authentication via the AUTOPI_API_TOKEN env var.
 The AUTOPI_DEVICE_ID env var identifies the specific AutoPi TMU CM4 device.
 
 This mirrors the pattern established in trak4_client.py but uses
-GET/POST with Bearer auth headers instead of API-key-in-body.
+GET/POST with APIToken auth headers instead of API-key-in-body.
 """
 import logging
 
@@ -35,7 +35,7 @@ def _base_url():
 
 
 def _headers():
-    """Build request headers with Bearer token authorization."""
+    """Build request headers with APIToken authorization."""
     return {
         'Authorization': f'APIToken {_api_token()}',
         'Content-Type': 'application/json',
