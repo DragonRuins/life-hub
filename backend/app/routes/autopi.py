@@ -295,21 +295,31 @@ def assign_vehicle():
 
 @autopi_bp.route('/webhook', methods=['POST'])
 def webhook():
-    """Receive AutoPi data pushes.
+    """Receive data pushes directly from the AutoPi device.
 
-    Accepts arbitrary JSON payload and passes it to ingest_webhook() for processing.
+    The device sends a JSON array of records with @t (type) and @ts (timestamp).
+    Validates the Bearer token, ingests data, then forwards to AutoPi Cloud.
 
-    Returns: {"received": true, "new": N}
+    Returns: 200 on success (tells device to delete its local copy).
     """
-    payload = request.get_json(silent=True) or {}
+    from app.services.autopi_sync import validate_webhook_token, forward_to_autopi_cloud
 
+    # Validate auth token
+    auth_header = request.headers.get('Authorization', '')
+    if not validate_webhook_token(auth_header):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    payload = request.get_json(silent=True) or []
+
+    # Ingest into our database
     try:
         count = ingest_webhook(payload)
     except Exception as e:
         logger.error(f"AutoPi webhook ingestion error: {e}")
-        return jsonify({'received': True, 'new': 0, 'error': str(e)}), 200
+        count = 0
 
-    logger.info(f"AutoPi webhook received, {count} new record(s)")
+    # Forward to AutoPi Cloud (non-blocking, errors logged but don't fail)
+    forward_to_autopi_cloud(payload, auth_header)
 
     return jsonify({
         'received': True,

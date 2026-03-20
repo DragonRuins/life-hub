@@ -47,6 +47,8 @@ class Config:
     AUTOPI_API_TOKEN = os.environ.get('AUTOPI_API_TOKEN', '')
     AUTOPI_DEVICE_ID = os.environ.get('AUTOPI_DEVICE_ID', '')
     AUTOPI_SYNC_INTERVAL = int(os.environ.get('AUTOPI_SYNC_INTERVAL', 300))
+    # AutoPi device webhook auth token (same token configured on the AutoPi device)
+    AUTOPI_WEBHOOK_TOKEN = os.environ.get('AUTOPI_WEBHOOK_TOKEN', '')
 
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')

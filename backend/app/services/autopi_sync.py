@@ -428,15 +428,218 @@ def _update_vehicle_mileage(device, odometer_value):
         logger.error(f"AutoPi mileage update failed: {e}")
 
 
-# -- Webhook Ingestion (placeholder) ------------------------------------------
+# -- Webhook Ingestion (device push) ------------------------------------------
+
+def validate_webhook_token(auth_header):
+    """Validate the Authorization: Bearer <token> header from the AutoPi device."""
+    from flask import current_app
+    expected = current_app.config.get('AUTOPI_WEBHOOK_TOKEN', '')
+    if not expected:
+        return True  # No token configured = accept all (dev mode)
+    if not auth_header:
+        return False
+    # AutoPi sends "Bearer <token>"
+    parts = auth_header.split(' ', 1)
+    if len(parts) != 2 or parts[0] != 'Bearer':
+        return False
+    return parts[1] == expected
+
 
 def ingest_webhook(payload):
     """
-    Process a real-time push from an AutoPi output handler.
-    Placeholder — logs the receipt and returns 0.
+    Process a real-time data push from the AutoPi device.
+
+    The device sends a JSON array of records, each with:
+      @t  — type (e.g. "track.pos", "obd.bat", "event.system.power")
+      @ts — timestamp (ISO 8601)
+      ... — type-specific fields
+
+    Routes each record to the appropriate handler based on @t.
+    Returns count of new records stored.
     """
-    logger.info(f"AutoPi webhook received: {type(payload).__name__} payload")
-    return 0
+    if not isinstance(payload, list):
+        payload = [payload]
+
+    device = AutoPiDevice.query.first()
+    if not device:
+        logger.warning("AutoPi webhook: no device configured, creating from first push")
+        device_uuid = autopi_client._device_id()
+        if device_uuid:
+            device = sync_device()
+        if not device:
+            logger.error("AutoPi webhook: cannot create device, dropping data")
+            return 0
+
+    new_positions = 0
+    new_snapshots = 0
+
+    for record in payload:
+        record_type = record.get('@t', '')
+        ts = _parse_dt(record.get('@ts'))
+        if not ts:
+            continue
+
+        if record_type == 'track.pos':
+            if _ingest_position(device, record, ts):
+                new_positions += 1
+
+        elif record_type.startswith('obd.') or record_type in _KNOWN_OBD_FIELDS:
+            new_snapshots += _ingest_obd_record(device, record, record_type, ts)
+
+        # Events and other types are logged but not stored (for now)
+        elif record_type.startswith('event.'):
+            logger.debug(f"AutoPi event: {record_type} tag={record.get('@tag', '')}")
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"AutoPi webhook commit failed: {e}")
+        return 0
+
+    # Update device last_synced_at
+    device.last_synced_at = _utcnow()
+    db.session.commit()
+
+    total = new_positions + new_snapshots
+    if total:
+        logger.info(f"AutoPi webhook: {new_positions} position(s), {new_snapshots} OBD snapshot(s)")
+
+    return total
+
+
+def _ingest_position(device, record, ts):
+    """Ingest a single track.pos record from a webhook push. Returns True if new."""
+    loc = record.get('loc', {})
+    lat = loc.get('lat')
+    lon = loc.get('lon')
+    if lat is None or lon is None:
+        return False
+
+    # Deduplicate
+    existing = AutoPiPositionReport.query.filter_by(
+        device_id=device.id,
+        recorded_at=ts,
+    ).first()
+    if existing:
+        return False
+
+    report = AutoPiPositionReport(
+        device_id=device.id,
+        latitude=float(lat),
+        longitude=float(lon),
+        speed=record.get('sog'),
+        heading=loc.get('cog') or record.get('cog'),
+        altitude=record.get('alt'),
+        satellites=record.get('nsat'),
+        recorded_at=ts,
+    )
+    db.session.add(report)
+
+    # Update device last known position
+    if not device.last_report_time or ts > device.last_report_time:
+        device.last_latitude = report.latitude
+        device.last_longitude = report.longitude
+        device.last_report_time = ts
+
+        # Check geofences
+        if device.vehicle_id:
+            check_geofences_for_vehicle(
+                device.vehicle_id,
+                report.latitude,
+                report.longitude,
+                device.label or f'AutoPi {device.device_id}',
+            )
+
+    return True
+
+
+def _ingest_obd_record(device, record, record_type, ts):
+    """Ingest OBD data fields from a webhook push. Returns count of new snapshots."""
+    count = 0
+    latest_odometer = None
+
+    # The record contains multiple fields — each non-metadata field is a reading
+    skip_keys = {'@t', '@ts', '@tag', '@rec', '@uid', '@vid'}
+
+    # For obd.bat type, fields are: voltage, level, state, nominal_voltage, etc.
+    # For simple types like "speed", the value might be at the top level
+    for key, value in record.items():
+        if key in skip_keys:
+            continue
+
+        # Try to convert to float
+        try:
+            value_float = float(value)
+        except (ValueError, TypeError):
+            continue
+
+        # Build the full PID name: "obd.bat.voltage", "obd.bat.level", etc.
+        if record_type == key:
+            pid_name = key  # e.g. "speed", "rpm" — standalone fields
+        else:
+            pid_name = f"{record_type}.{key}" if not key.startswith(record_type) else key
+
+        # Look up unit from known fields
+        known = _KNOWN_OBD_FIELDS.get(pid_name)
+        unit = known[1] if known else None
+
+        # Deduplicate
+        existing = AutoPiOBDSnapshot.query.filter_by(
+            device_id=device.id,
+            pid_name=pid_name,
+            recorded_at=ts,
+        ).first()
+        if existing:
+            continue
+
+        snapshot = AutoPiOBDSnapshot(
+            device_id=device.id,
+            recorded_at=ts,
+            pid_name=pid_name,
+            value=value_float,
+            unit=unit,
+            raw_value=str(value),
+        )
+        db.session.add(snapshot)
+        count += 1
+
+        # Track odometer
+        if pid_name == 'odometer' or key == 'odometer':
+            if latest_odometer is None or value_float > latest_odometer:
+                latest_odometer = value_float
+
+    # Update vehicle mileage if odometer data arrived
+    if latest_odometer is not None:
+        _update_vehicle_mileage(device, latest_odometer)
+
+    return count
+
+
+def forward_to_autopi_cloud(payload, auth_header):
+    """
+    Forward the raw webhook payload to AutoPi Cloud so their dashboard stays updated.
+    Non-blocking — errors are logged but don't affect our ingestion.
+    """
+    import requests as req
+
+    try:
+        headers = {'Content-Type': 'application/json'}
+        if auth_header:
+            headers['Authorization'] = auth_header
+
+        resp = req.post(
+            'https://api.autopi.io/logbook/storage',
+            json=payload,
+            headers=headers,
+            timeout=10,
+        )
+        if resp.status_code >= 400:
+            logger.warning(f"AutoPi Cloud forward failed: {resp.status_code} {resp.text[:200]}")
+        else:
+            logger.debug(f"AutoPi Cloud forward OK: {resp.status_code}")
+    except Exception as e:
+        logger.warning(f"AutoPi Cloud forward error: {e}")
 
 
 # -- Backfill ------------------------------------------------------------------
@@ -564,44 +767,51 @@ def start_sync_scheduler(app):
     """
     Register the AutoPi sync job with APScheduler.
     Called from create_app() when AUTOPI_API_TOKEN is configured.
+
+    NOTE: Automatic polling is disabled now that the device pushes data
+    directly via webhook. The initial device sync still runs on startup
+    to ensure the device record exists. Manual polling is available via
+    POST /api/autopi/sync for catch-up if needed.
     """
     from app.services.scheduler import scheduler
 
     if not scheduler:
-        logger.warning("Scheduler not available, AutoPi sync will not run")
+        logger.warning("Scheduler not available, AutoPi startup sync will not run")
         return
 
-    sync_interval = app.config.get('AUTOPI_SYNC_INTERVAL', _DEFAULT_SYNC_INTERVAL)
-
-    # Run an initial sync on startup (delayed 15s to avoid blocking init)
+    # Run an initial device sync on startup (delayed 15s to avoid blocking init)
+    # This ensures the AutoPiDevice record exists for webhook ingestion
     scheduler.add_job(
-        _run_sync,
+        _run_startup_sync,
         trigger='date',
         id='autopi_sync_startup',
         run_date=_utcnow() + timedelta(seconds=15),
         replace_existing=True,
     )
-
-    # Schedule recurring sync at the configured interval
-    scheduler.add_job(
-        _run_sync,
-        trigger='interval',
-        id='autopi_sync',
-        seconds=sync_interval,
-        replace_existing=True,
-    )
-    logger.info(f"AutoPi sync scheduled (every {sync_interval}s)")
+    logger.info("AutoPi startup device sync scheduled (webhook mode — no recurring poll)")
 
 
-def _run_sync():
-    """Execute device + position + OBD sync inside app context."""
+def _run_startup_sync():
+    """Sync device info on startup so the AutoPiDevice record exists for webhooks."""
     from app.services.scheduler import _app
     if not _app:
         return
 
     with _app.app_context():
         try:
-            # Capture the sync window BEFORE updating device (which sets last_synced_at to now)
+            sync_device()
+        except Exception as e:
+            logger.error(f"AutoPi startup sync failed: {e}")
+
+
+def _run_sync():
+    """Execute full device + position + OBD sync (manual trigger only)."""
+    from app.services.scheduler import _app
+    if not _app:
+        return
+
+    with _app.app_context():
+        try:
             device = AutoPiDevice.query.first()
             since = _ensure_naive(device.last_synced_at) if device else None
 
@@ -609,7 +819,6 @@ def _run_sync():
             if device:
                 sync_positions(device, since=since)
                 sync_obd_snapshots(device, since=since)
-                # Update last_synced_at AFTER data is fetched (not before)
                 device.last_synced_at = _utcnow()
                 db.session.commit()
         except Exception as e:
