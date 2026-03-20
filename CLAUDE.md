@@ -119,9 +119,17 @@ var body: some View {
 
 iPhone layouts must remain completely unchanged when adding iPad layouts. Extract shared subviews and recompose them differently per device.
 
-**iPad glass effect pitfalls:**
+**Card background standard — Liquid Glass everywhere:**
 
-- `.glassEffect(.regular.interactive())` creates Liquid Glass bubbles that **intercept taps** — don't use on cards that contain `NavigationLink`. Use `.background(.ultraThinMaterial, in: .rect(cornerRadius: 12))` instead for tap-through cards.
+All content cards, stat cards, info sections, chart containers, and list rows across the app use `.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))` for a consistent translucent Liquid Glass look. This applies to:
+- Shared components: `StatCard`, `PremiumStatCard`, `GlassCard` (all depth variants), `ShimmerView` skeletons, `InteractiveChart`
+- All module detail views (Vehicles, Fuel, Timecard, Watches, Debt, Trek, Jumpers, Weather, Astrometrics, GPS, Settings)
+- `List` rows on faceted backgrounds: use `.listRowBackground(Color.clear.glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12)).padding(.vertical, 2))` combined with `.scrollContentBackground(.hidden)` and `.facetedBackground()` on the `List`
+
+Do **NOT** use `.background(.ultraThinMaterial, ...)` for card/section backgrounds — that is the old pattern. Reserve `.ultraThinMaterial` only for small UI chrome (capsule-shaped pills, circular map buttons, toast overlays).
+
+**Glass effect pitfalls:**
+
 - Separate `.glassEffect()` calls on adjacent views create **visible background seams**. Use `.ultraThinMaterial` for elements that need to look continuous (e.g., CommandRail + LiveStatusBar).
 
 **Quad-Platform Requirement (Mac, iPad, iPhone, Apple Watch):**
