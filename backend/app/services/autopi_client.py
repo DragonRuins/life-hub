@@ -37,7 +37,7 @@ def _base_url():
 def _headers():
     """Build request headers with Bearer token authorization."""
     return {
-        'Authorization': f'Bearer {_api_token()}',
+        'Authorization': f'APIToken {_api_token()}',
         'Content-Type': 'application/json',
     }
 
