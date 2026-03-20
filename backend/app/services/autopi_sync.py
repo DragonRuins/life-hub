@@ -101,8 +101,6 @@ def sync_device():
         release = data.get('release') or {}
         device.firmware = release.get('version')
 
-        device.last_synced_at = _utcnow()
-
         db.session.commit()
         logger.info(f"AutoPi device sync: {device.label or device_uuid} updated")
         return device
@@ -603,9 +601,16 @@ def _run_sync():
 
     with _app.app_context():
         try:
+            # Capture the sync window BEFORE updating device (which sets last_synced_at to now)
+            device = AutoPiDevice.query.first()
+            since = _ensure_naive(device.last_synced_at) if device else None
+
             device = sync_device()
             if device:
-                sync_positions(device)
-                sync_obd_snapshots(device)
+                sync_positions(device, since=since)
+                sync_obd_snapshots(device, since=since)
+                # Update last_synced_at AFTER data is fetched (not before)
+                device.last_synced_at = _utcnow()
+                db.session.commit()
         except Exception as e:
             logger.error(f"AutoPi sync cycle failed: {e}")
