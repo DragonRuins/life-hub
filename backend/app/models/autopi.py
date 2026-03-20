@@ -55,6 +55,35 @@ class AutoPiOBDSnapshot(db.Model):
         }
 
 
+class AutoPiEvent(db.Model):
+    """A parsed event from the AutoPi device (system, vehicle, etc.)."""
+    __tablename__ = 'autopi_events'
+    __table_args__ = (
+        db.Index('idx_autopi_events_device_time', 'device_id', 'recorded_at'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    device_id = db.Column(db.Integer, db.ForeignKey('autopi_devices.id', ondelete='CASCADE'), nullable=False)
+    recorded_at = db.Column(db.DateTime, nullable=False)
+    area = db.Column(db.String(200), nullable=False)      # e.g. "system/power", "vehicle/battery", "vehicle/position"
+    event = db.Column(db.String(100), nullable=False)      # e.g. "hibernate", "critical_level", "standstill"
+    data = db.Column(db.Text, nullable=True)               # JSON string of extra data fields
+    tag = db.Column(db.String(200), nullable=True)         # raw @tag value
+
+    device = db.relationship('AutoPiDevice', backref=db.backref('events', lazy='dynamic'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'device_id': self.device_id,
+            'recorded_at': self.recorded_at.isoformat() + 'Z' if self.recorded_at else None,
+            'area': self.area,
+            'event': self.event,
+            'data': self.data,
+            'tag': self.tag,
+        }
+
+
 class AutoPiWebhookLog(db.Model):
     """Raw webhook delivery log entry. Auto-purged after 30 days."""
     __tablename__ = 'autopi_webhook_logs'

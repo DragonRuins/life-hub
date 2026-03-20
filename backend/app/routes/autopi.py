@@ -393,6 +393,43 @@ def webhook():
     })
 
 
+# -- Event Endpoints ----------------------------------------------------------
+
+@autopi_bp.route('/events', methods=['GET'])
+def list_events():
+    """List AutoPi device events, newest-first.
+
+    Query params:
+      - limit (int, default 100, max 500)
+      - offset (int, default 0)
+      - area (string, optional) — filter by area prefix
+
+    Returns: {events: [...], total: int}
+    """
+    from app.models.autopi import AutoPiEvent
+
+    device = AutoPiDevice.query.first()
+    if not device:
+        return jsonify({'events': [], 'total': 0})
+
+    query = AutoPiEvent.query.filter_by(device_id=device.id)
+
+    area = request.args.get('area')
+    if area:
+        query = query.filter(AutoPiEvent.area.startswith(area))
+
+    total = query.count()
+    limit = min(max(1, request.args.get('limit', 100, type=int)), 500)
+    offset = max(0, request.args.get('offset', 0, type=int))
+
+    events = query.order_by(AutoPiEvent.recorded_at.desc()).offset(offset).limit(limit).all()
+
+    return jsonify({
+        'events': [e.to_dict() for e in events],
+        'total': total,
+    })
+
+
 # -- Webhook Log Endpoints ----------------------------------------------------
 
 @autopi_bp.route('/webhook/logs', methods=['GET'])

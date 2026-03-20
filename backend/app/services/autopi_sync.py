@@ -477,6 +477,7 @@ def ingest_webhook(payload):
 
     new_positions = 0
     new_snapshots = 0
+    new_events = 0
 
     for record in payload:
         record_type = record.get('@t', '')
@@ -491,9 +492,9 @@ def ingest_webhook(payload):
         elif record_type.startswith('obd.') or record_type.startswith('rpi.') or record_type.startswith('reactor.') or record_type in _KNOWN_OBD_FIELDS:
             new_snapshots += _ingest_obd_record(device, record, record_type, ts)
 
-        # Events and other types are logged but not stored (for now)
         elif record_type.startswith('event.'):
-            logger.debug(f"AutoPi event: {record_type} tag={record.get('@tag', '')}")
+            if _ingest_event(device, record, record_type, ts):
+                new_events += 1
 
     try:
         db.session.commit()
@@ -506,9 +507,9 @@ def ingest_webhook(payload):
     device.last_synced_at = _utcnow()
     db.session.commit()
 
-    total = new_positions + new_snapshots
+    total = new_positions + new_snapshots + new_events
     if total:
-        logger.info(f"AutoPi webhook: {new_positions} position(s), {new_snapshots} OBD snapshot(s)")
+        logger.info(f"AutoPi webhook: {new_positions} position(s), {new_snapshots} OBD snapshot(s), {new_events} event(s)")
 
     return total
 
@@ -619,6 +620,51 @@ def _ingest_obd_record(device, record, record_type, ts):
         _update_vehicle_mileage(device, latest_odometer)
 
     return count
+
+
+def _ingest_event(device, record, record_type, ts):
+    """Ingest an event record from a webhook push. Returns True if new."""
+    import json as json_module
+    from app.models.autopi import AutoPiEvent
+
+    tag = record.get('@tag', '')
+
+    # Parse area and event name from @tag
+    # @tag format: "system/power/hibernate" -> area="system/power", event="hibernate"
+    # @t format: "event.system.power" -> fallback area="system/power"
+    if tag:
+        parts = tag.rsplit('/', 1)
+        area = parts[0] if len(parts) > 1 else tag
+        event_name = parts[1] if len(parts) > 1 else ''
+    else:
+        # Derive from @t: "event.system.power" -> "system/power"
+        area = record_type.replace('event.', '').replace('.', '/')
+        event_name = ''
+
+    # Extract data fields (everything except metadata)
+    skip_keys = {'@t', '@ts', '@tag', '@rec', '@uid', '@vid'}
+    data_fields = {k: v for k, v in record.items() if k not in skip_keys}
+    data_json = json_module.dumps(data_fields) if data_fields else None
+
+    # Deduplicate on (device_id, recorded_at, tag)
+    existing = AutoPiEvent.query.filter_by(
+        device_id=device.id,
+        recorded_at=ts,
+        tag=tag or None,
+    ).first()
+    if existing:
+        return False
+
+    event = AutoPiEvent(
+        device_id=device.id,
+        recorded_at=ts,
+        area=area,
+        event=event_name,
+        data=data_json,
+        tag=tag,
+    )
+    db.session.add(event)
+    return True
 
 
 def forward_to_autopi_cloud(raw_bytes, auth_header, content_encoding=''):
