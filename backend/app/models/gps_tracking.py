@@ -155,7 +155,8 @@ class Trak4Geofence(db.Model):
     __tablename__ = 'trak4_geofences'
 
     id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.Integer, db.ForeignKey('trak4_devices.id', ondelete='CASCADE'), nullable=False, index=True)
+    device_id = db.Column(db.Integer, db.ForeignKey('trak4_devices.id', ondelete='CASCADE'), nullable=True, index=True)
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicles.id', ondelete='CASCADE'), nullable=True, index=True)
     name = db.Column(db.String(100), nullable=False)
     shape = db.Column(db.String(10), nullable=False, default='circle')  # 'circle' or 'rectangle'
     center_lat = db.Column(db.Float, nullable=False)
@@ -172,11 +173,14 @@ class Trak4Geofence(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     device = db.relationship('Trak4Device', backref=db.backref('geofences', lazy='dynamic', cascade='all, delete-orphan'))
+    vehicle = db.relationship('Vehicle', backref=db.backref('geofences', lazy='dynamic'))
 
     def to_dict(self):
         return {
             'id': self.id,
             'device_id': self.device_id,
+            'vehicle_id': self.vehicle_id,
+            'vehicle_name': self.vehicle.to_dict().get('display_name') if self.vehicle else None,
             'name': self.name,
             'shape': self.shape,
             'center_lat': self.center_lat,

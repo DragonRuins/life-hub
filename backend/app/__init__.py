@@ -730,6 +730,23 @@ END $$""",
                 ALTER TABLE maintenance_logs ALTER COLUMN mileage TYPE DOUBLE PRECISION USING mileage::double precision;
             END IF;
         END $$""",
+
+        # Geofence: make device_id nullable (vehicle-scoped fences have no device)
+        """ALTER TABLE trak4_geofences
+           ALTER COLUMN device_id DROP NOT NULL""",
+
+        # Geofence: add vehicle_id for device-agnostic geofences
+        """ALTER TABLE trak4_geofences
+           ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id) ON DELETE CASCADE""",
+
+        # Backfill vehicle_id from the device's vehicle assignment
+        """UPDATE trak4_geofences g
+           SET vehicle_id = d.vehicle_id
+           FROM trak4_devices d
+           WHERE g.device_id = d.id AND g.vehicle_id IS NULL AND d.vehicle_id IS NOT NULL""",
+
+        # Index on vehicle_id for geofence queries
+        """CREATE INDEX IF NOT EXISTS idx_trak4_geofences_vehicle ON trak4_geofences (vehicle_id)""",
     ]
 
     for sql in migrations:

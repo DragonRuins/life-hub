@@ -457,6 +457,100 @@ def delete_geofence(device_id, fence_id):
     return jsonify({'success': True})
 
 
+# ── Vehicle-Scoped Geofences (device-agnostic) ──────────────────
+
+@gps_bp.route('/vehicles/<int:vehicle_id>/geofences', methods=['GET'])
+def list_vehicle_geofences(vehicle_id):
+    """List all geofence zones for a vehicle (works with any device type)."""
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    fences = Trak4Geofence.query.filter_by(vehicle_id=vehicle.id).order_by(Trak4Geofence.created_at.desc()).all()
+    return jsonify({'geofences': [f.to_dict() for f in fences]})
+
+
+@gps_bp.route('/vehicles/<int:vehicle_id>/geofences', methods=['POST'])
+def create_vehicle_geofence(vehicle_id):
+    """Create a new geofence zone for a vehicle (device-agnostic)."""
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    data = request.get_json(silent=True) or {}
+
+    name = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'name is required'}), 400
+
+    shape = data.get('shape', 'circle')
+    if shape not in ('circle', 'rectangle'):
+        return jsonify({'error': 'shape must be circle or rectangle'}), 400
+
+    center_lat = data.get('center_lat')
+    center_lng = data.get('center_lng')
+    if center_lat is None or center_lng is None:
+        return jsonify({'error': 'center_lat and center_lng are required'}), 400
+
+    fence = Trak4Geofence(
+        vehicle_id=vehicle.id,
+        name=name,
+        shape=shape,
+        center_lat=float(center_lat),
+        center_lng=float(center_lng),
+        radius_meters=data.get('radius_meters'),
+        width_meters=data.get('width_meters'),
+        height_meters=data.get('height_meters'),
+        alert_on_entry=data.get('alert_on_entry', True),
+        alert_on_exit=data.get('alert_on_exit', True),
+        enabled=data.get('enabled', True),
+    )
+    db.session.add(fence)
+    db.session.commit()
+    return jsonify({'geofence': fence.to_dict()}), 201
+
+
+@gps_bp.route('/vehicles/<int:vehicle_id>/geofences/<int:fence_id>', methods=['PUT'])
+def update_vehicle_geofence(vehicle_id, fence_id):
+    """Update a vehicle-scoped geofence zone."""
+    Vehicle.query.get_or_404(vehicle_id)
+    fence = Trak4Geofence.query.get_or_404(fence_id)
+    if fence.vehicle_id != vehicle_id:
+        return jsonify({'error': 'Geofence does not belong to this vehicle'}), 404
+
+    data = request.get_json(silent=True) or {}
+    if 'name' in data:
+        fence.name = data['name'].strip()
+    if 'shape' in data and data['shape'] in ('circle', 'rectangle'):
+        fence.shape = data['shape']
+    if 'center_lat' in data:
+        fence.center_lat = float(data['center_lat'])
+    if 'center_lng' in data:
+        fence.center_lng = float(data['center_lng'])
+    if 'radius_meters' in data:
+        fence.radius_meters = data['radius_meters']
+    if 'width_meters' in data:
+        fence.width_meters = data['width_meters']
+    if 'height_meters' in data:
+        fence.height_meters = data['height_meters']
+    if 'alert_on_entry' in data:
+        fence.alert_on_entry = bool(data['alert_on_entry'])
+    if 'alert_on_exit' in data:
+        fence.alert_on_exit = bool(data['alert_on_exit'])
+    if 'enabled' in data:
+        fence.enabled = bool(data['enabled'])
+
+    db.session.commit()
+    return jsonify({'geofence': fence.to_dict()})
+
+
+@gps_bp.route('/vehicles/<int:vehicle_id>/geofences/<int:fence_id>', methods=['DELETE'])
+def delete_vehicle_geofence(vehicle_id, fence_id):
+    """Delete a vehicle-scoped geofence zone."""
+    Vehicle.query.get_or_404(vehicle_id)
+    fence = Trak4Geofence.query.get_or_404(fence_id)
+    if fence.vehicle_id != vehicle_id:
+        return jsonify({'error': 'Geofence does not belong to this vehicle'}), 404
+
+    db.session.delete(fence)
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 @gps_bp.route('/sync', methods=['POST'])
 def trigger_sync():
     """Trigger a manual sync of devices and reports.

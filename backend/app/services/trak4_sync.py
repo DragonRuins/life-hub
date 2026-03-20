@@ -565,7 +565,13 @@ def check_geofences(device, lat, lng):
     from app.models.gps_tracking import Trak4Geofence
     from app.services.event_bus import emit
 
-    fences = Trak4Geofence.query.filter_by(device_id=device.id, enabled=True).all()
+    fences = Trak4Geofence.query.filter(
+        Trak4Geofence.enabled == True,
+        db.or_(
+            Trak4Geofence.device_id == device.id,
+            Trak4Geofence.vehicle_id == device.vehicle_id,
+        )
+    ).all() if device.vehicle_id else Trak4Geofence.query.filter_by(device_id=device.id, enabled=True).all()
     for fence in fences:
         inside = _is_inside_geofence(lat, lng, fence)
         new_state = 'inside' if inside else 'outside'
