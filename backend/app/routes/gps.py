@@ -574,6 +574,7 @@ def tracked_vehicles():
         vehicles.append({
             'vehicle_id': device.vehicle_id,
             'vehicle_name': f"{device.vehicle.year} {device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
+            'short_name': f"{device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
             'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
             'device_type': 'trak4',
             'device_id': device.id,
@@ -587,6 +588,7 @@ def tracked_vehicles():
         vehicles.append({
             'vehicle_id': device.vehicle_id,
             'vehicle_name': f"{device.vehicle.year} {device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
+            'short_name': f"{device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
             'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
             'device_type': 'autopi',
             'device_id': device.id,
@@ -595,6 +597,7 @@ def tracked_vehicles():
             'last_report_time': device.last_report_time.isoformat() + 'Z' if device.last_report_time else None,
         })
 
+    vehicles.sort(key=lambda v: v['vehicle_id'])
     return jsonify({'vehicles': vehicles})
 
 
