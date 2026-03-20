@@ -4,12 +4,15 @@ GPS Tracking Module - API Routes
 Proxies the Trak-4 GPS Tracking REST API and serves cached data from PostgreSQL.
 All Trak-4 API calls are made server-side (API key never exposed to clients).
 
-Read endpoints (6):
+Read endpoints (10):
   GET /devices                     → List all tracked devices
   GET /devices/<id>                → Single device detail
   GET /devices/<id>/reports        → GPS report history (paginated, date-filtered)
   GET /devices/<id>/route          → Optimized route polyline (lightweight)
   GET /devices/<id>/frequencies    → Available reporting frequencies
+  GET /tracked-vehicles            → All vehicles with any GPS device (unified)
+  GET /autopi/<id>/reports         → AutoPi position report history
+  GET /autopi/<id>/route           → AutoPi optimized route polyline
   GET /sync/status                 → Current sync status
 
 Write endpoints (6):
@@ -549,6 +552,117 @@ def delete_vehicle_geofence(vehicle_id, fence_id):
     db.session.delete(fence)
     db.session.commit()
     return jsonify({'success': True})
+
+
+# ── Tracked Vehicles (unified, device-agnostic) ─────────────────
+
+@gps_bp.route('/tracked-vehicles', methods=['GET'])
+def tracked_vehicles():
+    """List all vehicles with a GPS tracking device assigned.
+
+    Returns unified list regardless of device type (Trak-4 or AutoPi).
+    The Apple app's vehicle selector uses this.
+
+    Returns: {"vehicles": [...]}
+    """
+    from app.models.gps_tracking import AutoPiDevice
+
+    vehicles = []
+
+    # Trak-4 devices with vehicle assigned
+    for device in Trak4Device.query.filter(Trak4Device.vehicle_id.isnot(None)).all():
+        vehicles.append({
+            'vehicle_id': device.vehicle_id,
+            'vehicle_name': device.vehicle.to_dict().get('display_name') if device.vehicle else None,
+            'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
+            'device_type': 'trak4',
+            'device_id': device.id,
+            'latitude': device.last_latitude,
+            'longitude': device.last_longitude,
+            'last_report_time': device.last_report_time.isoformat() + 'Z' if device.last_report_time else None,
+        })
+
+    # AutoPi devices with vehicle assigned
+    for device in AutoPiDevice.query.filter(AutoPiDevice.vehicle_id.isnot(None)).all():
+        vehicles.append({
+            'vehicle_id': device.vehicle_id,
+            'vehicle_name': device.vehicle.to_dict().get('display_name') if device.vehicle else None,
+            'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
+            'device_type': 'autopi',
+            'device_id': device.id,
+            'latitude': device.last_latitude,
+            'longitude': device.last_longitude,
+            'last_report_time': device.last_report_time.isoformat() + 'Z' if device.last_report_time else None,
+        })
+
+    return jsonify({'vehicles': vehicles})
+
+
+# ── AutoPi Position Endpoints ───────────────────────────────────
+
+@gps_bp.route('/autopi/<int:device_id>/reports', methods=['GET'])
+def get_autopi_reports(device_id):
+    """Get position report history for an AutoPi device.
+
+    Query params:
+      - start (ISO datetime) — filter reports on or after this time
+      - end (ISO datetime) — filter reports on or before this time
+      - limit (int, default 500, max 5000)
+      - offset (int, default 0)
+
+    Returns: {"reports": [...], "total": N}
+    """
+    from app.models.gps_tracking import AutoPiDevice, AutoPiPositionReport
+
+    device = AutoPiDevice.query.get_or_404(device_id)
+    query = AutoPiPositionReport.query.filter_by(device_id=device.id)
+
+    start = _parse_dt(request.args.get('start'))
+    if start:
+        query = query.filter(AutoPiPositionReport.recorded_at >= start)
+    end = _parse_dt(request.args.get('end'))
+    if end:
+        query = query.filter(AutoPiPositionReport.recorded_at <= end)
+
+    total = query.count()
+    limit = _parse_limit(request.args.get('limit', 500))
+    offset = max(0, request.args.get('offset', 0, type=int))
+
+    reports = query.order_by(AutoPiPositionReport.recorded_at.desc()) \
+        .offset(offset).limit(limit).all()
+
+    return jsonify({'reports': [r.to_dict() for r in reports], 'total': total})
+
+
+@gps_bp.route('/autopi/<int:device_id>/route', methods=['GET'])
+def get_autopi_route(device_id):
+    """Get optimized route polyline data for an AutoPi device.
+
+    Uses to_route_point() for lightweight lat/lng/time/speed dicts.
+
+    Query params:
+      - start (ISO datetime, required)
+      - end (ISO datetime, optional — defaults to now)
+
+    Returns: {"points": [...]}
+    """
+    from app.models.gps_tracking import AutoPiDevice, AutoPiPositionReport
+
+    device = AutoPiDevice.query.get_or_404(device_id)
+
+    start = _parse_dt(request.args.get('start'))
+    if not start:
+        return jsonify({'error': 'start parameter is required'}), 400
+    end = _parse_dt(request.args.get('end')) or datetime.utcnow()
+
+    reports = AutoPiPositionReport.query.filter_by(device_id=device.id) \
+        .filter(AutoPiPositionReport.recorded_at >= start) \
+        .filter(AutoPiPositionReport.recorded_at <= end) \
+        .filter(AutoPiPositionReport.latitude.isnot(None)) \
+        .order_by(AutoPiPositionReport.recorded_at.asc()) \
+        .all()
+
+    return jsonify({'points': [r.to_route_point() for r in reports]})
 
 
 @gps_bp.route('/sync', methods=['POST'])
