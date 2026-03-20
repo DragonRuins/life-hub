@@ -43,6 +43,11 @@ class Config:
     TRAK4_API_KEY = os.environ.get('TRAK4_API_KEY', '')
     TRAK4_API_BASE = 'https://api-v3.trak-4.com'
 
+    # AutoPi Cloud API
+    AUTOPI_API_TOKEN = os.environ.get('AUTOPI_API_TOKEN', '')
+    AUTOPI_DEVICE_ID = os.environ.get('AUTOPI_DEVICE_ID', '')
+    AUTOPI_SYNC_INTERVAL = int(os.environ.get('AUTOPI_SYNC_INTERVAL', 300))
+
     # Attachment storage for the notes module
     UPLOAD_DIR = os.environ.get('UPLOAD_DIR', '/app/uploads')
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_UPLOAD_SIZE', 50 * 1024 * 1024))  # 50MB default
