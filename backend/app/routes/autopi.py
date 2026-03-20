@@ -368,8 +368,8 @@ def webhook():
         error_msg = str(e)
         count = 0
 
-    # Forward to AutoPi Cloud (non-blocking, errors logged but don't fail)
-    forward_to_autopi_cloud(payload, auth_header)
+    # Forward raw gzip bytes to AutoPi Cloud (preserves original format)
+    forward_to_autopi_cloud(raw_bytes, auth_header, content_encoding)
 
     # Log the delivery
     log_entry = AutoPiWebhookLog(

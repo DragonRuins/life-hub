@@ -488,7 +488,7 @@ def ingest_webhook(payload):
             if _ingest_position(device, record, ts):
                 new_positions += 1
 
-        elif record_type.startswith('obd.') or record_type in _KNOWN_OBD_FIELDS:
+        elif record_type.startswith('obd.') or record_type.startswith('rpi.') or record_type.startswith('reactor.') or record_type in _KNOWN_OBD_FIELDS:
             new_snapshots += _ingest_obd_record(device, record, record_type, ts)
 
         # Events and other types are logged but not stored (for now)
@@ -621,9 +621,10 @@ def _ingest_obd_record(device, record, record_type, ts):
     return count
 
 
-def forward_to_autopi_cloud(payload, auth_header):
+def forward_to_autopi_cloud(raw_bytes, auth_header, content_encoding=''):
     """
-    Forward the raw webhook payload to AutoPi Cloud so their dashboard stays updated.
+    Forward the raw webhook bytes to AutoPi Cloud so their dashboard stays updated.
+    Sends the original gzip-compressed data to preserve the exact format.
     Non-blocking — errors are logged but don't affect our ingestion.
     """
     import requests as req
@@ -632,17 +633,19 @@ def forward_to_autopi_cloud(payload, auth_header):
         headers = {'Content-Type': 'application/json'}
         if auth_header:
             headers['Authorization'] = auth_header
+        if content_encoding:
+            headers['Content-Encoding'] = content_encoding
 
         resp = req.post(
             'https://api.autopi.io/logbook/storage',
-            json=payload,
+            data=raw_bytes,
             headers=headers,
             timeout=10,
         )
         if resp.status_code >= 400:
             logger.warning(f"AutoPi Cloud forward failed: {resp.status_code} {resp.text[:200]}")
         else:
-            logger.debug(f"AutoPi Cloud forward OK: {resp.status_code}")
+            logger.info(f"AutoPi Cloud forward OK: {resp.status_code}")
     except Exception as e:
         logger.warning(f"AutoPi Cloud forward error: {e}")
 
