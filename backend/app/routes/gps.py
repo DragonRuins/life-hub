@@ -573,7 +573,7 @@ def tracked_vehicles():
     for device in Trak4Device.query.filter(Trak4Device.vehicle_id.isnot(None)).all():
         vehicles.append({
             'vehicle_id': device.vehicle_id,
-            'vehicle_name': device.vehicle.to_dict().get('display_name') if device.vehicle else None,
+            'vehicle_name': f"{device.vehicle.year} {device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
             'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
             'device_type': 'trak4',
             'device_id': device.id,
@@ -586,7 +586,7 @@ def tracked_vehicles():
     for device in AutoPiDevice.query.filter(AutoPiDevice.vehicle_id.isnot(None)).all():
         vehicles.append({
             'vehicle_id': device.vehicle_id,
-            'vehicle_name': device.vehicle.to_dict().get('display_name') if device.vehicle else None,
+            'vehicle_name': f"{device.vehicle.year} {device.vehicle.make} {device.vehicle.model}".strip() if device.vehicle else None,
             'vehicle_type': device.vehicle.vehicle_type if device.vehicle else None,
             'device_type': 'autopi',
             'device_id': device.id,
