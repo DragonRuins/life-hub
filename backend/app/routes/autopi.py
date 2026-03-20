@@ -320,14 +320,28 @@ def webhook():
         db.session.commit()
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # Log raw request details for debugging
-    content_type = request.headers.get('Content-Type', 'none')
-    content_length = request.headers.get('Content-Length', '0')
-    content_encoding = request.headers.get('Content-Encoding', 'none')
-    raw_data = request.get_data(as_text=True)
-    logger.info(f"AutoPi webhook: type={content_type} len={content_length} encoding={content_encoding} raw_len={len(raw_data)} raw_preview={raw_data[:200]}")
+    # Handle gzip-compressed payloads (AutoPi sends compressed data)
+    import gzip
+    import json as json_module
 
-    payload = request.get_json(silent=True) or []
+    content_encoding = request.headers.get('Content-Encoding', '')
+    content_type = request.headers.get('Content-Type', '')
+    raw_bytes = request.get_data()
+
+    logger.info(f"AutoPi webhook: type={content_type} encoding={content_encoding} raw_bytes={len(raw_bytes)}")
+
+    payload = []
+    try:
+        if content_encoding == 'gzip' or (raw_bytes[:2] == b'\x1f\x8b'):
+            # Decompress gzip data
+            decompressed = gzip.decompress(raw_bytes)
+            payload = json_module.loads(decompressed)
+            logger.info(f"AutoPi webhook: decompressed {len(raw_bytes)} → {len(decompressed)} bytes, {len(payload) if isinstance(payload, list) else 1} record(s)")
+        else:
+            payload = request.get_json(silent=True) or []
+    except Exception as e:
+        logger.error(f"AutoPi webhook payload decode error: {e}")
+        payload = []
     records = payload if isinstance(payload, list) else [payload]
 
     # Count record types for the log
