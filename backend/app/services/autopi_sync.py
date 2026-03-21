@@ -729,14 +729,23 @@ def get_sync_status():
     device_uuid = autopi_client._device_id()
     device = AutoPiDevice.query.filter_by(device_id=device_uuid).first() if device_uuid else None
 
+    from app.models.autopi import AutoPiEvent
+
     position_count = AutoPiPositionReport.query.count()
     obd_count = AutoPiOBDSnapshot.query.count()
+    event_count = AutoPiEvent.query.count() if device else 0
 
-    # Positions received today (UTC midnight boundary)
+    # Today counts (UTC midnight boundary)
     today_start = datetime.combine(datetime.utcnow().date(), datetime.min.time())
     positions_today = AutoPiPositionReport.query.filter(
         AutoPiPositionReport.recorded_at >= today_start
     ).count()
+    obd_today = AutoPiOBDSnapshot.query.filter(
+        AutoPiOBDSnapshot.recorded_at >= today_start
+    ).count()
+    events_today = AutoPiEvent.query.filter(
+        AutoPiEvent.recorded_at >= today_start
+    ).count() if device else 0
 
     return {
         'device_id': device.device_id if device else None,
@@ -750,6 +759,9 @@ def get_sync_status():
         'total_positions': position_count,
         'positions_today': positions_today,
         'total_obd_snapshots': obd_count,
+        'obd_today': obd_today,
+        'total_events': event_count,
+        'events_today': events_today,
     }
 
 
