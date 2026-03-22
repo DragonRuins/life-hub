@@ -735,8 +735,9 @@ def get_sync_status():
     obd_count = AutoPiOBDSnapshot.query.count()
     event_count = AutoPiEvent.query.count() if device else 0
 
-    # Today counts (UTC midnight boundary)
-    today_start = datetime.combine(datetime.utcnow().date(), datetime.min.time())
+    # Today counts — use last 24h window instead of UTC midnight
+    # (avoids timezone mismatch where "today" resets at 6/7pm for US Central users)
+    today_start = _utcnow() - timedelta(hours=24)
     positions_today = AutoPiPositionReport.query.filter(
         AutoPiPositionReport.recorded_at >= today_start
     ).count()
