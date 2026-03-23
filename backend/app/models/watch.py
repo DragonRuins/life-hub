@@ -78,6 +78,48 @@ class Watch(db.Model):
         # Last reading (latest reference_time) has the most recent offset
         return active.readings[-1].offset_seconds
 
+    def _overall_avg_rate(self):
+        """Weighted average of avg_rate across ALL periods with rated readings.
+
+        For closed periods, uses the cached avg_rate and total_readings.
+        For the active period, computes live from readings since stats aren't cached yet.
+        Weight = number of readings that have a non-null rate, so the result is
+        the true mean rate across the watch's entire history.
+        """
+        weighted_sum = 0.0
+        total_weight = 0
+
+        for period in self.periods:
+            if period.ended_at is not None:
+                # Closed period: use cached stats
+                if period.avg_rate is not None and period.total_readings:
+                    # total_readings includes all readings, but avg_rate is from rated ones
+                    # Recount rated readings for accurate weighting
+                    rated = [r for r in period.readings if r.rate is not None]
+                    if rated:
+                        weighted_sum += period.avg_rate * len(rated)
+                        total_weight += len(rated)
+            else:
+                # Active period: compute live from readings
+                rates = [r.rate for r in period.readings if r.rate is not None]
+                if rates:
+                    weighted_sum += sum(rates)
+                    total_weight += len(rates)
+
+        return weighted_sum / total_weight if total_weight > 0 else None
+
+    def _overall_offset(self):
+        """Latest offset_seconds from the most recent reading across ANY period.
+
+        Periods are ordered newest-first; readings within each are chronological.
+        Returns the offset from the last reading of the most recent period that
+        has readings.
+        """
+        for period in self.periods:
+            if period.readings:
+                return period.readings[-1].offset_seconds
+        return None
+
     def to_dict(self, include_periods=False, include_services=False):
         """Convert to dictionary for JSON responses.
 
@@ -112,6 +154,9 @@ class Watch(db.Model):
             'current_offset': self._current_offset(active),
             'last_service_date': last_service.service_date.isoformat() if last_service else None,
             'period_count': len(self.periods),
+            # Overall stats across all periods (active + archived)
+            'overall_avg_rate': self._overall_avg_rate(),
+            'overall_offset': self._overall_offset(),
         }
 
         if include_periods:
